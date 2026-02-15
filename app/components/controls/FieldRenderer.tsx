@@ -63,6 +63,26 @@ export function FieldRenderer({ field, value, onChange }: FieldRendererProps) {
           subFields={field.subFields || []}
         />
       );
+    case "toggle":
+      return (
+        <div className="flex items-center justify-between">
+          <label className="text-xs font-medium text-muted-foreground">
+            {field.label}
+          </label>
+          <button
+            onClick={() => onChange(!value)}
+            className={`relative h-5 w-9 rounded-full transition-colors ${
+              value ? "bg-primary" : "bg-muted"
+            }`}
+          >
+            <span
+              className={`absolute top-0.5 left-0.5 size-4 rounded-full bg-white transition-transform ${
+                value ? "translate-x-4" : "translate-x-0"
+              }`}
+            />
+          </button>
+        </div>
+      );
     default:
       return null;
   }

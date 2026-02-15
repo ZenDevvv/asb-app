@@ -2,8 +2,13 @@ import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
 import { nanoid } from "nanoid";
 import { SECTION_REGISTRY } from "~/config/sectionRegistry";
+import { BLOCK_REGISTRY } from "~/config/blockRegistry";
+import { getLayoutById } from "~/config/layoutTemplates";
 import type {
   Section,
+  Block,
+  BlockType,
+  BlockStyle,
   SectionType,
   SectionStyle,
   GlobalStyle,
@@ -22,7 +27,8 @@ const DEFAULT_GLOBAL_STYLE: GlobalStyle = {
 
 const initialState: EditorState = {
   sections: [],
-  selectedId: null,
+  selectedSectionId: null,
+  selectedBlockId: null,
   globalStyle: DEFAULT_GLOBAL_STYLE,
   history: [],
   future: [],
@@ -38,15 +44,25 @@ export const useEditorStore = create<EditorState & EditorActions>()(
 
     // ─── Section CRUD ─────────────────────────────────────────────
 
-    addSection: (type: SectionType, variant?: string, index?: number) => {
+    addSection: (type: SectionType, index?: number) => {
       const registry = SECTION_REGISTRY[type];
       if (!registry) return;
+
+      const layout = getLayoutById(registry.defaultLayoutId);
+      if (!layout) return;
+
+      const blocks: Block[] = registry.defaultBlocks.map((def) => ({
+        ...def,
+        id: nanoid(10),
+        props: { ...def.props },
+        style: { ...def.style },
+      }));
 
       const newSection: Section = {
         id: nanoid(10),
         type,
-        variant: variant || registry.variants[0]?.id || "default",
-        props: { ...registry.defaultProps },
+        layout: { ...layout },
+        blocks,
         style: { ...registry.defaultStyle },
         isVisible: true,
       };
@@ -59,7 +75,8 @@ export const useEditorStore = create<EditorState & EditorActions>()(
         } else {
           state.sections.push(newSection);
         }
-        state.selectedId = newSection.id;
+        state.selectedSectionId = newSection.id;
+        state.selectedBlockId = null;
         state.isDirty = true;
       });
     },
@@ -69,8 +86,9 @@ export const useEditorStore = create<EditorState & EditorActions>()(
         state.history.push(JSON.parse(JSON.stringify(state.sections)));
         state.future = [];
         state.sections = state.sections.filter((s) => s.id !== id);
-        if (state.selectedId === id) {
-          state.selectedId = null;
+        if (state.selectedSectionId === id) {
+          state.selectedSectionId = null;
+          state.selectedBlockId = null;
         }
         state.isDirty = true;
       });
@@ -85,12 +103,16 @@ export const useEditorStore = create<EditorState & EditorActions>()(
         state.future = [];
 
         const original = state.sections[idx];
-        const clone: Section = {
-          ...JSON.parse(JSON.stringify(original)),
+        const clone: Section = JSON.parse(JSON.stringify(original));
+        clone.id = nanoid(10);
+        clone.blocks = clone.blocks.map((b: Block) => ({
+          ...b,
           id: nanoid(10),
-        };
+        }));
+
         state.sections.splice(idx + 1, 0, clone);
-        state.selectedId = clone.id;
+        state.selectedSectionId = clone.id;
+        state.selectedBlockId = null;
         state.isDirty = true;
       });
     },
@@ -99,7 +121,6 @@ export const useEditorStore = create<EditorState & EditorActions>()(
       set((state) => {
         state.history.push(JSON.parse(JSON.stringify(state.sections)));
         state.future = [];
-
         const [moved] = state.sections.splice(fromIndex, 1);
         state.sections.splice(toIndex, 0, moved);
         state.isDirty = true;
@@ -118,23 +139,62 @@ export const useEditorStore = create<EditorState & EditorActions>()(
       });
     },
 
-    // ─── Selection ────────────────────────────────────────────────
+    // ─── Selection (two levels) ───────────────────────────────────
 
     selectSection: (id: string | null) => {
       set((state) => {
-        state.selectedId = id;
+        state.selectedSectionId = id;
+        state.selectedBlockId = null;
+      });
+    },
+
+    selectBlock: (sectionId: string | null, blockId: string | null) => {
+      set((state) => {
+        state.selectedSectionId = sectionId;
+        state.selectedBlockId = blockId;
       });
     },
 
     // ─── Section Updates ──────────────────────────────────────────
 
-    updateSectionProp: (id: string, key: string, value: unknown) => {
+    updateSectionLayout: (sectionId: string, layoutId: string) => {
+      const layout = getLayoutById(layoutId);
+      if (!layout) return;
+
       set((state) => {
-        const section = state.sections.find((s) => s.id === id);
-        if (section) {
-          section.props[key] = value;
-          state.isDirty = true;
+        const section = state.sections.find((s) => s.id === sectionId);
+        if (!section) return;
+
+        state.history.push(JSON.parse(JSON.stringify(state.sections)));
+        state.future = [];
+
+        const oldSlots = section.layout.slots;
+        const newSlots = layout.slots;
+
+        if (oldSlots.length !== newSlots.length || oldSlots.some((s, i) => s !== newSlots[i])) {
+          if (newSlots.length === 1) {
+            let order = 0;
+            section.blocks.forEach((b) => {
+              b.slot = newSlots[0];
+              b.order = order++;
+            });
+          } else if (oldSlots.length === 1) {
+            section.blocks.forEach((b) => {
+              b.slot = newSlots[0];
+            });
+          } else {
+            const mapping: Record<string, string> = {};
+            oldSlots.forEach((old, i) => {
+              mapping[old] = newSlots[Math.min(i, newSlots.length - 1)];
+            });
+            section.blocks.forEach((b) => {
+              b.slot = mapping[b.slot] || newSlots[0];
+            });
+          }
         }
+
+        section.layout = { ...layout };
+        state.isDirty = true;
       });
     },
 
@@ -148,13 +208,91 @@ export const useEditorStore = create<EditorState & EditorActions>()(
       });
     },
 
-    updateSectionVariant: (id: string, variant: string) => {
+    // ─── Block CRUD ───────────────────────────────────────────────
+
+    addBlock: (sectionId: string, blockType: BlockType, slot?: string) => {
+      const blockEntry = BLOCK_REGISTRY[blockType];
+      if (!blockEntry) return;
+
       set((state) => {
-        const section = state.sections.find((s) => s.id === id);
-        if (section) {
-          state.history.push(JSON.parse(JSON.stringify(state.sections)));
-          state.future = [];
-          section.variant = variant;
+        const section = state.sections.find((s) => s.id === sectionId);
+        if (!section) return;
+
+        state.history.push(JSON.parse(JSON.stringify(state.sections)));
+        state.future = [];
+
+        const targetSlot = slot || section.layout.slots[0];
+        const slotsBlocks = section.blocks.filter((b) => b.slot === targetSlot);
+        const maxOrder = slotsBlocks.length > 0
+          ? Math.max(...slotsBlocks.map((b) => b.order))
+          : -1;
+
+        const newBlock: Block = {
+          id: nanoid(10),
+          type: blockType,
+          slot: targetSlot,
+          order: maxOrder + 1,
+          props: { ...blockEntry.defaultProps },
+          style: { ...blockEntry.defaultStyle },
+        };
+
+        section.blocks.push(newBlock);
+        state.selectedBlockId = newBlock.id;
+        state.selectedSectionId = sectionId;
+        state.isDirty = true;
+      });
+    },
+
+    removeBlock: (sectionId: string, blockId: string) => {
+      set((state) => {
+        const section = state.sections.find((s) => s.id === sectionId);
+        if (!section) return;
+
+        state.history.push(JSON.parse(JSON.stringify(state.sections)));
+        state.future = [];
+        section.blocks = section.blocks.filter((b) => b.id !== blockId);
+        if (state.selectedBlockId === blockId) {
+          state.selectedBlockId = null;
+        }
+        state.isDirty = true;
+      });
+    },
+
+    reorderBlocks: (sectionId: string, fromIndex: number, toIndex: number) => {
+      set((state) => {
+        const section = state.sections.find((s) => s.id === sectionId);
+        if (!section) return;
+
+        state.history.push(JSON.parse(JSON.stringify(state.sections)));
+        state.future = [];
+        const [moved] = section.blocks.splice(fromIndex, 1);
+        section.blocks.splice(toIndex, 0, moved);
+        section.blocks.forEach((b, i) => {
+          b.order = i;
+        });
+        state.isDirty = true;
+      });
+    },
+
+    updateBlockProp: (sectionId: string, blockId: string, key: string, value: unknown) => {
+      set((state) => {
+        const section = state.sections.find((s) => s.id === sectionId);
+        if (!section) return;
+        const block = section.blocks.find((b) => b.id === blockId);
+        if (block) {
+          block.props[key] = value;
+          state.isDirty = true;
+        }
+      });
+    },
+
+    updateBlockStyle: (sectionId: string, blockId: string, style: Partial<BlockStyle>) => {
+      set((state) => {
+        const section = state.sections.find((s) => s.id === sectionId);
+        if (!section) return;
+        const block = section.blocks.find((b) => b.id === blockId);
+        if (block) {
+          Object.assign(block.style, style);
           state.isDirty = true;
         }
       });
@@ -239,8 +377,17 @@ export const useEditorStore = create<EditorState & EditorActions>()(
         const raw = localStorage.getItem(STORAGE_KEY);
         if (raw) {
           const data = JSON.parse(raw);
+          const sections = data.sections || [];
+
+          // Detect old variant-based format and discard it
+          const isOldFormat = sections.length > 0 && sections[0].variant !== undefined && !sections[0].blocks;
+          if (isOldFormat) {
+            localStorage.removeItem(STORAGE_KEY);
+            return;
+          }
+
           set((state) => {
-            state.sections = data.sections || [];
+            state.sections = sections;
             state.globalStyle = data.globalStyle || DEFAULT_GLOBAL_STYLE;
             state.isDirty = false;
           });
@@ -264,7 +411,8 @@ export const useEditorStore = create<EditorState & EditorActions>()(
         if (globalStyle) state.globalStyle = globalStyle;
         state.history = [];
         state.future = [];
-        state.selectedId = null;
+        state.selectedSectionId = null;
+        state.selectedBlockId = null;
         state.isDirty = false;
       });
     },

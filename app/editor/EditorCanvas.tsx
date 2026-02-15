@@ -1,12 +1,16 @@
 import { useEditorStore } from "~/stores/editorStore";
 import { SECTION_REGISTRY } from "~/config/sectionRegistry";
+import { SectionRenderer } from "~/sections/SectionRenderer";
 import { cn } from "~/lib/utils";
 
 export function EditorCanvas() {
   const sections = useEditorStore((s) => s.sections);
-  const selectedId = useEditorStore((s) => s.selectedId);
+  const selectedSectionId = useEditorStore((s) => s.selectedSectionId);
+  const selectedBlockId = useEditorStore((s) => s.selectedBlockId);
   const selectSection = useEditorStore((s) => s.selectSection);
-  const updateSectionProp = useEditorStore((s) => s.updateSectionProp);
+  const selectBlock = useEditorStore((s) => s.selectBlock);
+  const updateBlockProp = useEditorStore((s) => s.updateBlockProp);
+  const globalStyle = useEditorStore((s) => s.globalStyle);
   const device = useEditorStore((s) => s.device);
   const zoom = useEditorStore((s) => s.zoom);
   const setZoom = useEditorStore((s) => s.setZoom);
@@ -16,7 +20,6 @@ export function EditorCanvas() {
 
   return (
     <div className="relative flex flex-1 flex-col bg-background overflow-hidden">
-      {/* Scrollable canvas */}
       <div
         className="flex-1 overflow-auto p-8 minimal-scrollbar"
         onClick={(e) => {
@@ -52,8 +55,7 @@ export function EditorCanvas() {
               const registry = SECTION_REGISTRY[section.type];
               if (!registry) return null;
 
-              const Component = registry.component;
-              const isSelected = section.id === selectedId;
+              const isSelected = section.id === selectedSectionId;
 
               return (
                 <div
@@ -67,7 +69,6 @@ export function EditorCanvas() {
                     selectSection(section.id);
                   }}
                 >
-                  {/* Floating label */}
                   {isSelected && (
                     <div className="absolute top-0 left-1/2 z-10 -translate-x-1/2 -translate-y-1/2">
                       <div className="flex items-center gap-1.5 rounded-full bg-primary px-3 py-1 text-[10px] font-semibold text-primary-foreground shadow-md">
@@ -82,12 +83,17 @@ export function EditorCanvas() {
                     </div>
                   )}
 
-                  <Component
+                  <SectionRenderer
                     section={section}
+                    globalStyle={globalStyle}
                     isEditing={true}
-                    onUpdateProp={(key, value) =>
-                      updateSectionProp(section.id, key, value)
-                    }
+                    selectedBlockId={selectedBlockId}
+                    onBlockClick={(blockId) => {
+                      selectBlock(section.id, blockId);
+                    }}
+                    onUpdateBlockProp={(blockId, key, value) => {
+                      updateBlockProp(section.id, blockId, key, value);
+                    }}
                   />
                 </div>
               );

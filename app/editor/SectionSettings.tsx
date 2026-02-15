@@ -1,38 +1,62 @@
+import { useState } from "react";
 import { useEditorStore } from "~/stores/editorStore";
 import { SECTION_REGISTRY } from "~/config/sectionRegistry";
-import { FieldRenderer } from "~/components/controls/FieldRenderer";
+import { BLOCK_REGISTRY } from "~/config/blockRegistry";
+import { getLayoutsByIds } from "~/config/layoutTemplates";
 import { BackgroundControl } from "~/components/controls/BackgroundControl";
 import { ColorControl } from "~/components/controls/ColorControl";
+import { BlockSettings } from "./BlockSettings";
+import { AddBlockModal } from "./AddBlockModal";
 import { cn } from "~/lib/utils";
-import { useState } from "react";
 import type { SectionStyle } from "~/types/editor";
 
 export function SectionSettings() {
-  const selectedId = useEditorStore((s) => s.selectedId);
+  const selectedSectionId = useEditorStore((s) => s.selectedSectionId);
+  const selectedBlockId = useEditorStore((s) => s.selectedBlockId);
   const sections = useEditorStore((s) => s.sections);
-  const updateSectionProp = useEditorStore((s) => s.updateSectionProp);
   const updateSectionStyle = useEditorStore((s) => s.updateSectionStyle);
-  const updateSectionVariant = useEditorStore((s) => s.updateSectionVariant);
+  const updateSectionLayout = useEditorStore((s) => s.updateSectionLayout);
   const removeSection = useEditorStore((s) => s.removeSection);
   const duplicateSection = useEditorStore((s) => s.duplicateSection);
-  const pushHistory = useEditorStore((s) => s.pushHistory);
+  const removeBlock = useEditorStore((s) => s.removeBlock);
+  const selectBlock = useEditorStore((s) => s.selectBlock);
 
-  const section = sections.find((s) => s.id === selectedId);
+  const section = sections.find((s) => s.id === selectedSectionId);
   const registry = section ? SECTION_REGISTRY[section.type] : null;
 
+  const [addBlockOpen, setAddBlockOpen] = useState(false);
   const [openSections, setOpenSections] = useState({
-    variant: true,
-    content: true,
+    layout: true,
+    blocks: true,
     background: true,
   });
 
-  const togglePanel = (key: "variant" | "content" | "background") => {
+  const togglePanel = (key: "layout" | "blocks" | "background") => {
     setOpenSections((prev) => ({ ...prev, [key]: !prev[key] }));
   };
+
+  // If a block is selected, show BlockSettings
+  if (selectedBlockId && section) {
+    const block = section.blocks.find((b) => b.id === selectedBlockId);
+    if (block) {
+      return (
+        <BlockSettings
+          sectionId={section.id}
+          block={block}
+          onBack={() => selectBlock(section.id, null)}
+          onDelete={() => {
+            removeBlock(section.id, block.id);
+          }}
+        />
+      );
+    }
+  }
 
   if (!section || !registry) {
     return <GlobalSettingsPanel />;
   }
+
+  const allowedLayouts = getLayoutsByIds(registry.allowedLayouts);
 
   return (
     <div className="flex h-full w-[300px] shrink-0 flex-col border-l border-sidebar-border bg-sidebar">
@@ -70,56 +94,106 @@ export function SectionSettings() {
 
       {/* Scrollable content */}
       <div className="flex-1 overflow-y-auto px-4 py-3 minimal-scrollbar space-y-1">
-        {/* Variant Picker */}
+        {/* Layout Picker */}
         <CollapsibleSection
-          title="Layout Variant"
-          isOpen={openSections.variant}
-          onToggle={() => togglePanel("variant")}
+          title="Layout"
+          isOpen={openSections.layout}
+          onToggle={() => togglePanel("layout")}
         >
-          <div className="grid grid-cols-2 gap-2">
-            {registry.variants.map((v) => (
+          <div className="grid grid-cols-3 gap-2">
+            {allowedLayouts.map((layout) => (
               <button
-                key={v.id}
-                onClick={() => {
-                  pushHistory();
-                  updateSectionVariant(section.id, v.id);
-                }}
+                key={layout.id}
+                onClick={() => updateSectionLayout(section.id, layout.id)}
                 className={cn(
-                  "flex flex-col items-center rounded-xl border p-3 transition-colors",
-                  section.variant === v.id
+                  "flex flex-col items-center rounded-xl border p-2.5 transition-colors",
+                  section.layout.id === layout.id
                     ? "border-primary bg-primary/10 text-primary"
                     : "border-border bg-muted/20 text-muted-foreground hover:border-primary/30",
                 )}
               >
-                <div className="mb-1.5 flex size-12 items-center justify-center rounded-lg bg-muted/40">
-                  <span className="material-symbols-outlined" style={{ fontSize: 20 }}>
-                    {registry.icon}
-                  </span>
-                </div>
-                <span className="text-[10px] font-medium">{v.label}</span>
+                <LayoutThumbnail layout={layout} />
+                <span className="mt-1.5 text-[9px] font-medium leading-tight text-center">
+                  {layout.label}
+                </span>
               </button>
             ))}
           </div>
         </CollapsibleSection>
 
-        {/* Content */}
+        {/* Blocks List */}
         <CollapsibleSection
-          title="Content"
-          isOpen={openSections.content}
-          onToggle={() => togglePanel("content")}
+          title="Blocks"
+          isOpen={openSections.blocks}
+          onToggle={() => togglePanel("blocks")}
         >
-          <div className="space-y-3">
-            {registry.editableProps.map((field) => (
-              <FieldRenderer
-                key={field.key}
-                field={field}
-                value={section.props[field.key]}
-                onChange={(value) => {
-                  updateSectionProp(section.id, field.key, value);
-                }}
-              />
-            ))}
+          <div className="space-y-1">
+            {section.blocks
+              .slice()
+              .sort((a, b) => a.order - b.order)
+              .map((block) => {
+                const blockEntry = BLOCK_REGISTRY[block.type];
+                if (!blockEntry) return null;
+
+                const isBlockSelected = block.id === selectedBlockId;
+                const previewText = getBlockPreviewText(block.props);
+
+                return (
+                  <button
+                    key={block.id}
+                    onClick={() => selectBlock(section.id, block.id)}
+                    className={cn(
+                      "flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left transition-colors",
+                      isBlockSelected
+                        ? "bg-primary/10 border border-primary/30"
+                        : "border border-transparent hover:bg-sidebar-accent/60",
+                    )}
+                  >
+                    <div
+                      className={cn(
+                        "flex size-7 shrink-0 items-center justify-center rounded-md",
+                        isBlockSelected ? "bg-primary/20 text-primary" : "bg-sidebar-accent text-muted-foreground",
+                      )}
+                    >
+                      <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
+                        {blockEntry.icon}
+                      </span>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-[11px] font-medium text-sidebar-foreground">
+                        {blockEntry.label}
+                      </div>
+                      {previewText && (
+                        <div className="truncate text-[9px] text-muted-foreground">
+                          {previewText}
+                        </div>
+                      )}
+                    </div>
+                    {block.slot !== section.layout.slots[0] && (
+                      <span className="shrink-0 text-[8px] text-muted-foreground/60 uppercase">
+                        {block.slot}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            <button
+              onClick={() => setAddBlockOpen(true)}
+              className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-sidebar-border py-2 text-[11px] text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary"
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
+                add
+              </span>
+              Add Block
+            </button>
           </div>
+
+          <AddBlockModal
+            open={addBlockOpen}
+            onOpenChange={setAddBlockOpen}
+            sectionId={section.id}
+            sectionType={section.type}
+          />
         </CollapsibleSection>
 
         {/* Background */}
@@ -154,7 +228,54 @@ export function SectionSettings() {
   );
 }
 
-// ─── Collapsible Section ──────────────────────────────────────────────────
+// ─── Layout Thumbnail ────────────────────────────────────────────────────
+
+function LayoutThumbnail({ layout }: { layout: { columns: number; distribution: string } }) {
+  if (layout.columns === 1) {
+    return (
+      <div className="flex h-8 w-full items-center justify-center">
+        <div className="h-full w-full rounded bg-current opacity-20" />
+      </div>
+    );
+  }
+
+  if (layout.columns === 2) {
+    const [left, right] = layout.distribution.split("-").map(Number);
+    const total = left + right;
+    return (
+      <div className="flex h-8 w-full gap-0.5">
+        <div
+          className="h-full rounded bg-current opacity-20"
+          style={{ width: `${(left / total) * 100}%` }}
+        />
+        <div
+          className="h-full rounded bg-current opacity-20"
+          style={{ width: `${(right / total) * 100}%` }}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex h-8 w-full gap-0.5">
+      <div className="h-full flex-1 rounded bg-current opacity-20" />
+      <div className="h-full flex-1 rounded bg-current opacity-20" />
+      <div className="h-full flex-1 rounded bg-current opacity-20" />
+    </div>
+  );
+}
+
+// ─── Block Preview Text ──────────────────────────────────────────────────
+
+function getBlockPreviewText(props: Record<string, unknown>): string {
+  if (typeof props.text === "string") return props.text.slice(0, 40);
+  if (typeof props.icon === "string") return props.icon;
+  if (typeof props.src === "string" && props.src) return "Image";
+  if (Array.isArray(props.items)) return `${props.items.length} items`;
+  return "";
+}
+
+// ─── Collapsible Section ─────────────────────────────────────────────────
 
 function CollapsibleSection({
   title,

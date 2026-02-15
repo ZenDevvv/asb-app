@@ -26,7 +26,7 @@ interface SectionsListPanelProps {
 
 export function SectionsListPanel({ onAddSection }: SectionsListPanelProps) {
   const sections = useEditorStore((s) => s.sections);
-  const selectedId = useEditorStore((s) => s.selectedId);
+  const selectedSectionId = useEditorStore((s) => s.selectedSectionId);
   const selectSection = useEditorStore((s) => s.selectSection);
   const reorderSections = useEditorStore((s) => s.reorderSections);
   const toggleSectionVisibility = useEditorStore((s) => s.toggleSectionVisibility);
@@ -78,7 +78,7 @@ export function SectionsListPanel({ onAddSection }: SectionsListPanelProps) {
               <SortableSectionItem
                 key={section.id}
                 section={section}
-                isSelected={section.id === selectedId}
+                isSelected={section.id === selectedSectionId}
                 onSelect={() => selectSection(section.id)}
                 onToggleVisibility={() => toggleSectionVisibility(section.id)}
               />
@@ -125,8 +125,7 @@ function SortableSectionItem({
   };
 
   const registry = SECTION_REGISTRY[section.type];
-  const variantLabel =
-    registry?.variants.find((v) => v.id === section.variant)?.label || section.variant;
+  const layoutLabel = section.layout?.label || "Default";
 
   return (
     <div
@@ -170,7 +169,7 @@ function SortableSectionItem({
           {registry?.label || section.type}
         </div>
         <div className="truncate text-[10px] text-muted-foreground">
-          {isSelected ? "Active Editing" : variantLabel}
+          {layoutLabel}
         </div>
       </div>
 
