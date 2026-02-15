@@ -15,4 +15,5 @@ export default [
 			route("/", "routes/admin/dashboard.tsx"),
 		]),
 	),
+	route("/editor", "routes/editor/index.tsx"),
 ] satisfies RouteConfig;
