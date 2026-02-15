@@ -2,6 +2,7 @@ import type { BlockType, BlockRegistryEntry } from "~/types/editor";
 import { HeadingBlock } from "~/blocks/HeadingBlock";
 import { TextBlock } from "~/blocks/TextBlock";
 import { ButtonBlock } from "~/blocks/ButtonBlock";
+import { CardBlock } from "~/blocks/CardBlock";
 import { ImageBlock } from "~/blocks/ImageBlock";
 import { IconBlock } from "~/blocks/IconBlock";
 import { SpacerBlock } from "~/blocks/SpacerBlock";
@@ -126,6 +127,66 @@ export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
           { label: "Right", value: "right" },
         ],
       },
+    ],
+    inlineEditable: false,
+  },
+
+  card: {
+    component: CardBlock,
+    label: "Card",
+    icon: "style",
+    defaultProps: {
+      title: "Feature spotlight",
+      text: "Highlight a key feature, proof point, or value proposition in a compact card.",
+      buttonText: "Learn More",
+      buttonUrl: "#",
+      imageSrc: "",
+      imageAlt: "",
+    },
+    defaultStyle: { fontSize: "base", textAlign: "left", width: "full" },
+    editableProps: [
+      { key: "title", label: "Title", type: "short-text" },
+      { key: "text", label: "Description", type: "long-text" },
+      { key: "buttonText", label: "Button Text", type: "short-text" },
+      { key: "buttonUrl", label: "Button Link", type: "url" },
+      { key: "imageSrc", label: "Image (optional)", type: "image" },
+      { key: "imageAlt", label: "Image Alt Text", type: "short-text" },
+    ],
+    editableStyles: [
+      {
+        key: "fontSize",
+        label: "Size",
+        type: "size-picker",
+        options: [
+          { label: "S", value: "sm" },
+          { label: "M", value: "base" },
+          { label: "L", value: "lg" },
+          { label: "XL", value: "xl" },
+        ],
+      },
+      {
+        key: "textAlign",
+        label: "Align",
+        type: "align-picker",
+        options: [
+          { label: "Left", value: "left" },
+          { label: "Center", value: "center" },
+          { label: "Right", value: "right" },
+        ],
+      },
+      {
+        key: "width",
+        label: "Width",
+        type: "size-picker",
+        options: [
+          { label: "S", value: "sm" },
+          { label: "M", value: "md" },
+          { label: "L", value: "lg" },
+          { label: "Full", value: "full" },
+        ],
+      },
+      { key: "textColor", label: "Color", type: "color" },
+      { key: "opacity", label: "Opacity", type: "slider", min: 0, max: 100, step: 5 },
     ],
     inlineEditable: false,
   },

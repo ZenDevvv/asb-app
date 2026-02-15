@@ -247,6 +247,7 @@ type BlockType =
   | "heading"        // H1-H4 text with size/weight options
   | "text"           // Body/paragraph text
   | "button"         // CTA button with text + link
+  | "card"           // Surface card with title/body/button/image
   | "image"          // Single image with alt text
   | "icon"           // Material Symbol icon with optional label
   | "spacer"         // Vertical space (height slider)
@@ -1156,7 +1157,7 @@ These decisions are final. Don't revisit or suggest alternatives:
 - Email/password + Google OAuth signup/login
 - User dashboard (project list)
 - Template gallery (8-12 templates as section+block presets)
-- Block-based editor with 7 section types and 10 block types
+- Block-based editor with 7 section types and 11 block types
 - Three-panel editor: left sections list, center canvas, right settings
 - Drag-to-reorder sections (left sidebar) and blocks (right sidebar)
 - Layout templates (1-col, 2-col, 3-col) with visual picker

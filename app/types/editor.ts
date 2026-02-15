@@ -6,6 +6,7 @@ export type BlockType =
   | "heading"
   | "text"
   | "button"
+  | "card"
   | "image"
   | "icon"
   | "spacer"

@@ -38,7 +38,7 @@ export const SECTION_REGISTRY: Record<SectionType, SectionRegistryEntry> = {
       paddingY: 16,
       backgroundType: "solid",
     },
-    allowedBlockTypes: ["heading", "text", "button", "icon", "list", "image", "badge"],
+    allowedBlockTypes: ["heading", "text", "button", "card", "icon", "list", "image", "badge"],
     maxBlocksPerSlot: 6,
   },
 
@@ -92,7 +92,7 @@ export const SECTION_REGISTRY: Record<SectionType, SectionRegistryEntry> = {
       paddingY: 80,
       backgroundType: "solid",
     },
-    allowedBlockTypes: ["heading", "text", "button", "image", "icon", "spacer", "badge", "divider"],
+    allowedBlockTypes: ["heading", "text", "button", "card", "image", "icon", "spacer", "badge", "divider"],
   },
 
   features: {
@@ -173,7 +173,7 @@ export const SECTION_REGISTRY: Record<SectionType, SectionRegistryEntry> = {
       paddingY: 80,
       backgroundType: "solid",
     },
-    allowedBlockTypes: ["heading", "text", "button", "image", "icon", "spacer", "badge", "divider"],
+    allowedBlockTypes: ["heading", "text", "button", "card", "image", "icon", "spacer", "badge", "divider"],
   },
 
   cta: {
@@ -212,7 +212,7 @@ export const SECTION_REGISTRY: Record<SectionType, SectionRegistryEntry> = {
       paddingY: 80,
       backgroundType: "solid",
     },
-    allowedBlockTypes: ["heading", "text", "button", "image", "icon", "spacer", "badge", "divider"],
+    allowedBlockTypes: ["heading", "text", "button", "card", "image", "icon", "spacer", "badge", "divider"],
   },
 
   testimonials: {
@@ -260,7 +260,7 @@ export const SECTION_REGISTRY: Record<SectionType, SectionRegistryEntry> = {
       paddingY: 80,
       backgroundType: "solid",
     },
-    allowedBlockTypes: ["heading", "text", "quote", "image", "icon", "spacer", "badge", "divider"],
+    allowedBlockTypes: ["heading", "text", "quote", "card", "image", "icon", "spacer", "badge", "divider"],
   },
 
   faq: {
@@ -327,7 +327,7 @@ export const SECTION_REGISTRY: Record<SectionType, SectionRegistryEntry> = {
       paddingY: 80,
       backgroundType: "solid",
     },
-    allowedBlockTypes: ["heading", "text", "spacer", "divider", "badge"],
+    allowedBlockTypes: ["heading", "text", "card", "spacer", "divider", "badge"],
   },
 
   footer: {
@@ -408,6 +408,6 @@ export const SECTION_REGISTRY: Record<SectionType, SectionRegistryEntry> = {
       paddingY: 60,
       backgroundType: "solid",
     },
-    allowedBlockTypes: ["heading", "text", "button", "icon", "list", "divider", "badge", "image"],
+    allowedBlockTypes: ["heading", "text", "button", "card", "icon", "list", "divider", "badge", "image"],
   },
 };
