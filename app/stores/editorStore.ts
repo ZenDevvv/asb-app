@@ -293,12 +293,46 @@ export const useEditorStore = create<EditorState & EditorActions>()(
               block.order = index;
             });
           } else {
-            section.blocks.forEach((block) => {
-              const currentMemory = currentLayoutMemory.byBlockId[block.id];
-              const sourceSlot = currentMemory?.slot ?? block.slot;
-              block.slot = mapSlotByIndex(sourceSlot, oldSlots, newSlots);
-              block.order = currentMemory?.order ?? block.order;
-            });
+            const isNavbarSmartMap =
+              section.type === "navbar" &&
+              oldSlots.length === 1 &&
+              newSlots.includes("brand");
+
+            if (isNavbarSmartMap) {
+              section.blocks.forEach((block) => {
+                if (
+                  (block.type === "heading" ||
+                    block.type === "icon" ||
+                    block.type === "image" ||
+                    block.type === "badge") &&
+                  newSlots.includes("brand")
+                ) {
+                  block.slot = "brand";
+                } else if (
+                  (block.type === "list" || block.type === "text") &&
+                  newSlots.includes("links")
+                ) {
+                  block.slot = "links";
+                  if (block.type === "list") {
+                    block.props.inline = true;
+                  }
+                } else if (block.type === "button" && newSlots.includes("actions")) {
+                  block.slot = "actions";
+                } else {
+                  const currentMemory = currentLayoutMemory.byBlockId[block.id];
+                  const sourceSlot = currentMemory?.slot ?? block.slot;
+                  block.slot = mapSlotByIndex(sourceSlot, oldSlots, newSlots);
+                  block.order = currentMemory?.order ?? block.order;
+                }
+              });
+            } else {
+              section.blocks.forEach((block) => {
+                const currentMemory = currentLayoutMemory.byBlockId[block.id];
+                const sourceSlot = currentMemory?.slot ?? block.slot;
+                block.slot = mapSlotByIndex(sourceSlot, oldSlots, newSlots);
+                block.order = currentMemory?.order ?? block.order;
+              });
+            }
           }
 
           normalizeBlocksBySlotOrder(section.blocks, newSlots);

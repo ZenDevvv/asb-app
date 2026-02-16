@@ -231,7 +231,15 @@ export function SectionSettings() {
 
 // ─── Layout Thumbnail ────────────────────────────────────────────────────
 
-function LayoutThumbnail({ layout }: { layout: { columns: number; distribution: string } }) {
+function LayoutThumbnail({
+  layout,
+}: {
+  layout: { id: string; columns: number; distribution: string; slots: string[] };
+}) {
+  if (layout.id.startsWith("nav-")) {
+    return <NavbarLayoutThumbnail layout={layout} />;
+  }
+
   if (layout.columns === 1) {
     return (
       <div className="flex h-8 w-full items-center justify-center">
@@ -257,11 +265,74 @@ function LayoutThumbnail({ layout }: { layout: { columns: number; distribution: 
     );
   }
 
+  const parts = layout.distribution.split("-").map(Number);
+  if (parts.length === 3 && parts.every((n) => Number.isFinite(n) && n > 0)) {
+    const total = parts.reduce((sum, n) => sum + n, 0);
+    return (
+      <div className="flex h-8 w-full gap-0.5">
+        {parts.map((part, i) => (
+          <div
+            key={i}
+            className="h-full rounded bg-current opacity-20"
+            style={{ width: `${(part / total) * 100}%` }}
+          />
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div className="flex h-8 w-full gap-0.5">
       <div className="h-full flex-1 rounded bg-current opacity-20" />
       <div className="h-full flex-1 rounded bg-current opacity-20" />
       <div className="h-full flex-1 rounded bg-current opacity-20" />
+    </div>
+  );
+}
+
+function NavbarLayoutThumbnail({
+  layout,
+}: {
+  layout: { columns: number; distribution: string; slots: string[] };
+}) {
+  const parts = layout.distribution
+    .split("-")
+    .map(Number)
+    .filter((n) => Number.isFinite(n) && n > 0);
+  const total = parts.length > 0 ? parts.reduce((sum, n) => sum + n, 0) : 100;
+
+  return (
+    <div className="flex h-8 w-full items-center gap-0.5 rounded-md border border-current/20 bg-current/5 p-1">
+      {layout.slots.map((slot, i) => {
+        const part = parts[i] ?? 100 / Math.max(1, layout.slots.length);
+        return (
+          <div
+            key={slot}
+            className="flex h-full min-w-0 items-center justify-center rounded-sm bg-current/10 px-1"
+            style={{ width: `${(part / total) * 100}%` }}
+          >
+            {slot === "brand" && (
+              <div className="flex items-center gap-1">
+                <div className="size-1.5 rounded-full bg-current opacity-80" />
+                <div className="h-1.5 w-6 rounded bg-current opacity-70" />
+              </div>
+            )}
+            {slot === "links" && (
+              <div className="flex items-center gap-0.5">
+                <div className="h-1 w-2 rounded bg-current opacity-65" />
+                <div className="h-1 w-2 rounded bg-current opacity-65" />
+                <div className="h-1 w-2 rounded bg-current opacity-65" />
+              </div>
+            )}
+            {slot === "actions" && (
+              <div className="h-3 w-7 rounded-full border border-current/40 bg-current/25" />
+            )}
+            {slot !== "brand" && slot !== "links" && slot !== "actions" && (
+              <div className="h-1.5 w-5 rounded bg-current opacity-60" />
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }

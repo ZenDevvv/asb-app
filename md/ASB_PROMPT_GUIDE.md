@@ -226,6 +226,7 @@ LAYOUT SWITCHING:
 - First-time switches to a layout use deterministic slot-index mapping, then normalize order per slot
 - Multi-column -> single-column keeps reading-order collapse; expanding back uses per-layout memory when available
 - This prevents cumulative scrambling when repeatedly switching between 1/2/3-column layout combinations
+- For legacy navbar sections (single-slot layouts), first switch to a nav layout smart-maps blocks by type (brand, links, actions).
 
 SELECTION (two levels):
 - Selecting a section from the left sidebar auto-scrolls the canvas to that section when it is outside the current viewport
@@ -381,6 +382,9 @@ interface Page {
   isDefault: boolean;             // MVP: always true (single page)
 }
 ```
+
+Navbar presets also include dedicated layout ids: `nav-brand-links`, `nav-brand-cta`, and `nav-brand-links-cta` with semantic slots (`brand`, `links`, `actions`).
+
 
 ### Layout Templates (pre-defined)
 
@@ -570,7 +574,7 @@ Each section type is a **preset** — a combination of a default layout + defaul
 
 | Type | Default Layout | Default Blocks | Allowed Layouts |
 |------|---------------|----------------|-----------------|
-| navbar | 1-col (custom flex) | `icon` (logo) + `list` (nav links) + `button` (CTA) | 1-col only |
+| navbar | nav-brand-links-cta | `heading` (brand), inline `list` (links), `button` (CTA) | nav-brand-links, nav-brand-cta, nav-brand-links-cta |
 | hero | 2-col-50-50 | `badge` + `heading` + `text` + `button` (left slot), `image` (right slot) | All 1-col and 2-col |
 | features | 3-col-equal | `heading` (above) + 3x (`icon` + `heading` + `text`) per column | 1-col, 2-col, 3-col |
 | cta | 1-col-center | `heading` + `text` + `button` | All 1-col and 2-col |
@@ -610,6 +614,7 @@ When a section is selected (not a specific block):
 │  SETTINGS                         │
 │                                   │
 │  ▼ Layout                         │  ← Visual thumbnail grid of allowed layouts
+- Navigation layouts use nav-specific thumbnails (brand/logo, links row, CTA pill) instead of generic equal bars for better visual accuracy.
 │  ┌──────┐ ┌──────┐ ┌──────┐     │
 │  │ [==] │ │[= ][=]│ │[=][ =]│   │
 │  │center│ │ 50/50 │ │ 60/40 │   │
@@ -689,6 +694,8 @@ The Background section in the right sidebar is a **composite control** with:
    - **Image**: upload button + optional overlay color/opacity
 3. **Y-axis padding slider** — continuous Radix Slider from Small (e.g., 20px) to Large (e.g., 160px)
 
+
+- `list` blocks support an `Inline Row` toggle (useful for navigation links in nav layouts).
 ### Control Labels (User-Facing)
 
 ALWAYS use friendly labels. NEVER expose technical terms:
@@ -1321,7 +1328,7 @@ This contract ensures AI output can be validated and loaded directly into the ed
 
 ---
 
-*Document Version: 3.4 � Layout switching stabilized across all column combinations*
+*Document Version: 3.7 � Navigation layout thumbnails now use nav-specific previews*
 *Last Updated: February 16, 2026*
 *Keep this document updated as architecture decisions change.*
 *For colors and theming, always reference the separate Style Guide file.*

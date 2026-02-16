@@ -27,8 +27,9 @@ function groupBlocksBySlot(blocks: Block[] | undefined): Record<string, Block[]>
   return groups;
 }
 
-function getLayoutGridClasses(layout: LayoutTemplate): string {
-  const base = "grid w-full gap-8";
+function getLayoutGridClasses(layout: LayoutTemplate, sectionType: Section["type"]): string {
+  const isNavbarLayout = sectionType === "navbar" || layout.id.startsWith("nav-");
+  const base = isNavbarLayout ? "grid w-full gap-4" : "grid w-full gap-8";
   const alignment =
     layout.alignment === "center"
       ? "items-center"
@@ -48,11 +49,21 @@ function getLayoutGridClasses(layout: LayoutTemplate): string {
         ? "grid-cols-[3fr_2fr]"
         : layout.distribution === "40-60"
           ? "grid-cols-[2fr_3fr]"
+          : layout.distribution === "30-70"
+            ? "grid-cols-[3fr_7fr]"
+            : layout.distribution === "70-30"
+              ? "grid-cols-[7fr_3fr]"
           : "grid-cols-2";
     return `${base} ${colClass} ${alignment} ${direction}`;
   }
 
   if (layout.columns === 3) {
+    if (layout.distribution === "25-50-25") {
+      return `${base} grid-cols-[1fr_2fr_1fr] ${alignment}`;
+    }
+    if (layout.distribution === "20-60-20") {
+      return `${base} grid-cols-[1fr_3fr_1fr] ${alignment}`;
+    }
     return `${base} grid-cols-3 ${alignment}`;
   }
 
@@ -92,13 +103,17 @@ export function SectionRenderer({
 }: SectionRendererProps) {
   const layout = section.layout;
   const blocksBySlot = useMemo(() => groupBlocksBySlot(section.blocks), [section.blocks]);
+  const isNavbar = section.type === "navbar" || layout.id.startsWith("nav-");
 
-  const gridClasses = getLayoutGridClasses(layout);
+  const gridClasses = getLayoutGridClasses(layout, section.type);
   const bgStyle = getSectionBackground(section);
 
   return (
-    <section style={bgStyle}>
-      <div className="mx-auto max-w-6xl px-6">
+    <section
+      className={isNavbar ? "border-b border-white/10" : undefined}
+      style={bgStyle}
+    >
+      <div className={isNavbar ? "mx-auto max-w-7xl px-6" : "mx-auto max-w-6xl px-6"}>
         <div
           className={gridClasses}
           style={{

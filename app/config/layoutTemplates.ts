@@ -21,6 +21,35 @@ export const LAYOUT_TEMPLATES: LayoutTemplate[] = [
     slots: ["main"],
   },
 
+  // Navbar-specific layouts
+  {
+    id: "nav-brand-links",
+    label: "Nav: Brand + Links",
+    columns: 2,
+    distribution: "30-70",
+    alignment: "center",
+    direction: "row",
+    slots: ["brand", "links"],
+  },
+  {
+    id: "nav-brand-cta",
+    label: "Nav: Brand + CTA",
+    columns: 2,
+    distribution: "70-30",
+    alignment: "center",
+    direction: "row",
+    slots: ["brand", "actions"],
+  },
+  {
+    id: "nav-brand-links-cta",
+    label: "Nav: Brand + Links + CTA",
+    columns: 3,
+    distribution: "25-50-25",
+    alignment: "center",
+    direction: "row",
+    slots: ["brand", "links", "actions"],
+  },
+
   // Two columns
   {
     id: "2-col-50-50",

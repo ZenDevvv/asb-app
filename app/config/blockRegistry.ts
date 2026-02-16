@@ -327,6 +327,7 @@ export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
         { text: "Third item" },
       ],
       ordered: false,
+      inline: false,
     },
     defaultStyle: { fontSize: "base" },
     editableProps: [
@@ -340,6 +341,7 @@ export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
         ],
       },
       { key: "ordered", label: "Numbered List", type: "toggle" },
+      { key: "inline", label: "Inline Row", type: "toggle" },
     ],
     editableStyles: [
       {
@@ -350,6 +352,16 @@ export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
           { label: "S", value: "sm" },
           { label: "M", value: "base" },
           { label: "L", value: "lg" },
+        ],
+      },
+      {
+        key: "textAlign",
+        label: "Align",
+        type: "align-picker",
+        options: [
+          { label: "Left", value: "left" },
+          { label: "Center", value: "center" },
+          { label: "Right", value: "right" },
         ],
       },
       { key: "textColor", label: "Color", type: "color" },
