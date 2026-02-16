@@ -158,10 +158,12 @@ The editor has a **LEFT sidebar (sections list) + CENTER canvas + RIGHT sidebar 
 ### Left Sidebar â€” Sections List Panel
 
 - Displays all sections in page order as a **vertical list**
-- Each row shows: **drag handle (â˜°)** + **section type icon** + **section name** + **layout label** + **active indicator**
+- Section rows show a compact single-line label with drag handle + section icon (no subtitle)
 - Sections are **reorderable via drag** within this list (dnd-kit sortable)
 - Focused section rows expand an inline **Groups** tree for that section
 - Group rows are draggable to reorder groups within the focused section
+- Group rows are single-line (no subtitle) and use branch indentation with connector lines to mirror a folder tree
+- The **Add Group** action is indented under the section tree using the same branch connector style
 - Clicking a row **selects** that section (highlights it on canvas + opens section settings in right sidebar) and auto-scrolls the canvas to keep the selected section in view.
 - **"+ Add Section"** button at the bottom of the list
 - The left sidebar is collapsible (hamburger icon in toolbar)

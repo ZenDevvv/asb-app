@@ -196,7 +196,6 @@ function SectionTreeItem({
   };
 
   const registry = SECTION_REGISTRY[section.type];
-  const layoutLabel = section.groups?.[0]?.layout?.label || "Default";
   const orderedGroups = section.groups.slice().sort((a, b) => a.order - b.order);
 
   return (
@@ -204,10 +203,10 @@ function SectionTreeItem({
       <div
         onClick={onSelectSection}
         className={cn(
-          "group flex cursor-pointer items-center gap-2 rounded-xl border px-2.5 py-2 transition-colors",
+          "group flex cursor-pointer items-center gap-1.5 rounded-md border px-1.5 py-1.5 transition-colors",
           isSelected
-            ? "border-primary/30 bg-primary/10"
-            : "border-transparent hover:bg-sidebar-accent/60",
+            ? "border-primary/30 bg-primary/10 shadow-[inset_0_0_0_1px_rgba(0,229,160,0.08)]"
+            : "border-transparent hover:bg-sidebar-accent/50",
           !section.isVisible && "opacity-40",
         )}
       >
@@ -216,27 +215,24 @@ function SectionTreeItem({
           {...listeners}
           className="flex shrink-0 cursor-grab touch-none items-center text-muted-foreground active:cursor-grabbing"
         >
-          <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
+          <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
             drag_indicator
           </span>
         </button>
 
         <div
           className={cn(
-            "flex size-8 shrink-0 items-center justify-center rounded-lg",
+            "flex size-6 shrink-0 items-center justify-center rounded-md",
             isSelected ? "bg-primary/20 text-primary" : "bg-sidebar-accent text-muted-foreground",
           )}
         >
-          <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
+          <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
             {registry?.icon || "widgets"}
           </span>
         </div>
 
-        <div className="min-w-0 flex-1">
-          <div className="truncate text-xs font-medium text-sidebar-foreground">
-            {registry?.label || section.type}
-          </div>
-          <div className="truncate text-[10px] text-muted-foreground">{layoutLabel}</div>
+        <div className="min-w-0 flex-1 truncate text-[11px] font-medium text-sidebar-foreground">
+          {registry?.label || section.type}
         </div>
 
         <button
@@ -246,7 +242,7 @@ function SectionTreeItem({
           }}
           className="shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100"
         >
-          <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
+          <span className="material-symbols-outlined" style={{ fontSize: 13 }}>
             {section.isVisible ? "visibility" : "visibility_off"}
           </span>
         </button>
@@ -254,9 +250,10 @@ function SectionTreeItem({
 
       {isSelected && (
         <div
-          className="mt-1 space-y-1 border-l border-sidebar-border/80 pl-3 pr-1"
+          className="relative mt-1 space-y-1 pl-7 pr-1"
           onClick={(e) => e.stopPropagation()}
         >
+          <div className="pointer-events-none absolute bottom-0 left-2 top-0 border-l border-sidebar-border/70" />
           <SortableContext
             items={orderedGroups.map((group) => toGroupDndId(section.id, group.id))}
             strategy={verticalListSortingStrategy}
@@ -274,15 +271,18 @@ function SectionTreeItem({
             ))}
           </SortableContext>
 
-          <button
-            onClick={onAddGroup}
-            className="flex w-full items-center gap-1 rounded-lg border border-dashed border-sidebar-border px-2 py-1.5 text-[10px] text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary"
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: 12 }}>
-              add
-            </span>
-            Add Group
-          </button>
+          <div className="relative pl-4">
+            <div className="pointer-events-none absolute left-0 top-1/2 w-3 border-t border-sidebar-border/70" />
+            <button
+              onClick={onAddGroup}
+              className="flex w-full items-center gap-1 rounded-md px-1.5 py-1 text-[10px] text-muted-foreground transition-colors hover:bg-sidebar-accent/50 hover:text-primary"
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: 12 }}>
+                add
+              </span>
+              Add Group
+            </button>
+          </div>
         </div>
       )}
     </div>
@@ -314,67 +314,61 @@ function GroupTreeItem({
   };
 
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      onClick={onSelect}
-      className={cn(
-        "group flex cursor-pointer items-center gap-1.5 rounded-lg border px-2 py-1.5 transition-colors",
-        isSelected
-          ? "border-primary/30 bg-primary/10"
-          : "border-transparent hover:bg-sidebar-accent/60",
-      )}
-    >
-      <button
-        type="button"
-        {...attributes}
-        {...listeners}
-        onClick={(e) => e.stopPropagation()}
-        className="flex shrink-0 cursor-grab touch-none items-center text-muted-foreground active:cursor-grabbing"
-        title="Drag to Reorder Group"
+    <div className="relative pl-4">
+      <div className="pointer-events-none absolute left-0 top-1/2 w-3 border-t border-sidebar-border/70" />
+      <div
+        ref={setNodeRef}
+        style={style}
+        onClick={onSelect}
+        className={cn(
+          "group flex cursor-pointer items-center gap-1 rounded-md px-1.5 py-1 transition-colors",
+          isSelected ? "bg-primary/10 text-primary" : "hover:bg-sidebar-accent/50",
+        )}
       >
-        <span className="material-symbols-outlined" style={{ fontSize: 13 }}>
-          drag_indicator
-        </span>
-      </button>
+        <button
+          type="button"
+          {...attributes}
+          {...listeners}
+          onClick={(e) => e.stopPropagation()}
+          className="flex shrink-0 cursor-grab touch-none items-center text-muted-foreground active:cursor-grabbing"
+          title="Drag to Reorder Group"
+        >
+          <span className="material-symbols-outlined" style={{ fontSize: 12 }}>
+            drag_indicator
+          </span>
+        </button>
 
-      <span className="material-symbols-outlined text-muted-foreground" style={{ fontSize: 12 }}>
-        view_stream
-      </span>
-
-      <div className="min-w-0 flex-1">
-        <div className="truncate text-[10px] font-medium text-sidebar-foreground">
+        <div className="min-w-0 flex-1 truncate text-[10px] font-medium text-sidebar-foreground">
           {group.label}
         </div>
-        <div className="truncate text-[9px] text-muted-foreground">{group.layout.label}</div>
-      </div>
 
-      <button
-        type="button"
-        onClick={(e) => {
-          e.stopPropagation();
-          onDuplicate();
-        }}
-        className="text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100"
-        title="Duplicate Group"
-      >
-        <span className="material-symbols-outlined" style={{ fontSize: 12 }}>
-          content_copy
-        </span>
-      </button>
-      <button
-        type="button"
-        onClick={(e) => {
-          e.stopPropagation();
-          onDelete();
-        }}
-        className="text-muted-foreground opacity-0 transition-opacity hover:text-destructive group-hover:opacity-100"
-        title="Delete Group"
-      >
-        <span className="material-symbols-outlined" style={{ fontSize: 12 }}>
-          delete
-        </span>
-      </button>
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onDuplicate();
+          }}
+          className="text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100"
+          title="Duplicate Group"
+        >
+          <span className="material-symbols-outlined" style={{ fontSize: 11 }}>
+            content_copy
+          </span>
+        </button>
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete();
+          }}
+          className="text-muted-foreground opacity-0 transition-opacity hover:text-destructive group-hover:opacity-100"
+          title="Delete Group"
+        >
+          <span className="material-symbols-outlined" style={{ fontSize: 11 }}>
+            delete
+          </span>
+        </button>
+      </div>
     </div>
   );
 }
