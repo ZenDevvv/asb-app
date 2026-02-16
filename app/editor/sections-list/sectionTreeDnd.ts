@@ -9,6 +9,14 @@ export function toGroupDndId(sectionId: string, groupId: string) {
   return `${GROUP_DND_PREFIX}${sectionId}:${groupId}`;
 }
 
+export function isSectionDndId(value: string) {
+  return value.startsWith(SECTION_DND_PREFIX);
+}
+
+export function isGroupDndId(value: string) {
+  return value.startsWith(GROUP_DND_PREFIX);
+}
+
 export function parseSectionDndId(value: string): string | null {
   if (!value.startsWith(SECTION_DND_PREFIX)) return null;
   return value.slice(SECTION_DND_PREFIX.length);

@@ -217,12 +217,9 @@ function createLayoutSlotMemory(
 }
 
 function normalizeGroupOrders(groups: Group[]) {
-  groups
-    .slice()
-    .sort((a, b) => a.order - b.order)
-    .forEach((group, index) => {
-      group.order = index;
-    });
+  groups.forEach((group, index) => {
+    group.order = index;
+  });
 }
 
 function cloneBlockSeed(block: Omit<Block, "id">): Block {
@@ -601,19 +598,27 @@ export const useEditorStore = create<EditorState & EditorActions>()(
       });
     },
 
-    reorderGroups: (sectionId: string, fromIndex: number, toIndex: number) => {
+    reorderGroups: (sectionId: string, activeGroupId: string, overGroupId: string) => {
       set((state) => {
         const section = findSection(state, sectionId);
         if (!section) return;
+        if (activeGroupId === overGroupId) return;
+
+        const orderedGroups = section.groups.slice().sort((a, b) => a.order - b.order);
+        const fromIndex = orderedGroups.findIndex((group) => group.id === activeGroupId);
+        const toIndex = orderedGroups.findIndex((group) => group.id === overGroupId);
+
         if (fromIndex === toIndex) return;
         if (fromIndex < 0 || toIndex < 0) return;
-        if (fromIndex >= section.groups.length || toIndex >= section.groups.length) return;
+        if (fromIndex >= orderedGroups.length || toIndex >= orderedGroups.length) return;
 
         state.history.push(JSON.parse(JSON.stringify(state.sections)));
         state.future = [];
 
-        const [moved] = section.groups.splice(fromIndex, 1);
-        section.groups.splice(toIndex, 0, moved);
+        const [moved] = orderedGroups.splice(fromIndex, 1);
+        if (!moved) return;
+        orderedGroups.splice(toIndex, 0, moved);
+        section.groups = orderedGroups;
         normalizeGroupOrders(section.groups);
         state.isDirty = true;
       });

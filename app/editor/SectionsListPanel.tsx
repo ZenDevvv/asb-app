@@ -6,6 +6,7 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
+  type CollisionDetection,
   type DragEndEvent,
 } from "@dnd-kit/core";
 import {
@@ -16,6 +17,8 @@ import {
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import { SectionTreeItem } from "./sections-list/SectionTreeItem";
 import {
+  isGroupDndId,
+  isSectionDndId,
   parseGroupDndId,
   parseSectionDndId,
   toSectionDndId,
@@ -43,6 +46,22 @@ export function SectionsListPanel({ onAddSection }: SectionsListPanelProps) {
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
 
+  const collisionDetection: CollisionDetection = (args) => {
+    const activeId = String(args.active.id);
+    const activeIsGroup = isGroupDndId(activeId);
+
+    const filteredDroppables = args.droppableContainers.filter((container) => {
+      const id = String(container.id);
+      if (id === activeId) return false;
+      return activeIsGroup ? isGroupDndId(id) : isSectionDndId(id);
+    });
+
+    return closestCenter({
+      ...args,
+      droppableContainers: filteredDroppables,
+    });
+  };
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
@@ -66,15 +85,7 @@ export function SectionsListPanel({ onAddSection }: SectionsListPanelProps) {
     if (!activeGroupRef || !overGroupRef) return;
     if (activeGroupRef.sectionId !== overGroupRef.sectionId) return;
 
-    const section = sections.find((entry) => entry.id === activeGroupRef.sectionId);
-    if (!section) return;
-
-    const orderedGroups = section.groups.slice().sort((a, b) => a.order - b.order);
-    const fromIndex = orderedGroups.findIndex((group) => group.id === activeGroupRef.groupId);
-    const toIndex = orderedGroups.findIndex((group) => group.id === overGroupRef.groupId);
-    if (fromIndex !== -1 && toIndex !== -1) {
-      reorderGroups(section.id, fromIndex, toIndex);
-    }
+    reorderGroups(activeGroupRef.sectionId, activeGroupRef.groupId, overGroupRef.groupId);
   };
 
   return (
@@ -96,7 +107,7 @@ export function SectionsListPanel({ onAddSection }: SectionsListPanelProps) {
       <div className="minimal-scrollbar flex-1 overflow-y-auto px-2 pb-2">
         <DndContext
           sensors={sensors}
-          collisionDetection={closestCenter}
+          collisionDetection={collisionDetection}
           onDragEnd={handleDragEnd}
           modifiers={[restrictToVerticalAxis]}
         >

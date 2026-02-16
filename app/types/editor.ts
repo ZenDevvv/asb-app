@@ -219,7 +219,7 @@ export interface EditorActions {
   addGroup: (sectionId: string, layoutId?: string, index?: number) => void;
   removeGroup: (sectionId: string, groupId: string) => void;
   duplicateGroup: (sectionId: string, groupId: string) => void;
-  reorderGroups: (sectionId: string, fromIndex: number, toIndex: number) => void;
+  reorderGroups: (sectionId: string, activeGroupId: string, overGroupId: string) => void;
   renameGroup: (sectionId: string, groupId: string, label: string) => void;
 
   // Selection

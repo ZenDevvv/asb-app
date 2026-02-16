@@ -226,6 +226,9 @@ DRAG-AND-DROP:
 - Blocks within the selected group can be reordered in the RIGHT SIDEBAR block list
 - Both use @dnd-kit/sortable with vertical list strategy
 - Drag handle (â˜° grip icon) on each row
+- Tree drag collision targets are scoped by item type (section drags resolve only against sections, group drags only against groups) for reliable drop placement
+- Active draggable rows are excluded from collision targets to avoid self-over detection and drop no-ops
+- Group reorder commits by group IDs (active/over IDs) instead of transient indices to prevent snap-back in nested trees
 - Canvas updates in real-time as items are reordered
 
 BLOCK ADDING:
@@ -1381,7 +1384,7 @@ This contract ensures AI output can be validated and loaded directly into the ed
 
 ---
 
-*Document Version: 3.17 — Section→Group→Block architecture with group-relative absolute positioning*
+*Document Version: 3.18 — Section→Group→Block architecture with group-relative absolute positioning*
 *Last Updated: February 16, 2026*
 *Keep this document updated as architecture decisions change.*
 *For colors and theming, always reference the separate Style Guide file.*
