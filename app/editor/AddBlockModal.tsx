@@ -10,7 +10,8 @@ interface AddBlockModalProps {
 	onOpenChange: (open: boolean) => void;
 	sectionId: string;
 	sectionType: SectionType;
-	sectionSlots: string[];
+	groupId: string;
+	groupSlots: string[];
 }
 
 export function AddBlockModal({
@@ -18,42 +19,28 @@ export function AddBlockModal({
 	onOpenChange,
 	sectionId,
 	sectionType,
-	sectionSlots,
+	groupId,
+	groupSlots,
 }: AddBlockModalProps) {
 	const addBlock = useEditorStore((s) => s.addBlock);
-	const updateBlockStyle = useEditorStore((s) => s.updateBlockStyle);
 	const registry = SECTION_REGISTRY[sectionType];
 	const allowedTypes = registry?.allowedBlockTypes || [];
-	const [selectedSlot, setSelectedSlot] = useState(sectionSlots[0] || "main");
+	const [selectedSlot, setSelectedSlot] = useState(groupSlots[0] || "main");
 	const [addAsAbsolute, setAddAsAbsolute] = useState(false);
 
 	const targetSlot = useMemo(() => {
-		if (sectionSlots.includes(selectedSlot)) return selectedSlot;
-		return sectionSlots[0] || "main";
-	}, [sectionSlots, selectedSlot]);
+		if (groupSlots.includes(selectedSlot)) return selectedSlot;
+		return groupSlots[0] || "main";
+	}, [groupSlots, selectedSlot]);
 
 	useEffect(() => {
 		if (!open) return;
-		setSelectedSlot((prev) => (sectionSlots.includes(prev) ? prev : sectionSlots[0] || "main"));
+		setSelectedSlot((prev) => (groupSlots.includes(prev) ? prev : groupSlots[0] || "main"));
 		setAddAsAbsolute(false);
-	}, [open, sectionSlots]);
+	}, [open, groupSlots]);
 
 	const handleAdd = (type: BlockType) => {
-		addBlock(sectionId, type, targetSlot);
-
-		if (addAsAbsolute) {
-			const insertedBlockId = useEditorStore.getState().selectedBlockId;
-			if (insertedBlockId) {
-				updateBlockStyle(sectionId, insertedBlockId, {
-					positionMode: "absolute",
-					positionX: 24,
-					positionY: 24,
-					zIndex: 20,
-					scale: 100,
-				});
-			}
-		}
-
+		addBlock(sectionId, groupId, type, targetSlot, { addAsAbsolute });
 		onOpenChange(false);
 	};
 
@@ -64,11 +51,11 @@ export function AddBlockModal({
 					<DialogTitle className="text-foreground">Add Block</DialogTitle>
 				</DialogHeader>
 
-				{sectionSlots.length > 1 && (
+				{groupSlots.length > 1 && (
 					<div className="pt-2">
 						<div className="mb-2 text-xs font-medium text-muted-foreground">Column</div>
 						<div className="grid grid-cols-3 gap-2">
-							{sectionSlots.map((slot) => {
+							{groupSlots.map((slot) => {
 								const isActive = slot === targetSlot;
 								return (
 									<button
@@ -97,7 +84,7 @@ export function AddBlockModal({
 								? "border-primary bg-primary/10 text-primary"
 								: "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground"
 						}`}>
-						<span>Add as absolute block</span>
+						<span>Add as absolute block (group-relative)</span>
 						<span className="material-symbols-outlined" style={{ fontSize: 16 }}>
 							{addAsAbsolute ? "check_circle" : "radio_button_unchecked"}
 						</span>

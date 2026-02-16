@@ -1,7 +1,5 @@
 import type { ComponentType } from "react";
 
-// ─── Block Types ─────────────────────────────────────────────────────────────
-
 export type BlockType =
   | "heading"
   | "text"
@@ -14,8 +12,6 @@ export type BlockType =
   | "divider"
   | "list"
   | "quote";
-
-// ─── Block Style ─────────────────────────────────────────────────────────────
 
 export interface BlockStyle {
   fontSize?: "sm" | "base" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "5xl";
@@ -34,8 +30,6 @@ export interface BlockStyle {
   scale?: number;
 }
 
-// ─── Block ───────────────────────────────────────────────────────────────────
-
 export interface Block {
   id: string;
   type: BlockType;
@@ -44,8 +38,6 @@ export interface Block {
   props: Record<string, unknown>;
   style: BlockStyle;
 }
-
-// ─── Layout Template ─────────────────────────────────────────────────────────
 
 export interface LayoutTemplate {
   id: string;
@@ -57,8 +49,6 @@ export interface LayoutTemplate {
   slots: string[];
 }
 
-// ─── Section Types ───────────────────────────────────────────────────────────
-
 export type SectionType =
   | "navbar"
   | "hero"
@@ -67,8 +57,6 @@ export type SectionType =
   | "testimonials"
   | "faq"
   | "footer";
-
-// ─── Section Style ───────────────────────────────────────────────────────────
 
 export interface SectionStyle {
   backgroundColor?: string;
@@ -82,6 +70,13 @@ export interface SectionStyle {
   paddingY?: number;
 }
 
+export interface GroupStyle {
+  paddingTop?: number;
+  paddingBottom?: number;
+  maxWidth?: "content" | "wide" | "full";
+  verticalAlign?: "top" | "center" | "bottom";
+}
+
 export interface LayoutSlotMemoryEntry {
   slot: string;
   order: number;
@@ -92,32 +87,35 @@ export interface LayoutSlotMemory {
   byBlockId: Record<string, LayoutSlotMemoryEntry>;
 }
 
-// ─── Section Data ────────────────────────────────────────────────────────────
+export interface Group {
+  id: string;
+  label: string;
+  order: number;
+  layout: LayoutTemplate;
+  blocks: Block[];
+  style?: GroupStyle;
+  layoutSlotMemory?: LayoutSlotMemory;
+  layoutSlotMemories?: Record<string, LayoutSlotMemory>;
+}
 
 export interface Section {
   id: string;
   type: SectionType;
-  layout: LayoutTemplate;
-  blocks: Block[];
+  groups: Group[];
   style: SectionStyle;
   isVisible: boolean;
-  // Legacy single-memory field kept for backwards compatibility with
-  // previously persisted editor state.
+  // Legacy fields for one-way migration from old editor data.
+  layout?: LayoutTemplate;
+  blocks?: Block[];
   layoutSlotMemory?: LayoutSlotMemory;
-  // Per-layout slot memory used to keep block placement stable when
-  // switching across different layout combinations.
   layoutSlotMemories?: Record<string, LayoutSlotMemory>;
 }
-
-// ─── Global Style ────────────────────────────────────────────────────────────
 
 export interface GlobalStyle {
   fontFamily: string;
   primaryColor: string;
   borderRadius: "none" | "sm" | "md" | "lg" | "full";
 }
-
-// ─── Block Component Props ───────────────────────────────────────────────────
 
 export interface BlockComponentProps {
   block: Block;
@@ -127,8 +125,6 @@ export interface BlockComponentProps {
   isSelected: boolean;
   onUpdateProp: (key: string, value: unknown) => void;
 }
-
-// ─── Control Types ───────────────────────────────────────────────────────────
 
 export type ControlType =
   | "short-text"
@@ -145,8 +141,6 @@ export type ControlType =
   | "size-picker"
   | "align-picker";
 
-// ─── Editable Field ──────────────────────────────────────────────────────────
-
 export interface EditableField {
   key: string;
   label: string;
@@ -155,8 +149,6 @@ export interface EditableField {
   subFields?: EditableField[];
   defaultValue?: unknown;
 }
-
-// ─── Editable Style Field ────────────────────────────────────────────────────
 
 export interface EditableStyleField {
   key: keyof BlockStyle;
@@ -167,8 +159,6 @@ export interface EditableStyleField {
   max?: number;
   step?: number;
 }
-
-// ─── Block Registry Entry ────────────────────────────────────────────────────
 
 export interface BlockRegistryEntry {
   component: ComponentType<BlockComponentProps>;
@@ -181,7 +171,12 @@ export interface BlockRegistryEntry {
   inlineEditable: boolean;
 }
 
-// ─── Section Registry Entry ──────────────────────────────────────────────────
+export interface SectionGroupSeed {
+  label: string;
+  layoutId: string;
+  blocks: Omit<Block, "id">[];
+  style?: GroupStyle;
+}
 
 export interface SectionRegistryEntry {
   label: string;
@@ -190,18 +185,18 @@ export interface SectionRegistryEntry {
   allowedLayouts: string[];
   defaultLayoutId: string;
   defaultBlocks: Omit<Block, "id">[];
+  defaultGroups?: SectionGroupSeed[];
   defaultStyle: SectionStyle;
   allowedBlockTypes: BlockType[];
   maxBlocksPerSlot?: number;
 }
-
-// ─── Editor Store ────────────────────────────────────────────────────────────
 
 export type DeviceMode = "desktop" | "mobile";
 
 export interface EditorState {
   sections: Section[];
   selectedSectionId: string | null;
+  selectedGroupId: string | null;
   selectedBlockId: string | null;
   globalStyle: GlobalStyle;
   history: Section[][];
@@ -220,20 +215,50 @@ export interface EditorActions {
   reorderSections: (fromIndex: number, toIndex: number) => void;
   toggleSectionVisibility: (id: string) => void;
 
-  // Selection (two levels)
-  selectSection: (id: string | null) => void;
-  selectBlock: (sectionId: string | null, blockId: string | null) => void;
+  // Group CRUD
+  addGroup: (sectionId: string, layoutId?: string, index?: number) => void;
+  removeGroup: (sectionId: string, groupId: string) => void;
+  duplicateGroup: (sectionId: string, groupId: string) => void;
+  reorderGroups: (sectionId: string, fromIndex: number, toIndex: number) => void;
+  renameGroup: (sectionId: string, groupId: string, label: string) => void;
 
-  // Section updates
-  updateSectionLayout: (sectionId: string, layoutId: string) => void;
+  // Selection
+  selectSection: (id: string | null) => void;
+  selectGroup: (sectionId: string | null, groupId: string | null) => void;
+  selectBlock: (
+    sectionId: string | null,
+    groupId: string | null,
+    blockId: string | null,
+  ) => void;
+
+  // Section/Group updates
+  updateGroupLayout: (sectionId: string, groupId: string, layoutId: string) => void;
   updateSectionStyle: (id: string, style: Partial<SectionStyle>) => void;
+  updateGroupStyle: (sectionId: string, groupId: string, style: Partial<GroupStyle>) => void;
 
   // Block CRUD
-  addBlock: (sectionId: string, blockType: BlockType, slot?: string) => void;
-  removeBlock: (sectionId: string, blockId: string) => void;
-  reorderBlocks: (sectionId: string, fromIndex: number, toIndex: number) => void;
-  updateBlockProp: (sectionId: string, blockId: string, key: string, value: unknown) => void;
-  updateBlockStyle: (sectionId: string, blockId: string, style: Partial<BlockStyle>) => void;
+  addBlock: (
+    sectionId: string,
+    groupId: string,
+    blockType: BlockType,
+    slot?: string,
+    options?: { addAsAbsolute?: boolean },
+  ) => void;
+  removeBlock: (sectionId: string, groupId: string, blockId: string) => void;
+  reorderBlocks: (sectionId: string, groupId: string, fromIndex: number, toIndex: number) => void;
+  updateBlockProp: (
+    sectionId: string,
+    groupId: string,
+    blockId: string,
+    key: string,
+    value: unknown,
+  ) => void;
+  updateBlockStyle: (
+    sectionId: string,
+    groupId: string,
+    blockId: string,
+    style: Partial<BlockStyle>,
+  ) => void;
 
   // Global style
   updateGlobalStyle: (style: Partial<GlobalStyle>) => void;

@@ -125,7 +125,7 @@ function SortableSectionItem({
   };
 
   const registry = SECTION_REGISTRY[section.type];
-  const layoutLabel = section.layout?.label || "Default";
+  const layoutLabel = section.groups?.[0]?.layout?.label || "Default";
 
   return (
     <div

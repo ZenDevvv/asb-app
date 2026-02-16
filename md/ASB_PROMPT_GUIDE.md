@@ -1,4 +1,4 @@
-# AI Prompt Context — Website Builder Project
+﻿# AI Prompt Context â€” Website Builder Project
 
 > **Copy-paste this document (or relevant sections) into every AI conversation to keep outputs consistent across the entire development lifecycle.**
 > **For colors, theming, and visual design tokens, refer to the separate Style Guide file.**
@@ -13,7 +13,7 @@
 4. **Building a section or block component?** Also paste [Block Component Contract](#block-component-contract).
 5. **Writing API endpoints?** Also paste [API Conventions](#api-conventions).
 6. **Styling anything?** Also paste [Styling Rules](#styling-rules) + the **Style Guide** file.
-7. **Planning AI features?** See [AI Integration (Parked)](#ai-integration-parked) — do NOT implement yet.
+7. **Planning AI features?** See [AI Integration (Parked)](#ai-integration-parked) â€” do NOT implement yet.
 
 ---
 
@@ -21,31 +21,32 @@
 
 ```
 PROJECT: No-code website/landing page builder
-CODENAME: BuilderApp (placeholder — rename when you pick a brand)
+CODENAME: BuilderApp (placeholder â€” rename when you pick a brand)
 TYPE: Full-stack web application
 STACK: MERN (MongoDB, Express.js, React, Node.js)
 LANGUAGE: TypeScript (strict mode, both frontend and backend)
 
 TARGET USERS: Non-technical users (small business owners, freelancers, marketers)
-COMPARABLE PRODUCTS: Carrd, Squarespace, early Wix — NOT Webflow or WordPress
+COMPARABLE PRODUCTS: Carrd, Squarespace, early Wix â€” NOT Webflow or WordPress
 
 CORE PHILOSOPHY:
-- Section-based editor with composable blocks — NOT freeform drag-and-drop
-- Sections define layout structure; blocks are the content pieces within slots
-- Users pick a section type + layout → then edit/add/remove blocks within it
-- Simple, friendly controls — NEVER expose CSS properties, layers, or code
+- Section-based editor with composable blocks â€” NOT freeform drag-and-drop
+- Sections define overall containers; groups define per-zone layout structure inside sections
+- Users pick a section type → manage groups → then edit/add/remove blocks within group slots
+- Simple, friendly controls â€” NEVER expose CSS properties, layers, or code
 - Every page is a vertical stack of sections
 - Users edit content through a right sidebar and inline text editing
 - Dark-themed, modern editor UI with a premium feel
-- Looks beautiful by default — zero design skill required
+- Looks beautiful by default â€” zero design skill required
 - AI features are planned but NOT built until the editor is stable (see Parked section)
 
 ARCHITECTURE MODEL:
-- Section = full-width container with a layout template + background style
+- Section = full-width container with section style + vertically stacked groups
+- Group = sub-container inside a section with its own layout template and blocks
 - Block = individual content piece (heading, text, button, image, etc.)
-- Layout Template = defines how blocks are arranged (columns, distribution, alignment)
-- Sections contain blocks placed into named slots defined by the layout
-- Users can add/remove/reorder blocks within a section — not just edit fixed fields
+- Layout Template = defines how blocks are arranged in a group (columns, distribution, alignment)
+- Groups contain blocks placed into named slots defined by the chosen layout
+- Users can add/remove/reorder blocks within a section â€” not just edit fixed fields
 - This replaces the old rigid "variant with hardcoded props" model
 
 CURRENT PHASE: MVP (10-12 week build)
@@ -53,7 +54,7 @@ MVP SCOPE: Auth, dashboard, template gallery, block-based editor (7 section type
            image upload, basic SEO, publish to free subdomain
 
 STYLE REFERENCE: See the separate Style Guide (.md) for all colors, theming,
-                 and visual design tokens. Do NOT hardcode colors — always
+                 and visual design tokens. Do NOT hardcode colors â€” always
                  reference the style guide's design tokens / CSS variables.
 ```
 
@@ -70,7 +71,7 @@ Routing:            React Router v7 (react-router-dom)
 Styling:            Tailwind CSS v4 (utility-first, no custom CSS files)
 UI Components:      shadcn/ui (copy-pasted, not installed as dependency)
                     Radix UI primitives (@radix-ui/react-*)
-Icons:              Google Material Symbols (Outlined) — NOT Lucide
+Icons:              Google Material Symbols (Outlined) â€” NOT Lucide
 State (Editor):     Zustand with Immer middleware
 State (Server):     TanStack Query v5 (@tanstack/react-query)
 Drag-and-Drop:      @dnd-kit/core, @dnd-kit/sortable, @dnd-kit/modifiers
@@ -91,9 +92,9 @@ Database:           MongoDB with Mongoose ODM
 Auth:               JWT (access + refresh tokens) + bcryptjs + Passport.js
                     Strategies: passport-local, passport-google-oauth20
 Validation:         Zod (shared schemas with frontend)
-File Upload:        Multer → Cloudinary (multer-storage-cloudinary)
+File Upload:        Multer â†’ Cloudinary (multer-storage-cloudinary)
 Image Processing:   Sharp
-Publishing:         ReactDOMServer.renderToStaticMarkup() → sanitize-html → html-minifier-terser
+Publishing:         ReactDOMServer.renderToStaticMarkup() â†’ sanitize-html â†’ html-minifier-terser
 Email:              Nodemailer (MVP), Resend (post-MVP)
 Logging:            Pino + pino-pretty
 Error Tracking:     Sentry (@sentry/node)
@@ -122,42 +123,42 @@ CI/CD:              GitHub Actions
 The editor has a **LEFT sidebar (sections list) + CENTER canvas + RIGHT sidebar (settings)**:
 
 ```
-┌─ TOOLBAR ──────────────────────────────────────────────────────────────────┐
-│  ☰ Page Name ▾           🖥 📱         ↩ ↪       👁 Preview   🚀 Publish  │
-│                                                   Last saved: 2 min ago   │
-├──────────────┬─────────────────────────────────────┬───────────────────────┤
-│  LEFT SIDEBAR│           CANVAS                    │    RIGHT SIDEBAR      │
-│  (Sections   │   (scrollable, centered,            │    (Context-sensitive │
-│   List)      │    dark background)                  │     settings panel)  │
-│              │                                      │                      │
-│  Page        │   ┌──────────────────────────────┐  │  ─── Section Mode ── │
-│  ─────────── │   │  ⭐ Hero Section (badge)      │  │   Layout:           │
-│  ☰ Navbar    │   │                               │  │   [1-col][2-col]    │
-│    Sticky Top│   │  "Grow Your Business"  ←click │  │   [60-40][40-60]    │
-│  ☰ Hero    ● │   │  "We help startups"           │  │                     │
-│    2-Column  │   │       [Get Started]            │  │   Blocks:           │
-│  ☰ Features  │   │              [hero.jpg]        │  │   ☰ Heading         │
-│    3 Columns │   └──────────────────────────────┘  │   ☰ Text             │
-│  ☰ CTA       │                                      │   ☰ Button           │
-│    Banner    │   ┌──────────────────────────────┐  │   ☰ Image            │
-│  ☰ Footer    │   │  Features Section             │  │   [+ Add Block]     │
-│    Simple    │   │  ⚡ Fast  🛡 Secure  ❤ Easy   │  │                     │
-│              │   └──────────────────────────────┘  │   Background         │
-│  [➕ Add     │                                      │   [🎨][▣][🖼]       │
-│   Section]   │   ┌──────────────────────────────┐  │   Padding: [━━●━━]  │
-│              │   │        ➕ Add Section          │  │                     │
-│              │   └──────────────────────────────┘  │  ─── Block Mode ──── │
-│              │                                      │  (when block clicked) │
-│              │         [ - 100% + ] (zoom)         │   Heading: [___]     │
-│              │                                      │   Size: [sm][md][lg] │
-│              │                                      │   Align: [L][C][R]  │
-├──────────────┴─────────────────────────────────────┴───────────────────────┤
+â”Œâ”€ TOOLBAR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚  â˜° Page Name â–¾           ðŸ–¥ ðŸ“±         â†© â†ª       ðŸ‘ Preview   ðŸš€ Publish  â”‚
+â”‚                                                   Last saved: 2 min ago   â”‚
+â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
+â”‚  LEFT SIDEBARâ”‚           CANVAS                    â”‚    RIGHT SIDEBAR      â”‚
+â”‚  (Sections   â”‚   (scrollable, centered,            â”‚    (Context-sensitive â”‚
+â”‚   List)      â”‚    dark background)                  â”‚     settings panel)  â”‚
+â”‚              â”‚                                      â”‚                      â”‚
+â”‚  Page        â”‚   â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”‚  â”€â”€â”€ Section Mode â”€â”€ â”‚
+â”‚  â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ â”‚   â”‚  â­ Hero Section (badge)      â”‚  â”‚   Layout:           â”‚
+â”‚  â˜° Navbar    â”‚   â”‚                               â”‚  â”‚   [1-col][2-col]    â”‚
+â”‚    Sticky Topâ”‚   â”‚  "Grow Your Business"  â†click â”‚  â”‚   [60-40][40-60]    â”‚
+â”‚  â˜° Hero    â— â”‚   â”‚  "We help startups"           â”‚  â”‚                     â”‚
+â”‚    2-Column  â”‚   â”‚       [Get Started]            â”‚  â”‚   Blocks:           â”‚
+â”‚  â˜° Features  â”‚   â”‚              [hero.jpg]        â”‚  â”‚   â˜° Heading         â”‚
+â”‚    3 Columns â”‚   â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜  â”‚   â˜° Text             â”‚
+â”‚  â˜° CTA       â”‚                                      â”‚   â˜° Button           â”‚
+â”‚    Banner    â”‚   â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”‚   â˜° Image            â”‚
+â”‚  â˜° Footer    â”‚   â”‚  Features Section             â”‚  â”‚   [+ Add Block]     â”‚
+â”‚    Simple    â”‚   â”‚  âš¡ Fast  ðŸ›¡ Secure  â¤ Easy   â”‚  â”‚                     â”‚
+â”‚              â”‚   â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜  â”‚   Background         â”‚
+â”‚  [âž• Add     â”‚                                      â”‚   [ðŸŽ¨][â–£][ðŸ–¼]       â”‚
+â”‚   Section]   â”‚   â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”‚   Padding: [â”â”â—â”â”]  â”‚
+â”‚              â”‚   â”‚        âž• Add Section          â”‚  â”‚                     â”‚
+â”‚              â”‚   â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜  â”‚  â”€â”€â”€ Block Mode â”€â”€â”€â”€ â”‚
+â”‚              â”‚                                      â”‚  (when block clicked) â”‚
+â”‚              â”‚         [ - 100% + ] (zoom)         â”‚   Heading: [___]     â”‚
+â”‚              â”‚                                      â”‚   Size: [sm][md][lg] â”‚
+â”‚              â”‚                                      â”‚   Align: [L][C][R]  â”‚
+â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
 ```
 
-### Left Sidebar — Sections List Panel
+### Left Sidebar â€” Sections List Panel
 
 - Displays all sections in page order as a **vertical list**
-- Each row shows: **drag handle (☰)** + **section type icon** + **section name** + **layout label** + **active indicator**
+- Each row shows: **drag handle (â˜°)** + **section type icon** + **section name** + **layout label** + **active indicator**
 - Sections are **reorderable via drag** within this list (dnd-kit sortable)
 - Clicking a row **selects** that section (highlights it on canvas + opens section settings in right sidebar) and auto-scrolls the canvas to keep the selected section in view.
 - **"+ Add Section"** button at the bottom of the list
@@ -166,30 +167,33 @@ The editor has a **LEFT sidebar (sections list) + CENTER canvas + RIGHT sidebar 
 ### Center Canvas
 
 - Dark background with the page rendered in a centered, scrollable container
-- Selected section has a **floating label badge** (e.g., "⭐ Hero Section") at the top
+- Selected section has a **floating label badge** (e.g., "â­ Hero Section") at the top
 - Sections are rendered as they will appear when published (WYSIWYG)
-- Click a **block** on canvas → selects that block (right sidebar switches to block settings)
-- Click **text blocks** on canvas → **inline edit via Tiptap**
+- Click a **block** on canvas â†’ selects that block (right sidebar switches to block settings)
+- Click **text blocks** on canvas â†’ **inline edit via Tiptap**
 - **Zoom controls** at the bottom center: `[ - 100% + ]`
 - Supports **device preview toggle** from toolbar (desktop/mobile width)
 
-### Right Sidebar — Context-Sensitive Settings Panel
+### Right Sidebar â€” Context-Sensitive Settings Panel
 
 The right sidebar changes based on what is selected:
 
 **When a SECTION is selected** (click section in left sidebar or section background on canvas):
-1. **Layout** � visual thumbnail grid of layout templates. Click to change column structure. Layout switching preserves block placement across layout combinations by using per-layout slot memory and deterministic slot mapping.
-2. **Blocks** � ordered list of blocks within the section. Add/remove/reorder blocks. Clicking **+ Add Block** opens a modal of allowed block types; for multi-column layouts, users choose the target column/slot before inserting.
-3. **Background** — section background options (solid/gradient/image + padding slider).
+1. **Groups** — ordered list of groups inside the section. Add/remove/duplicate/reorder groups and select a group to edit.
+2. **Background** — section background options (solid/gradient/image + padding slider).
+
+**When a GROUP is selected** (click group container on the canvas or from section settings):
+1. **Layout** — visual thumbnail grid of layout templates for that group. Layout switching preserves that group's flow block placement using per-layout slot memory.
+2. **Blocks** — ordered list of blocks within the selected group. Clicking **+ Add Block** opens a modal of allowed block types; for multi-column layouts, users choose the target column/slot before inserting.
+3. **Group Style** — group-local spacing controls (top/bottom padding).
 
 **When a BLOCK is selected** (click a specific block on the canvas):
 1. **Block Content** - auto-generated controls based on block type (text input, image upload, etc.)
 2. **Block Style** - constrained style options for that block (size, alignment, spacing).
-3. **Position** - choose `flow` or `absolute`. Absolute blocks are positioned relative to the section and can be moved on the canvas by dragging.
-4. **Back to Section** - button to go back to section-level settings.
-
+3. **Position** - choose `flow` or `absolute`. Absolute blocks are positioned relative to the selected group and can be moved on the canvas by dragging.
+4. **Back to Group** - button to go back to group-level settings.
 **When NOTHING is selected** (click empty canvas area):
-- **Global Page Settings** — font family, primary color, corner style.
+- **Global Page Settings** â€” font family, primary color, corner style.
 
 ### Toolbar
 
@@ -202,40 +206,40 @@ The right sidebar changes based on what is selected:
 ```
 STATE MANAGEMENT:
 - Zustand store (editorStore) holds: sections[], selectedSectionId,
-  selectedBlockId, globalStyle, history[], future[], isDirty, device, zoom
+  selectedGroupId, selectedBlockId, globalStyle, history[], future[], isDirty, device, zoom
 - Immer middleware for mutable-looking immutable updates
 - TanStack Query handles all API calls (fetch project, auto-save, publish)
 - Auto-save: debounced 3 seconds after any change
-- Two selection levels: section-level and block-level
+- Three selection levels: section-level, group-level, and block-level
 
 DRAG-AND-DROP:
 - Sections are reordered by dragging in the LEFT SIDEBAR list (not on the canvas)
-- Blocks within a section can be reordered in the RIGHT SIDEBAR block list
+- Blocks within the selected group can be reordered in the RIGHT SIDEBAR block list
 - Both use @dnd-kit/sortable with vertical list strategy
-- Drag handle (☰ grip icon) on each row
+- Drag handle (â˜° grip icon) on each row
 - Canvas updates in real-time as items are reordered
 
 BLOCK ADDING:
-- Clicking **+ Add Block** opens a block picker modal filtered by the section's `allowedBlockTypes`
-- If the current layout has multiple slots (e.g., `left/right`, `col-1/col-2/col-3`), the modal shows a **Column** selector
-- New blocks are inserted into the selected slot with `addBlock(sectionId, blockType, slot)`
+- Clicking **+ Add Block** opens a block picker modal filtered by the section's `allowedBlockTypes` for the currently selected group
+- If the selected group layout has multiple slots (e.g., `left/right`, `col-1/col-2/col-3`), the modal shows a **Column** selector
+- New blocks are inserted into the selected group/slot with `addBlock(sectionId, groupId, blockType, slot)`
 - If no slot is provided, fallback behavior inserts into the first layout slot
-- The modal also supports **Add as absolute block**. Absolute blocks are created with section-relative coordinates.
+- The modal also supports **Add as absolute block**. Absolute blocks are created with group-relative coordinates in the selected group.
 
 LAYOUT SWITCHING:
 - Every layout change snapshots block slot/order for the current layout id
-- Switching to a previously used layout restores that layout's saved slot/order map per block
+- Switching to a previously used layout restores that group layout's saved slot/order map per block
 - First-time switches to a layout use deterministic slot-index mapping, then normalize order per slot
 - Multi-column -> single-column keeps reading-order collapse; expanding back uses per-layout memory when available
-- This prevents cumulative scrambling when repeatedly switching between 1/2/3-column layout combinations
+- This prevents cumulative scrambling when repeatedly switching between 1/2/3-column layout combinations within the same group
 - For legacy navbar sections (single-slot layouts), first switch to a nav layout smart-maps blocks by type (brand, links, actions).
 - Navbar layout switching uses semantic slot mapping (`brand`/`links`/`actions`); when a slot is absent in the current layout, its blocks stay preserved and reappear when switching back.
 
-SELECTION (two levels):
+SELECTION (three levels):
 - Selecting a section from the left sidebar auto-scrolls the canvas to that section when it is outside the current viewport
-- Click a section row in left sidebar → selects SECTION (right sidebar shows layout + blocks + background)
-- Click a block on the canvas → selects BLOCK (right sidebar shows block content + block style)
-- Click empty canvas area or press Escape → deselects all → right sidebar shows global settings
+- Click a section row in left sidebar â†’ selects SECTION (right sidebar shows layout + blocks + background)
+- Click a block on the canvas â†’ selects BLOCK (right sidebar shows block content + block style)
+- Click empty canvas area or press Escape â†’ deselects all â†’ right sidebar shows global settings
 - Selecting a block also implicitly selects its parent section (shown highlighted on canvas)
 
 KEYBOARD SHORTCUTS:
@@ -243,16 +247,16 @@ KEYBOARD SHORTCUTS:
 - Ctrl/Cmd + Z: Undo
 - Ctrl/Cmd + Shift + Z: Redo
 - Ctrl/Cmd + S: Save now
-- Delete: Delete currently selected block or section
+- Delete: Delete currently selected block, group, or section (deepest active selection)
 - Esc: Deselect current block/section level
 
 ABSOLUTE BLOCK POSITIONING:
 - Blocks can be switched between `flow` and `absolute` modes from block settings
-- Absolute blocks render in a section-relative layer (not viewport-relative)
+- Absolute blocks render in a group-relative layer (not viewport-relative)
 - Dragging an absolute block on the canvas updates its `positionX` / `positionY`
 - Absolute drag position updates are history-grouped with debounce so one drag is one undo/redo step
 - Final pointer-up coordinates are committed before drag end so the last dropped position is undoable
-- Absolute blocks keep a cached minimum width during drag so they do not auto-shrink near section/canvas edges
+- Absolute blocks keep a cached minimum width during drag so they do not auto-shrink near group/canvas edges
 - During absolute dragging, canvas hover/pointer reactions and text selection are temporarily disabled to avoid accidental highlight states
 - Layer order can be adjusted with block `zIndex`
 - Absolute blocks can be resized with a `Scale` control (shrink/enlarge)
@@ -273,10 +277,10 @@ ZOOM:
 
 EDITOR DOES NOT HAVE (by design):
 - Global freeform canvas with unrestricted layers and arbitrary parent containers
-- Raw CSS property panels (no margin/padding/font-size inputs — constrained choices only)
+- Raw CSS property panels (no margin/padding/font-size inputs â€” constrained choices only)
 - Layer tree or component tree
 - Custom HTML/CSS/JS editing
-- Viewport-level absolute positioning
+- Section-level global absolute positioning
 - Blocks cannot be nested inside other blocks
 ```
 
@@ -287,7 +291,7 @@ EDITOR DOES NOT HAVE (by design):
 ### Core Data Model
 
 ```typescript
-// ─── Block Types ────────────────────────────────────────────────────────
+// â”€â”€â”€ Block Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 type BlockType =
   | "heading"        // H1-H4 text with size/weight options
@@ -307,7 +311,7 @@ type BlockType =
   | "social-links"   // Row of social media icons
   | "map";           // Embedded map
 
-// ─── Block ──────────────────────────────────────────────────────────────
+// â”€â”€â”€ Block â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 interface Block {
   id: string;                     // nanoid(10)
@@ -338,13 +342,13 @@ interface BlockStyle {
 
   // Positioning (editor controls)
   positionMode?: "flow" | "absolute";
-  positionX?: number;             // px from section container left
-  positionY?: number;             // px from section container top
+  positionX?: number;             // px from group container left
+  positionY?: number;             // px from group container top
   zIndex?: number;                // Layer order for absolute blocks
   scale?: number;                 // Absolute block scale percentage (default 100)
 }
 
-// ─── Layout Template ────────────────────────────────────────────────────
+// â”€â”€â”€ Layout Template â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 interface LayoutTemplate {
   id: string;                     // "1-col-center", "2-col-50-50", etc.
@@ -357,13 +361,28 @@ interface LayoutTemplate {
   thumbnail?: string;             // Optional thumbnail for the layout picker
 }
 
-// ─── Section ────────────────────────────────────────────────────────────
+// â”€â”€â”€ Section â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+interface Group {
+  id: string;                     // nanoid(10)
+  label: string;                  // User-facing group label
+  order: number;                  // Vertical stack order in section
+  layout: LayoutTemplate;         // Defines the grid/flex structure for this group
+  blocks: Block[];                // Flow + absolute blocks owned by this group
+  style?: GroupStyle;             // Optional group-local spacing controls
+}
+
+interface GroupStyle {
+  paddingTop?: number;            // Group inner top spacing (px)
+  paddingBottom?: number;         // Group inner bottom spacing (px)
+  maxWidth?: "content" | "wide" | "full";
+  verticalAlign?: "top" | "center" | "bottom";
+}
 
 interface Section {
   id: string;                     // nanoid(10)
   type: SectionType;              // "hero" | "features" | "cta" | etc.
-  layout: LayoutTemplate;         // Defines the grid/flex structure
-  blocks: Block[];                // Content blocks placed into layout slots
+  groups: Group[];                // Vertical stack of groups inside the section
   style: SectionStyle;            // Background, padding, colors
   isVisible: boolean;             // Toggle visibility without deleting
 }
@@ -387,7 +406,7 @@ interface SectionStyle {
   paddingY?: number;              // Continuous value (px), controlled by slider
 }
 
-// ─── Global Style ───────────────────────────────────────────────────────
+// â”€â”€â”€ Global Style â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 interface GlobalStyle {
   fontFamily: string;             // Google Font name ("Inter", "Playfair Display")
@@ -395,7 +414,7 @@ interface GlobalStyle {
   borderRadius: "none" | "sm" | "md" | "lg" | "full";  // Button/card corners
 }
 
-// ─── Project ────────────────────────────────────────────────────────────
+// â”€â”€â”€ Project â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 interface Project {
   id: string;
@@ -426,7 +445,7 @@ Navbar presets also include dedicated layout ids: `nav-brand-links`, `nav-brand-
 
 ### Layout Templates (pre-defined)
 
-Layouts are pre-defined templates that control how blocks are spatially arranged within a section. Users pick a layout from a visual grid — they never configure columns or grids directly.
+Layouts are pre-defined templates that control how blocks are spatially arranged within a section. Users pick a layout from a visual grid â€” they never configure columns or grids directly.
 
 ```typescript
 const LAYOUT_TEMPLATES: LayoutTemplate[] = [
@@ -503,7 +522,7 @@ const LAYOUT_TEMPLATES: LayoutTemplate[] = [
 
 ### Section Registry Pattern
 
-Every section type is registered in a central `SECTION_REGISTRY` object. The registry now defines **default blocks** instead of fixed props:
+Every section type is registered in a central `SECTION_REGISTRY` object. The registry now defines **default groups** (with legacy `defaultBlocks` compatibility):
 
 ```typescript
 SECTION_REGISTRY[sectionType] = {
@@ -513,7 +532,7 @@ SECTION_REGISTRY[sectionType] = {
   description: string,                    // For the "Add Section" modal
   allowedLayouts: string[],               // IDs of layout templates this section supports
   defaultLayoutId: string,                // Which layout to use when section is first added
-  defaultBlocks: Block[],                 // Pre-configured blocks for a fresh section
+  defaultBlocks: Block[],                 // Legacy fallback: wrapped into one default group
   defaultStyle: SectionStyle,             // Default background/padding
   allowedBlockTypes: BlockType[],         // Which block types can be added to this section
   maxBlocksPerSlot?: number,              // Optional limit (e.g., navbar might limit to 1 per slot)
@@ -522,11 +541,11 @@ SECTION_REGISTRY[sectionType] = {
 
 **How this differs from the old model:**
 - Old: `variants[]` + `defaultProps` (fixed fields like `headline`, `buttonText`)
-- New: `allowedLayouts[]` + `defaultBlocks[]` (composable content pieces)
+- New: `allowedLayouts[]` + `defaultGroups[]` (composable multi-zone content pieces)
 - Old: Adding a "hero with two buttons" required a new variant
-- New: User adds a second `button` block — no code changes needed
+- New: User adds a second `button` block â€” no code changes needed
 - Old: `editableProps[]` defined sidebar controls per section type
-- New: Each block type has its own edit controls — sidebar auto-generates from block type
+- New: Each block type has its own edit controls â€” sidebar auto-generates from block type
 
 ### Block Registry Pattern
 
@@ -568,39 +587,32 @@ Rules for block components:
 - Use Tailwind classes for structural layout
 - Support `isEditing` flag: disable links, show placeholder states when editing
 - If `inlineEditable` is true, render a Tiptap wrapper for direct text editing on canvas
-- Never import or read from the Zustand store directly — only use passed props
+- Never import or read from the Zustand store directly â€” only use passed props
 
 ### Section Renderer
 
 The section renderer is responsible for:
-1. Applying the section's background style (color, gradient, image, padding)
-2. Rendering the layout template (columns, distribution, alignment)
-3. Placing blocks into their assigned slots
-4. Delegating to block components for actual content rendering
+1. Applying the section background style (color, gradient, image, padding)
+2. Rendering groups in vertical order
+3. Delegating each group's layout/slot rendering to a group renderer
+4. Ensuring absolute blocks use group-local coordinate systems
 
 ```typescript
-// Pseudocode for section rendering
+// Pseudocode for section/group rendering
 function SectionRenderer({ section, isEditing, globalStyle }) {
-  const layout = section.layout;
-  const blocksBySlot = groupBlocksBySlot(section.blocks);
+  const groups = section.groups.sort((a, b) => a.order - b.order);
 
   return (
     <section style={applySectionStyle(section.style)}>
-      <div className={layoutToGridClasses(layout)}>
-        {layout.slots.map(slotName => (
-          <div key={slotName} className={slotClasses(layout, slotName)}>
-            {blocksBySlot[slotName]?.map(block => (
-              <BlockRenderer
-                key={block.id}
-                block={block}
-                sectionStyle={section.style}
-                globalStyle={globalStyle}
-                isEditing={isEditing}
-              />
-            ))}
-          </div>
-        ))}
-      </div>
+      {groups.map(group => (
+        <GroupRenderer
+          key={group.id}
+          section={section}
+          group={group}
+          globalStyle={globalStyle}
+          isEditing={isEditing}
+        />
+      ))}
     </section>
   );
 }
@@ -608,7 +620,7 @@ function SectionRenderer({ section, isEditing, globalStyle }) {
 
 ### MVP Section Types
 
-Each section type is a **preset** — a combination of a default layout + default blocks. Users start with the preset and can modify from there.
+Each section type is a **preset** — a combination of default group(s) + default block composition. Users start with the preset and can modify from there.
 
 | Type | Default Layout | Default Blocks | Allowed Layouts |
 |------|---------------|----------------|-----------------|
@@ -622,20 +634,20 @@ Each section type is a **preset** — a combination of a default layout + defaul
 
 ### Style Inheritance Chain
 
-Styles cascade from global → section → block:
+Styles cascade from global â†’ section â†’ block:
 
 ```
-GlobalStyle.primaryColor    → used as default accentColor for all sections
-GlobalStyle.fontFamily      → applied to all text
-GlobalStyle.borderRadius    → applied to buttons, cards, images
+GlobalStyle.primaryColor    â†’ used as default accentColor for all sections
+GlobalStyle.fontFamily      â†’ applied to all text
+GlobalStyle.borderRadius    â†’ applied to buttons, cards, images
 
-SectionStyle.textColor      → inherited by all blocks in the section
-SectionStyle.accentColor    → inherited by buttons, icons, links in the section
-SectionStyle.backgroundColor → section background
+SectionStyle.textColor      â†’ inherited by all blocks in the section
+SectionStyle.accentColor    â†’ inherited by buttons, icons, links in the section
+SectionStyle.backgroundColor â†’ section background
 
-BlockStyle.textColor        → overrides section's textColor for this block only
-BlockStyle.fontSize         → block-level size choice
-BlockStyle.textAlign        → block-level alignment
+BlockStyle.textColor        â†’ overrides section's textColor for this block only
+BlockStyle.fontSize         â†’ block-level size choice
+BlockStyle.textAlign        â†’ block-level alignment
 ```
 
 ---
@@ -644,65 +656,49 @@ BlockStyle.textAlign        → block-level alignment
 
 ### Right Sidebar — Section Mode
 
-When a section is selected (not a specific block):
+When a section is selected (not a specific group/block):
 
-```
-┌─ RIGHT SIDEBAR ──────────────────┐
-│  Hero Section              [⋮]   │  ← section name + context menu (duplicate, delete)
-│  SETTINGS                         │
-│                                   │
-│  ▼ Layout                         │  ← Visual thumbnail grid of allowed layouts
-│  ┌──────┐ ┌──────┐ ┌──────┐     │
-│  │ [==] │ │[= ][=]│ │[=][ =]│   │
-│  │center│ │ 50/50 │ │ 60/40 │   │
-│  └──────┘ └──────┘ └──────┘     │
-│                                   │
-│  ▼ Blocks                         │  ← Ordered list with drag reorder
-│  ☰ Heading      "Build Faster"  │
-│  ☰ Text         "Create stun…"  │
-│  ☰ Button       "Start Free"    │
-│  ☰ Image        hero.jpg         │
-│  [+ Add Block]                   │
-│                                   │
-│  ▼ Background                     │  ← Section background + padding
-│  Type: [🎨][▣][🖼]              │
-│  Color:  [● picker]              │
-│  Y Padding:                      │
-│  Small [━━━━━━●━━━━━━] Large    │
-│                                   │
-└───────────────────────────────────┘
-```
+- Shows section-level actions (duplicate/delete)
+- Shows **Groups** panel: add/remove/duplicate/reorder/select groups
+- Shows **Background** panel: section background + section color inheritance controls
 
-- Navigation layouts use nav-specific thumbnails (brand/logo, links row, CTA pill) instead of generic equal bars.
-- For navigation, the layout thumbnail semantics match canvas slots: `brand`, `links`, `actions`.
+Group list behavior:
+- Each row shows group label + active layout label
+- Group rows can be selected to enter **Group Mode**
+- Reordering groups changes vertical stacking order in the canvas
 
-
-
-Add Block modal behavior:
+Add Block modal behavior (in Group Mode):
 - Shows only block types allowed by the selected section type
-- In multi-column layouts, includes a **Column** picker based on `section.layout.slots`
-- In single-column layouts, column picker is hidden and blocks go to the default slot (`main`)
+- Uses selected group's `layout.slots` for the **Column** picker
+- Supports **Add as absolute block (group-relative)**
 
+### Right Sidebar — Group Mode
+
+When a group is selected:
+
+- **Layout** panel applies only to that group
+- **Blocks** panel lists only blocks owned by that group
+- **Group Style** panel controls group-local spacing (top/bottom padding)
 ### Right Sidebar — Block Mode
 
 When a specific block is selected (click a block on the canvas):
 
 ```
-┌─ RIGHT SIDEBAR ──────────────────┐
-│  ← Back to Section               │  ← Returns to section mode
-│  Heading Block             [🗑]  │
-│                                   │
-│  ▼ Content                        │  ← Auto-generated from block's editableProps
-│  Text:     [Build Faster._____]  │
-│                                   │
-│  ▼ Style                          │  ← Auto-generated from block's editableStyles
-│  Size:     [sm][base][lg][xl]    │
-│  Weight:   [normal][bold]        │
-│  Align:    [← ][↔][→ ]          │
-│  Color:    [● picker] (optional) │
-│  Spacing ↕ [━━━●━━━]            │
-│                                   │
-└───────────────────────────────────┘
+â”Œâ”€ RIGHT SIDEBAR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚  â† Back to Group               â”‚  â† Returns to group mode
+â”‚  Heading Block             [ðŸ—‘]  â”‚
+â”‚                                   â”‚
+â”‚  â–¼ Content                        â”‚  â† Auto-generated from block's editableProps
+â”‚  Text:     [Build Faster._____]  â”‚
+â”‚                                   â”‚
+â”‚  â–¼ Style                          â”‚  â† Auto-generated from block's editableStyles
+â”‚  Size:     [sm][base][lg][xl]    â”‚
+â”‚  Weight:   [normal][bold]        â”‚
+â”‚  Align:    [â† ][â†”][â†’ ]          â”‚
+â”‚  Color:    [â— picker] (optional) â”‚
+â”‚  Spacing â†• [â”â”â”â—â”â”â”]            â”‚
+â”‚                                   â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
 ### Available Control Types
@@ -728,54 +724,54 @@ type ControlType =
 ### Background Control (composite)
 
 The Background section in the right sidebar is a **composite control** with:
-1. **Type selector** — icon buttons in a row: Solid Color | Gradient | Image (| Video post-MVP)
+1. **Type selector** â€” icon buttons in a row: Solid Color | Gradient | Image (| Video post-MVP)
 2. **Type-specific controls**:
    - **Solid**: single color picker
    - **Gradient**: two color pickers + direction dropdown
    - **Image**: upload button + optional overlay color/opacity
-3. **Y-axis padding slider** — continuous Radix Slider from Small (e.g., 20px) to Large (e.g., 160px)
+3. **Y-axis padding slider** â€” continuous Radix Slider from Small (e.g., 20px) to Large (e.g., 160px)
 
 
 - `list` blocks support an `Inline Row` toggle (useful for navigation links in nav layouts).
 ### Control Labels (User-Facing)
 
 ALWAYS use friendly labels. NEVER expose technical terms:
-- "Heading" — NOT "h1" or "fontSize"
-- "Subheading" — NOT "subtitle" or "h2"
-- "Button Text" — NOT "ctaLabel"
-- "Button Link" — NOT "href" or "buttonUrl"
-- "Image" with upload button — NOT "imageUrl" or "src"
-- "Background" — NOT "backgroundColor"
-- Padding slider labeled "Small / Large" — NOT "paddingY: 64px"
-- Size picker labeled "Small / Medium / Large" — NOT "fontSize: 2xl"
-- Alignment labeled with icons (← ↔ →) — NOT "textAlign: center"
+- "Heading" â€” NOT "h1" or "fontSize"
+- "Subheading" â€” NOT "subtitle" or "h2"
+- "Button Text" â€” NOT "ctaLabel"
+- "Button Link" â€” NOT "href" or "buttonUrl"
+- "Image" with upload button â€” NOT "imageUrl" or "src"
+- "Background" â€” NOT "backgroundColor"
+- Padding slider labeled "Small / Large" â€” NOT "paddingY: 64px"
+- Size picker labeled "Small / Medium / Large" â€” NOT "fontSize: 2xl"
+- Alignment labeled with icons (â† â†” â†’) â€” NOT "textAlign: center"
 
 ---
 
-## Left Sidebar — Sections List
+## Left Sidebar â€” Sections List
 
 ```
-┌─ LEFT SIDEBAR ───────────────┐
-│  PAGE SECTIONS          [⊕]  │
-│  ─────────────────────────── │
-│  ☰ [≡] Navbar     Sticky Top│  ← drag handle + icon + name + layout label
-│  ☰ [★] Hero     ● 2-Column  │  ← ● = active/selected indicator
-│  ☰ [▦] Features   3 Columns │
-│  ☰ [❝] Testimonials  Slider │
-│  ☰ [▤] CTA          Banner  │
-│  ☰ [▣] Footer       Simple  │
-│                               │
-│  [+ Add Section]              │
-└───────────────────────────────┘
+â”Œâ”€ LEFT SIDEBAR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚  PAGE SECTIONS          [âŠ•]  â”‚
+â”‚  â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ â”‚
+â”‚  â˜° [â‰¡] Navbar     Sticky Topâ”‚  â† drag handle + icon + name + layout label
+â”‚  â˜° [â˜…] Hero     â— 2-Column  â”‚  â† â— = active/selected indicator
+â”‚  â˜° [â–¦] Features   3 Columns â”‚
+â”‚  â˜° [â] Testimonials  Slider â”‚
+â”‚  â˜° [â–¤] CTA          Banner  â”‚
+â”‚  â˜° [â–£] Footer       Simple  â”‚
+â”‚                               â”‚
+â”‚  [+ Add Section]              â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
 Each row in the left sidebar shows:
-- **Drag handle** (☰) — for reordering via @dnd-kit/sortable
-- **Section icon** — from the section registry
-- **Section name** — the section type label (Hero, Features, etc.)
-- **Layout label** — the currently active layout (Centered, 2-Column, etc.)
-- **Active indicator** — dot or highlight on the selected section
-- **Hover actions** — visibility toggle, context menu (duplicate, delete)
+- **Drag handle** (â˜°) â€” for reordering via @dnd-kit/sortable
+- **Section icon** â€” from the section registry
+- **Section name** â€” the section type label (Hero, Features, etc.)
+- **Layout label** â€” the currently active layout (Centered, 2-Column, etc.)
+- **Active indicator** â€” dot or highlight on the selected section
+- **Hover actions** â€” visibility toggle, context menu (duplicate, delete)
 
 Dragging happens **in this list**, not on the canvas. The canvas mirrors the order.
 
@@ -791,7 +787,7 @@ User:
   plan ("free"), createdAt, updatedAt
 
 Project:
-  _id, userId (ref→User), name, slug (unique, used as subdomain),
+  _id, userId (refâ†’User), name, slug (unique, used as subdomain),
   status ("draft"|"published"),
   pages: [{
     id, name, slug, isDefault,
@@ -805,7 +801,7 @@ Project:
   }],
   globalStyle: { fontFamily, primaryColor, borderRadius },
   seo: { title, description, ogImage },
-  templateId (ref→Template), publishedUrl, publishedAt, publishedHtml,
+  templateId (refâ†’Template), publishedUrl, publishedAt, publishedHtml,
   createdAt, updatedAt
 
 Template:
@@ -814,7 +810,7 @@ Template:
   isActive, usageCount, createdAt
 
 MediaAsset:
-  _id, userId (ref→User), url, publicId, filename,
+  _id, userId (refâ†’User), url, publicId, filename,
   size, width, height, format, createdAt
 ```
 
@@ -826,17 +822,17 @@ Auth header:    Authorization: Bearer <access_token>
 Refresh token:  httpOnly cookie "refreshToken"
 Validation:     Zod schemas (shared with frontend), validated via middleware
 Errors:         { error: string, details?: object } with appropriate HTTP status
-Pagination:     ?page=1&limit=20 → { data: [], total, page, pages }
+Pagination:     ?page=1&limit=20 â†’ { data: [], total, page, pages }
 
 Route naming:   RESTful
-  GET    /api/projects           → list user's projects
-  POST   /api/projects           → create project
-  GET    /api/projects/:id       → get project (includes pages + sections + blocks)
-  PUT    /api/projects/:id       → save full project state (pages, sections, blocks, globalStyle)
-  DELETE /api/projects/:id       → delete project
-  POST   /api/projects/:id/publish    → render + deploy
-  POST   /api/projects/:id/unpublish  → take offline
-  POST   /api/projects/:id/duplicate  → clone project
+  GET    /api/projects           â†’ list user's projects
+  POST   /api/projects           â†’ create project
+  GET    /api/projects/:id       â†’ get project (includes pages + sections + blocks)
+  PUT    /api/projects/:id       â†’ save full project state (pages, sections, blocks, globalStyle)
+  DELETE /api/projects/:id       â†’ delete project
+  POST   /api/projects/:id/publish    â†’ render + deploy
+  POST   /api/projects/:id/unpublish  â†’ take offline
+  POST   /api/projects/:id/duplicate  â†’ clone project
 
 Response shape (success):
   { data: {...}, message?: string }
@@ -851,8 +847,9 @@ Response shape (error):
 POST /api/projects/:id/publish
   1. Fetch project (pages + globalStyle + SEO) from MongoDB
   2. For each page, for each section:
-     - Build the layout grid from section.layout
-     - For each block in each slot:
+     - Render groups in section.groups (vertical order)
+       - Build each group layout grid from group.layout
+       - For each block in each slot (and absolute blocks in group overlay):
        - Look up component from BLOCK_REGISTRY
        - Render block with its props + inherited section/global style
      - Wrap blocks in the section shell (background, padding)
@@ -861,9 +858,9 @@ POST /api/projects/:id/publish
      - All rendered section HTML in <body>
   4. sanitize-html (XSS prevention)
   5. html-minifier-terser (minify)
-  6. Save as static file → serve via Nginx/Caddy
+  6. Save as static file â†’ serve via Nginx/Caddy
   7. Map to subdomain: {slug}.builder.app
-  8. Update project status → "published"
+  8. Update project status â†’ "published"
   9. Return { publishedUrl, publishedAt }
 ```
 
@@ -872,7 +869,7 @@ POST /api/projects/:id/publish
 ## Styling Rules
 
 ```
-1. TAILWIND ONLY — no custom CSS files, no CSS modules, no styled-components
+1. TAILWIND ONLY â€” no custom CSS files, no CSS modules, no styled-components
 2. Use Tailwind utility classes for all layout and structural styling
 3. Use inline style={{}} for dynamic values from section/block data:
    - style={{ backgroundColor: section.style.backgroundColor }}
@@ -886,26 +883,26 @@ POST /api/projects/:id/publish
 9. Section padding: paddingY is a continuous number value (in px),
    controlled by a Radix Slider, NOT discrete S/M/L/XL toggles
 10. Border radius map (globalStyle.borderRadius):
-    - "none" → rounded-none
-    - "sm"   → rounded-md
-    - "md"   → rounded-lg
-    - "lg"   → rounded-xl
-    - "full" → rounded-full
+    - "none" â†’ rounded-none
+    - "sm"   â†’ rounded-md
+    - "md"   â†’ rounded-lg
+    - "lg"   â†’ rounded-xl
+    - "full" â†’ rounded-full
 11. Block fontSize map (block.style.fontSize):
-    - "sm"   → text-sm
-    - "base" → text-base
-    - "lg"   → text-lg
-    - "xl"   → text-xl
-    - "2xl"  → text-2xl
-    - "3xl"  → text-3xl
-    - "4xl"  → text-4xl
-    - "5xl"  → text-5xl
+    - "sm"   â†’ text-sm
+    - "base" â†’ text-base
+    - "lg"   â†’ text-lg
+    - "xl"   â†’ text-xl
+    - "2xl"  â†’ text-2xl
+    - "3xl"  â†’ text-3xl
+    - "4xl"  â†’ text-4xl
+    - "5xl"  â†’ text-5xl
 12. Block width map (block.style.width):
-    - "auto" → w-auto
-    - "sm"   → max-w-sm
-    - "md"   → max-w-md
-    - "lg"   → max-w-lg
-    - "full" → w-full
+    - "auto" â†’ w-auto
+    - "sm"   â†’ max-w-sm
+    - "md"   â†’ max-w-md
+    - "lg"   â†’ max-w-lg
+    - "full" â†’ w-full
 ```
 
 ---
@@ -916,98 +913,98 @@ POST /api/projects/:id/publish
 
 ```
 app/
-├── components/
-│   ├── ui/                      # shadcn/ui components
-│   ├── controls/                # Right sidebar control components
-│   │   ├── ShortTextControl.tsx
-│   │   ├── LongTextControl.tsx
-│   │   ├── UrlControl.tsx
-│   │   ├── ColorControl.tsx
-│   │   ├── SliderControl.tsx
-│   │   ├── BackgroundControl.tsx  # Composite: type + color/gradient/image + padding
-│   │   ├── ImageControl.tsx
-│   │   ├── RepeaterControl.tsx
-│   │   ├── SizePickerControl.tsx
-│   │   ├── AlignPickerControl.tsx
-│   │   ├── FieldRenderer.tsx      # Control type switch
-│   │   └── ...
-│   ├── InlineText.tsx           # Tiptap inline editor wrapper
-│   └── SortableItem.tsx         # dnd-kit sortable wrapper (used in sidebar lists)
-│
-├── blocks/                      # Block components (one per block type)
-│   ├── HeadingBlock.tsx
-│   ├── TextBlock.tsx
-│   ├── ButtonBlock.tsx
-│   ├── ImageBlock.tsx
-│   ├── IconBlock.tsx
-│   ├── SpacerBlock.tsx
-│   ├── BadgeBlock.tsx
-│   ├── DividerBlock.tsx
-│   ├── ListBlock.tsx
-│   ├── QuoteBlock.tsx
-│   └── BlockRenderer.tsx        # Block type switch + renders correct component
-│
-├── sections/                    # Section shell renderers
-│   ├── SectionRenderer.tsx      # Layout grid builder + block placement
-│   ├── NavbarRenderer.tsx       # Special layout for navbar (not grid-based)
-│   └── FooterRenderer.tsx       # Optional special layout for footer
-│
-├── editor/
-│   ├── EditorPage.tsx           # Main three-panel layout
-│   ├── EditorCanvas.tsx         # Center: section rendering + zoom
-│   ├── EditorToolbar.tsx        # Top bar: name, device, undo/redo, preview, publish
-│   ├── SectionsListPanel.tsx    # LEFT sidebar: section list with drag reorder
-│   ├── SectionSettings.tsx      # RIGHT sidebar: section mode (layout + blocks + background)
-│   ├── BlockSettings.tsx        # RIGHT sidebar: block mode (content + style)
-│   ├── AddSectionModal.tsx      # Section type picker dialog
-│   ├── AddBlockModal.tsx        # Block type picker (within a section)
-│   └── GlobalStylePanel.tsx     # RIGHT sidebar when nothing selected
-│
-├── pages/
-│   ├── Dashboard.tsx
-│   ├── TemplateGallery.tsx
-│   ├── Login.tsx
-│   ├── Register.tsx
-│   └── Settings.tsx
-│
-├── config/
-│   ├── sectionRegistry.ts      # Section type registry
-│   ├── blockRegistry.ts        # Block type registry
-│   └── layoutTemplates.ts      # Pre-defined layout templates
-│
-├── stores/
-│   └── editorStore.ts           # Zustand + Immer
-│
-├── hooks/
-│   ├── useAutoSave.ts
-│   ├── useProject.ts
-│   └── useTemplates.ts
-│
-├── lib/
-│   ├── api.ts                   # API client
-│   └── utils.ts                 # Helpers (cn, etc.)
-│
-├── types/
-│   └── editor.ts                # All editor TypeScript interfaces
-│
-└── routes.ts / root.tsx
+â”œâ”€â”€ components/
+â”‚   â”œâ”€â”€ ui/                      # shadcn/ui components
+â”‚   â”œâ”€â”€ controls/                # Right sidebar control components
+â”‚   â”‚   â”œâ”€â”€ ShortTextControl.tsx
+â”‚   â”‚   â”œâ”€â”€ LongTextControl.tsx
+â”‚   â”‚   â”œâ”€â”€ UrlControl.tsx
+â”‚   â”‚   â”œâ”€â”€ ColorControl.tsx
+â”‚   â”‚   â”œâ”€â”€ SliderControl.tsx
+â”‚   â”‚   â”œâ”€â”€ BackgroundControl.tsx  # Composite: type + color/gradient/image + padding
+â”‚   â”‚   â”œâ”€â”€ ImageControl.tsx
+â”‚   â”‚   â”œâ”€â”€ RepeaterControl.tsx
+â”‚   â”‚   â”œâ”€â”€ SizePickerControl.tsx
+â”‚   â”‚   â”œâ”€â”€ AlignPickerControl.tsx
+â”‚   â”‚   â”œâ”€â”€ FieldRenderer.tsx      # Control type switch
+â”‚   â”‚   â””â”€â”€ ...
+â”‚   â”œâ”€â”€ InlineText.tsx           # Tiptap inline editor wrapper
+â”‚   â””â”€â”€ SortableItem.tsx         # dnd-kit sortable wrapper (used in sidebar lists)
+â”‚
+â”œâ”€â”€ blocks/                      # Block components (one per block type)
+â”‚   â”œâ”€â”€ HeadingBlock.tsx
+â”‚   â”œâ”€â”€ TextBlock.tsx
+â”‚   â”œâ”€â”€ ButtonBlock.tsx
+â”‚   â”œâ”€â”€ ImageBlock.tsx
+â”‚   â”œâ”€â”€ IconBlock.tsx
+â”‚   â”œâ”€â”€ SpacerBlock.tsx
+â”‚   â”œâ”€â”€ BadgeBlock.tsx
+â”‚   â”œâ”€â”€ DividerBlock.tsx
+â”‚   â”œâ”€â”€ ListBlock.tsx
+â”‚   â”œâ”€â”€ QuoteBlock.tsx
+â”‚   â””â”€â”€ BlockRenderer.tsx        # Block type switch + renders correct component
+â”‚
+â”œâ”€â”€ sections/                    # Section shell renderers
+â”‚   â”œâ”€â”€ SectionRenderer.tsx      # Layout grid builder + block placement
+â”‚   â”œâ”€â”€ NavbarRenderer.tsx       # Special layout for navbar (not grid-based)
+â”‚   â””â”€â”€ FooterRenderer.tsx       # Optional special layout for footer
+â”‚
+â”œâ”€â”€ editor/
+â”‚   â”œâ”€â”€ EditorPage.tsx           # Main three-panel layout
+â”‚   â”œâ”€â”€ EditorCanvas.tsx         # Center: section rendering + zoom
+â”‚   â”œâ”€â”€ EditorToolbar.tsx        # Top bar: name, device, undo/redo, preview, publish
+â”‚   â”œâ”€â”€ SectionsListPanel.tsx    # LEFT sidebar: section list with drag reorder
+â”‚   â”œâ”€â”€ SectionSettings.tsx      # RIGHT sidebar: section/group/block context settings
+â”‚   â”œâ”€â”€ BlockSettings.tsx        # RIGHT sidebar: block mode (content + style)
+â”‚   â”œâ”€â”€ AddSectionModal.tsx      # Section type picker dialog
+â”‚   â”œâ”€â”€ AddBlockModal.tsx        # Block type picker (within a section)
+â”‚   â””â”€â”€ GlobalStylePanel.tsx     # RIGHT sidebar when nothing selected
+â”‚
+â”œâ”€â”€ pages/
+â”‚   â”œâ”€â”€ Dashboard.tsx
+â”‚   â”œâ”€â”€ TemplateGallery.tsx
+â”‚   â”œâ”€â”€ Login.tsx
+â”‚   â”œâ”€â”€ Register.tsx
+â”‚   â””â”€â”€ Settings.tsx
+â”‚
+â”œâ”€â”€ config/
+â”‚   â”œâ”€â”€ sectionRegistry.ts      # Section type registry
+â”‚   â”œâ”€â”€ blockRegistry.ts        # Block type registry
+â”‚   â””â”€â”€ layoutTemplates.ts      # Pre-defined layout templates
+â”‚
+â”œâ”€â”€ stores/
+â”‚   â””â”€â”€ editorStore.ts           # Zustand + Immer
+â”‚
+â”œâ”€â”€ hooks/
+â”‚   â”œâ”€â”€ useAutoSave.ts
+â”‚   â”œâ”€â”€ useProject.ts
+â”‚   â””â”€â”€ useTemplates.ts
+â”‚
+â”œâ”€â”€ lib/
+â”‚   â”œâ”€â”€ api.ts                   # API client
+â”‚   â””â”€â”€ utils.ts                 # Helpers (cn, etc.)
+â”‚
+â”œâ”€â”€ types/
+â”‚   â””â”€â”€ editor.ts                # All editor TypeScript interfaces
+â”‚
+â””â”€â”€ routes.ts / root.tsx
 ```
 
 ### Backend
 
 ```
 server/src/
-├── config/         # db.ts, cloudinary.ts, passport.ts, env.ts
-├── models/         # User.ts, Project.ts, Template.ts, MediaAsset.ts
-├── routes/         # auth.ts, projects.ts, templates.ts, upload.ts
-├── controllers/    # authController.ts, projectController.ts, etc.
-├── middleware/      # auth.ts, validate.ts, upload.ts, errorHandler.ts
-├── services/       # publishService.ts, emailService.ts
-├── validators/     # Zod schemas (shared with frontend where possible)
-├── utils/          # logger.ts, generateSlug.ts, tokens.ts
-├── shared/         # blockRegistry.ts, sectionRegistry.ts (shared with frontend for SSR)
-├── app.ts          # Express setup
-└── server.ts       # Entry point
+â”œâ”€â”€ config/         # db.ts, cloudinary.ts, passport.ts, env.ts
+â”œâ”€â”€ models/         # User.ts, Project.ts, Template.ts, MediaAsset.ts
+â”œâ”€â”€ routes/         # auth.ts, projects.ts, templates.ts, upload.ts
+â”œâ”€â”€ controllers/    # authController.ts, projectController.ts, etc.
+â”œâ”€â”€ middleware/      # auth.ts, validate.ts, upload.ts, errorHandler.ts
+â”œâ”€â”€ services/       # publishService.ts, emailService.ts
+â”œâ”€â”€ validators/     # Zod schemas (shared with frontend where possible)
+â”œâ”€â”€ utils/          # logger.ts, generateSlug.ts, tokens.ts
+â”œâ”€â”€ shared/         # blockRegistry.ts, sectionRegistry.ts (shared with frontend for SSR)
+â”œâ”€â”€ app.ts          # Express setup
+â””â”€â”€ server.ts       # Entry point
 ```
 
 ---
@@ -1041,7 +1038,7 @@ MONGODB:
 - Indexes:              { field: 1 }       (ascending) or { field: -1 } (descending)
 
 CSS/TAILWIND:
-- No custom class names — use Tailwind utilities only
+- No custom class names â€” use Tailwind utilities only
 - Dynamic values via inline style={{}}
 - Editor shell theming via design tokens from the Style Guide file
 ```
@@ -1057,7 +1054,7 @@ GENERAL:
 - Prefer arrow functions for non-component functions
 - Use named exports (not default exports) for everything EXCEPT page components
 - Destructure props and store values
-- Keep components under 150 lines — extract sub-components when longer
+- Keep components under 150 lines â€” extract sub-components when longer
 - One component per file
 
 REACT:
@@ -1066,14 +1063,14 @@ REACT:
 - Memoize expensive computations with useMemo
 - Memoize callbacks passed to children with useCallback
 - Use React.lazy for route-level code splitting
-- Never put business logic in components — put it in the store or hooks
+- Never put business logic in components â€” put it in the store or hooks
 
 ZUSTAND:
 - All editor state mutations go through the store (never setState in components)
 - Use Immer middleware for nested updates
 - Push to history stack before every mutation (for undo/redo)
 - Debounce history pushes for rapid changes (typing, color dragging, slider dragging)
-- Two selection states: selectedSectionId and selectedBlockId
+- Three selection states: selectedSectionId, selectedGroupId, and selectedBlockId
 
 API CALLS:
 - All API calls go through TanStack Query (useQuery, useMutation)
@@ -1123,11 +1120,11 @@ Task: Build the [SectionType] section preset.
 Requirements:
 - Define the section registry entry with:
   - allowedLayouts (which layout templates work for this section type)
-  - defaultLayoutId (the default layout when added)
-  - defaultBlocks (the pre-configured blocks with slot assignments)
+  - defaultLayoutId (fallback layout when default group layout is not provided)
+  - defaultGroups (pre-configured group(s) with layout + blocks; legacy defaultBlocks fallback allowed)
   - defaultStyle (background, padding, colors)
   - allowedBlockTypes (which blocks can be added to this section)
-- The default blocks should create a polished, professional-looking section
+- The default groups/blocks should create a polished, professional-looking section
   with realistic placeholder content
 ```
 
@@ -1193,25 +1190,25 @@ These decisions are final. Don't revisit or suggest alternatives:
 | Decision | Choice | Reason |
 |----------|--------|--------|
 | Editor paradigm | Section-based with block composition (NOT freeform) | Target users are non-technical; sections provide structure, blocks provide flexibility |
-| Content model | Sections contain blocks in layout slots | Replaces rigid variant system; users can add/remove blocks without new code |
+| Content model | Sections contain vertically stacked groups; groups contain blocks in layout slots | Supports mixed-layout sections without adding new variants |
 | Layout system | Pre-defined layout templates (NOT CSS grid config) | Users pick a visual layout, never configure columns directly |
 | Editor layout | Three panels: left (sections list) + center (canvas) + right (settings) | Matches reference design; separates navigation from editing |
-| Selection model | Two levels: section-level and block-level | Section for layout/background; block for content/style |
+| Selection model | Three levels: section-level, group-level, and block-level | Section for background/groups, group for layout/blocks, block for content/style |
 | Editor theme | Dark theme | Premium feel; matches reference design. Tokens in Style Guide file |
 | Section reordering | Drag in the LEFT sidebar list (not on the canvas) | Cleaner UX; canvas stays WYSIWYG without drag handles cluttering |
-| Block reordering | Drag in the RIGHT sidebar block list (within selected section) | Consistent with section reordering pattern |
+| Block reordering | Drag in the RIGHT sidebar block list (within selected group) | Mirrors section/group organization and keeps ordering local |
 | Page model | Vertical stack of sections, each with layout + blocks | Composable yet structured |
 | Text editing | Inline on canvas (Tiptap) for text/heading blocks | More intuitive than editing in sidebar |
-| Style inheritance | Global → Section → Block (cascade with overrides) | Consistent theming with per-block flexibility |
+| Style inheritance | Global â†’ Section â†’ Block (cascade with overrides) | Consistent theming with per-block flexibility |
 | Block styles | Constrained choices (sm/md/lg, not px values) | Prevents bad designs; feels simple |
 | Padding control | Continuous slider (Small / Large) | More precise than discrete toggles; matches reference design |
 | Background control | Composite (solid/gradient/image + color picker + padding slider) | Grouped logically; matches reference design |
 | Data storage | JSON in MongoDB | Sections + blocks as nested documents; single read per page |
 | State management | Zustand (NOT Redux/Context) | Simpler API, less boilerplate, perfect for editor state |
-| Server state | TanStack Query (NOT Zustand) | Handles caching, refetching, mutations — don't mix with editor state |
+| Server state | TanStack Query (NOT Zustand) | Handles caching, refetching, mutations â€” don't mix with editor state |
 | DnD library | @dnd-kit (NOT react-beautiful-dnd) | Better maintained, more flexible, accessible |
 | CSS approach | Tailwind (NOT CSS modules/styled-components) | Utility-first matches section-based architecture perfectly |
-| UI primitives | Radix UI (NOT Material UI/Ant Design) | Unstyled, accessible, composable — pairs with Tailwind |
+| UI primitives | Radix UI (NOT Material UI/Ant Design) | Unstyled, accessible, composable â€” pairs with Tailwind |
 | Icons | Google Material Symbols (NOT Lucide) | Consistent with style guide; larger icon set |
 | Publishing output | Static HTML + Tailwind CDN | Simple, fast, no server runtime needed for published pages |
 | AI features | Parked until editor is stable | See [AI Integration (Parked)](#ai-integration-parked) |
@@ -1244,7 +1241,7 @@ These decisions are final. Don't revisit or suggest alternatives:
 - Custom domains
 - Forms / lead capture (form block is post-MVP)
 - E-commerce / payments
-- AI content generation (parked — see below)
+- AI content generation (parked â€” see below)
 - Real-time collaboration
 - Version history
 - Analytics integrations
@@ -1270,10 +1267,10 @@ AI features depend on a stable, well-tested block system. If blocks change shape
 ### Planned AI Features (Priority Order)
 
 **Phase A: AI Copy Rewriter (lowest effort, highest perceived value)**
-- Select any text or heading block → "Rewrite" button appears
+- Select any text or heading block â†’ "Rewrite" button appears
 - Options: Make shorter, Make more persuasive, Change tone, Translate
-- Implementation: Send block.props.text + context to Claude API → return rewritten text
-- No data model changes needed — just updates block.props.text
+- Implementation: Send block.props.text + context to Claude API â†’ return rewritten text
+- No data model changes needed â€” just updates block.props.text
 
 **Phase B: AI Full Page Generator (biggest acquisition feature)**
 - User describes their business/page in natural language
@@ -1283,18 +1280,18 @@ AI features depend on a stable, well-tested block system. If blocks change shape
 - The AI output must conform to the exact Section/Block/Layout schema
 
 **Phase C: AI Section Auto-Fill**
-- User adds a new section → AI pre-fills blocks with contextually relevant content
+- User adds a new section â†’ AI pre-fills blocks with contextually relevant content
 - Uses `aiContext` from the project to generate relevant copy
-- Example: Add "Features" section to a dog walking site → AI fills in "Daily Walks", "GPS Tracking", etc.
+- Example: Add "Features" section to a dog walking site â†’ AI fills in "Daily Walks", "GPS Tracking", etc.
 
 **Phase D: AI Style Advisor**
-- User provides brand color or uploads logo → AI suggests complete color palette + font pairing
+- User provides brand color or uploads logo â†’ AI suggests complete color palette + font pairing
 - Returns a GlobalStyle + per-section style overrides
 - Implementation: Color theory + Claude for font/vibe matching
 
 **Phase E: AI Image Suggestions**
 - When editing an image block, show "AI Suggest" option
-- AI generates search queries based on page context → Unsplash/Pexels API → curated results
+- AI generates search queries based on page context â†’ Unsplash/Pexels API â†’ curated results
 - Implementation: Unsplash API with AI-generated search terms
 
 ### Data Model Preparation
@@ -1341,21 +1338,23 @@ This contract ensures AI output can be validated and loaded directly into the ed
 
 | Term | Definition |
 |------|-----------|
-| **Section** | A full-width container with a layout template, background style, and blocks. The top-level building unit of a page. |
-| **Block** | An individual content piece within a section (heading, text, button, image, icon, etc.). The atomic unit of content. |
+| **Section** | A full-width container with section style and vertically stacked groups. The top-level building unit of a page. |
+| **Group** | A sub-container inside a section with its own layout and block list. Groups are stacked vertically. |
+| **Block** | An individual content piece within a group (heading, text, button, image, icon, etc.). The atomic unit of content. |
 | **Block Type** | The kind of content a block represents (heading, text, button, image, etc.). Determines what controls appear in the sidebar. |
-| **Layout Template** | A pre-defined spatial arrangement for blocks within a section (1-col centered, 2-col 50/50, etc.). Users pick from a visual grid. |
+| **Layout Template** | A pre-defined spatial arrangement for blocks within a group (1-col centered, 2-col 50/50, etc.). Users pick from a visual grid. |
 | **Slot** | A named position within a layout template where blocks are placed ("main", "left", "right", "col-1", etc.). |
-| **Section Registry** | Central config mapping section types to allowed layouts, default blocks, and constraints. |
+| **Section Registry** | Central config mapping section types to allowed layouts, default groups/default blocks fallback, and constraints. |
 | **Block Registry** | Central config mapping block types to components, default props/styles, and editable fields. |
 | **Block Style** | Constrained visual options for a block (fontSize, fontWeight, textAlign, width, spacing, positioning mode, scale). Never raw CSS. |
 | **Section Style** | Design data for a section (backgroundColor, backgroundType, paddingY, textColor, accentColor). |
 | **Global Style** | Page-wide design settings (fontFamily, primaryColor, borderRadius). Inherited by all sections and blocks. |
-| **Style Inheritance** | The cascade: Global → Section → Block. Each level can override the parent. |
+| **Style Inheritance** | The cascade: Global â†’ Section â†’ Block. Each level can override the parent. |
 | **Canvas** | The center panel where sections and blocks are rendered WYSIWYG. |
 | **Left Sidebar / Sections List** | The left panel showing all sections as a reorderable list. |
-| **Right Sidebar / Settings Panel** | The right panel showing context-sensitive controls (section mode, block mode, or global settings). |
-| **Section Mode** | Right sidebar state when a section is selected: shows layout picker, block list, and background controls. |
+| **Right Sidebar / Settings Panel** | The right panel showing context-sensitive controls (section mode, group mode, block mode, or global settings). |
+| **Section Mode** | Right sidebar state when a section is selected: shows groups management and background controls. |
+| **Group Mode** | Right sidebar state when a group is selected: shows group layout, blocks list, and group style controls. |
 | **Block Mode** | Right sidebar state when a block is selected: shows block content and style controls. |
 | **InlineText** | The Tiptap-based component that makes text directly editable on the canvas. Used by heading and text blocks. |
 | **Control** | A right sidebar input component (ColorControl, SliderControl, SizePickerControl, etc.). |
@@ -1369,7 +1368,26 @@ This contract ensures AI output can be validated and loaded directly into the ed
 
 ---
 
-*Document Version: 3.16 � Debounced absolute drag history with final-position undo support*
+*Document Version: 3.17 — Section→Group→Block architecture with group-relative absolute positioning*
 *Last Updated: February 16, 2026*
 *Keep this document updated as architecture decisions change.*
 *For colors and theming, always reference the separate Style Guide file.*
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

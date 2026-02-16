@@ -7,8 +7,10 @@ import { cn } from "~/lib/utils";
 export function EditorCanvas() {
 	const sections = useEditorStore((s) => s.sections);
 	const selectedSectionId = useEditorStore((s) => s.selectedSectionId);
+	const selectedGroupId = useEditorStore((s) => s.selectedGroupId);
 	const selectedBlockId = useEditorStore((s) => s.selectedBlockId);
 	const selectSection = useEditorStore((s) => s.selectSection);
+	const selectGroup = useEditorStore((s) => s.selectGroup);
 	const selectBlock = useEditorStore((s) => s.selectBlock);
 	const updateBlockProp = useEditorStore((s) => s.updateBlockProp);
 	const updateBlockStyle = useEditorStore((s) => s.updateBlockStyle);
@@ -118,15 +120,19 @@ export function EditorCanvas() {
 										section={section}
 										globalStyle={globalStyle}
 										isEditing={true}
+										selectedGroupId={selectedGroupId}
 										selectedBlockId={selectedBlockId}
-										onBlockClick={(blockId) => {
-											selectBlock(section.id, blockId);
+										onGroupClick={(groupId) => {
+											selectGroup(section.id, groupId);
 										}}
-										onUpdateBlockProp={(blockId, key, value) => {
-											updateBlockProp(section.id, blockId, key, value);
+										onBlockClick={(groupId, blockId) => {
+											selectBlock(section.id, groupId, blockId);
 										}}
-										onUpdateBlockStyle={(blockId, style) => {
-											updateBlockStyle(section.id, blockId, style);
+										onUpdateBlockProp={(groupId, blockId, key, value) => {
+											updateBlockProp(section.id, groupId, blockId, key, value);
+										}}
+										onUpdateBlockStyle={(groupId, blockId, style) => {
+											updateBlockStyle(section.id, groupId, blockId, style);
 										}}
 									/>
 								</div>

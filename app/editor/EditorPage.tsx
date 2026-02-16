@@ -5,20 +5,15 @@ import { SectionsListPanel } from "./SectionsListPanel";
 import { EditorCanvas } from "./EditorCanvas";
 import { SectionSettings } from "./SectionSettings";
 import { AddSectionModal } from "./AddSectionModal";
-import { AddBlockModal } from "./AddBlockModal";
 import { debounce } from "lodash";
 
 export default function EditorPage() {
   const [addSectionModalOpen, setAddSectionModalOpen] = useState(false);
-  const [addBlockModalOpen, setAddBlockModalOpen] = useState(false);
   const loadFromLocalStorage = useEditorStore((s) => s.loadFromLocalStorage);
   const isDirty = useEditorStore((s) => s.isDirty);
   const saveToLocalStorage = useEditorStore((s) => s.saveToLocalStorage);
   const sections = useEditorStore((s) => s.sections);
   const addSection = useEditorStore((s) => s.addSection);
-  const selectedSectionId = useEditorStore((s) => s.selectedSectionId);
-
-  const selectedSection = sections.find((s) => s.id === selectedSectionId);
 
   // Load saved state on mount
   useEffect(() => {
@@ -75,19 +70,34 @@ export default function EditorPage() {
 
       if (e.key === "Delete" && store.selectedSectionId) {
         const target = e.target as HTMLElement;
-        if (target.tagName !== "INPUT" && target.tagName !== "TEXTAREA") {
-          e.preventDefault();
-          if (store.selectedBlockId) {
-            store.removeBlock(store.selectedSectionId, store.selectedBlockId);
-          } else {
-            store.removeSection(store.selectedSectionId);
-          }
+        if (
+          target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.isContentEditable
+        ) {
+          return;
         }
+
+        e.preventDefault();
+
+        if (store.selectedBlockId && store.selectedGroupId) {
+          store.removeBlock(store.selectedSectionId, store.selectedGroupId, store.selectedBlockId);
+          return;
+        }
+
+        if (store.selectedGroupId) {
+          store.removeGroup(store.selectedSectionId, store.selectedGroupId);
+          return;
+        }
+
+        store.removeSection(store.selectedSectionId);
       }
 
       if (e.key === "Escape") {
-        if (store.selectedBlockId) {
-          store.selectBlock(store.selectedSectionId, null);
+        if (store.selectedBlockId && store.selectedSectionId && store.selectedGroupId) {
+          store.selectBlock(store.selectedSectionId, store.selectedGroupId, null);
+        } else if (store.selectedSectionId && store.selectedGroupId) {
+          store.selectSection(store.selectedSectionId);
         } else {
           store.selectSection(null);
         }
@@ -112,16 +122,6 @@ export default function EditorPage() {
         open={addSectionModalOpen}
         onOpenChange={setAddSectionModalOpen}
       />
-
-      {selectedSection && (
-        <AddBlockModal
-          open={addBlockModalOpen}
-          onOpenChange={setAddBlockModalOpen}
-          sectionId={selectedSection.id}
-          sectionType={selectedSection.type}
-          sectionSlots={selectedSection.layout.slots}
-        />
-      )}
     </div>
   );
 }

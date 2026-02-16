@@ -7,12 +7,13 @@ import type { Block, BlockStyle } from "~/types/editor";
 
 interface BlockSettingsProps {
 	sectionId: string;
+	groupId: string;
 	block: Block;
 	onBack: () => void;
 	onDelete: () => void;
 }
 
-export function BlockSettings({ sectionId, block, onBack, onDelete }: BlockSettingsProps) {
+export function BlockSettings({ sectionId, groupId, block, onBack, onDelete }: BlockSettingsProps) {
 	const updateBlockProp = useEditorStore((s) => s.updateBlockProp);
 	const updateBlockStyle = useEditorStore((s) => s.updateBlockStyle);
 
@@ -68,7 +69,7 @@ export function BlockSettings({ sectionId, block, onBack, onDelete }: BlockSetti
 									field={field}
 									value={block.props[field.key]}
 									onChange={(value) => {
-										updateBlockProp(sectionId, block.id, field.key, value);
+										updateBlockProp(sectionId, groupId, block.id, field.key, value);
 									}}
 								/>
 							))}
@@ -97,7 +98,7 @@ export function BlockSettings({ sectionId, block, onBack, onDelete }: BlockSetti
 													<button
 														key={opt.value}
 														onClick={() =>
-															updateBlockStyle(sectionId, block.id, {
+															updateBlockStyle(sectionId, groupId, block.id, {
 																[styleField.key]: opt.value,
 															} as Partial<BlockStyle>)
 														}
@@ -138,7 +139,7 @@ export function BlockSettings({ sectionId, block, onBack, onDelete }: BlockSetti
 												}}
 												value={value || ""}
 												onChange={(v) =>
-													updateBlockStyle(sectionId, block.id, {
+													updateBlockStyle(sectionId, groupId, block.id, {
 														[styleField.key]: v,
 													} as Partial<BlockStyle>)
 												}
@@ -165,7 +166,7 @@ export function BlockSettings({ sectionId, block, onBack, onDelete }: BlockSetti
 												step={styleField.step ?? 1}
 												value={(value as number) ?? styleField.min ?? 0}
 												onChange={(e) =>
-													updateBlockStyle(sectionId, block.id, {
+													updateBlockStyle(sectionId, groupId, block.id, {
 														[styleField.key]: Number(e.target.value),
 													} as Partial<BlockStyle>)
 												}
@@ -200,7 +201,7 @@ export function BlockSettings({ sectionId, block, onBack, onDelete }: BlockSetti
 								step={4}
 								value={block.style.marginTop ?? 0}
 								onChange={(e) =>
-									updateBlockStyle(sectionId, block.id, {
+									updateBlockStyle(sectionId, groupId, block.id, {
 										marginTop: Number(e.target.value),
 									})
 								}
@@ -223,7 +224,7 @@ export function BlockSettings({ sectionId, block, onBack, onDelete }: BlockSetti
 								step={4}
 								value={block.style.marginBottom ?? 0}
 								onChange={(e) =>
-									updateBlockStyle(sectionId, block.id, {
+									updateBlockStyle(sectionId, groupId, block.id, {
 										marginBottom: Number(e.target.value),
 									})
 								}
@@ -239,7 +240,7 @@ export function BlockSettings({ sectionId, block, onBack, onDelete }: BlockSetti
 						<div className="grid grid-cols-2 gap-1">
 							<button
 								onClick={() =>
-									updateBlockStyle(sectionId, block.id, { positionMode: "flow" })
+									updateBlockStyle(sectionId, groupId, block.id, { positionMode: "flow" })
 								}
 								className={cn(
 									"rounded-lg border py-1.5 text-[10px] font-medium transition-colors",
@@ -251,7 +252,7 @@ export function BlockSettings({ sectionId, block, onBack, onDelete }: BlockSetti
 							</button>
 							<button
 								onClick={() =>
-									updateBlockStyle(sectionId, block.id, {
+									updateBlockStyle(sectionId, groupId, block.id, {
 										positionMode: "absolute",
 										positionX,
 										positionY,
@@ -287,7 +288,7 @@ export function BlockSettings({ sectionId, block, onBack, onDelete }: BlockSetti
 										step={1}
 										value={positionX}
 										onChange={(e) =>
-											updateBlockStyle(sectionId, block.id, {
+											updateBlockStyle(sectionId, groupId, block.id, {
 												positionX: Number(e.target.value),
 											})
 										}
@@ -311,7 +312,7 @@ export function BlockSettings({ sectionId, block, onBack, onDelete }: BlockSetti
 										step={1}
 										value={positionY}
 										onChange={(e) =>
-											updateBlockStyle(sectionId, block.id, {
+											updateBlockStyle(sectionId, groupId, block.id, {
 												positionY: Number(e.target.value),
 											})
 										}
@@ -335,7 +336,7 @@ export function BlockSettings({ sectionId, block, onBack, onDelete }: BlockSetti
 										step={1}
 										value={zIndex}
 										onChange={(e) =>
-											updateBlockStyle(sectionId, block.id, {
+											updateBlockStyle(sectionId, groupId, block.id, {
 												zIndex: Number(e.target.value),
 											})
 										}
@@ -359,13 +360,14 @@ export function BlockSettings({ sectionId, block, onBack, onDelete }: BlockSetti
 										step={5}
 										value={absoluteScale}
 										onChange={(e) =>
-											updateBlockStyle(sectionId, block.id, {
+											updateBlockStyle(sectionId, groupId, block.id, {
 												scale: Number(e.target.value),
 											})
 										}
 										className="w-full accent-primary"
 									/>
 								</div>
+								<p className="text-[10px] text-muted-foreground">Absolute positioning is relative to the selected group.</p>
 							</>
 						)}
 					</div>

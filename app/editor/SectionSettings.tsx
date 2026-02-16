@@ -12,40 +12,60 @@ import type { SectionStyle } from "~/types/editor";
 
 export function SectionSettings() {
   const selectedSectionId = useEditorStore((s) => s.selectedSectionId);
+  const selectedGroupId = useEditorStore((s) => s.selectedGroupId);
   const selectedBlockId = useEditorStore((s) => s.selectedBlockId);
   const sections = useEditorStore((s) => s.sections);
   const updateSectionStyle = useEditorStore((s) => s.updateSectionStyle);
-  const updateSectionLayout = useEditorStore((s) => s.updateSectionLayout);
+  const updateGroupLayout = useEditorStore((s) => s.updateGroupLayout);
+  const updateGroupStyle = useEditorStore((s) => s.updateGroupStyle);
+  const addGroup = useEditorStore((s) => s.addGroup);
+  const removeGroup = useEditorStore((s) => s.removeGroup);
+  const duplicateGroup = useEditorStore((s) => s.duplicateGroup);
+  const reorderGroups = useEditorStore((s) => s.reorderGroups);
+  const renameGroup = useEditorStore((s) => s.renameGroup);
   const removeSection = useEditorStore((s) => s.removeSection);
   const duplicateSection = useEditorStore((s) => s.duplicateSection);
   const removeBlock = useEditorStore((s) => s.removeBlock);
+  const selectSection = useEditorStore((s) => s.selectSection);
+  const selectGroup = useEditorStore((s) => s.selectGroup);
   const selectBlock = useEditorStore((s) => s.selectBlock);
 
   const section = sections.find((s) => s.id === selectedSectionId);
   const registry = section ? SECTION_REGISTRY[section.type] : null;
+  const orderedGroups = section
+    ? section.groups.slice().sort((a, b) => a.order - b.order)
+    : [];
+  const selectedGroup = orderedGroups.find((group) => group.id === selectedGroupId) || null;
+  const activeGroup = selectedGroup || orderedGroups[0] || null;
 
   const [addBlockOpen, setAddBlockOpen] = useState(false);
   const [openSections, setOpenSections] = useState({
+    groups: true,
     layout: true,
     blocks: true,
+    groupStyle: false,
     background: true,
   });
 
-  const togglePanel = (key: "layout" | "blocks" | "background") => {
+  const togglePanel = (key: "groups" | "layout" | "blocks" | "groupStyle" | "background") => {
     setOpenSections((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
   // If a block is selected, show BlockSettings
   if (selectedBlockId && section) {
-    const block = section.blocks.find((b) => b.id === selectedBlockId);
-    if (block) {
+    const owningGroup = section.groups.find((group) =>
+      group.blocks.some((block) => block.id === selectedBlockId),
+    );
+    const block = owningGroup?.blocks.find((entry) => entry.id === selectedBlockId);
+    if (block && owningGroup) {
       return (
         <BlockSettings
           sectionId={section.id}
+          groupId={owningGroup.id}
           block={block}
-          onBack={() => selectBlock(section.id, null)}
+          onBack={() => selectGroup(section.id, owningGroup.id)}
           onDelete={() => {
-            removeBlock(section.id, block.id);
+            removeBlock(section.id, owningGroup.id, block.id);
           }}
         />
       );
@@ -57,6 +77,7 @@ export function SectionSettings() {
   }
 
   const allowedLayouts = getLayoutsByIds(registry.allowedLayouts);
+  const isGroupMode = Boolean(selectedGroupId && activeGroup);
 
   return (
     <div className="flex h-full w-[300px] shrink-0 flex-col border-l border-sidebar-border bg-sidebar">
@@ -67,10 +88,21 @@ export function SectionSettings() {
             {registry.label}
           </div>
           <div className="text-[10px] uppercase tracking-widest text-primary">
-            Settings
+            {isGroupMode && activeGroup ? `Group: ${activeGroup.label}` : "Section Settings"}
           </div>
         </div>
         <div className="flex gap-1">
+          {isGroupMode && activeGroup && (
+            <button
+              onClick={() => selectSection(section.id)}
+              className="flex size-7 items-center justify-center rounded-lg text-muted-foreground hover:bg-sidebar-accent hover:text-foreground"
+              title="Back to Section"
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
+                arrow_back
+              </span>
+            </button>
+          )}
           <button
             onClick={() => duplicateSection(section.id)}
             className="flex size-7 items-center justify-center rounded-lg text-muted-foreground hover:bg-sidebar-accent hover:text-foreground"
@@ -94,136 +126,291 @@ export function SectionSettings() {
 
       {/* Scrollable content */}
       <div className="flex-1 overflow-y-auto px-4 py-3 minimal-scrollbar space-y-1">
-        {/* Layout Picker */}
-        <CollapsibleSection
-          title="Layout"
-          isOpen={openSections.layout}
-          onToggle={() => togglePanel("layout")}
-        >
-          <div className="grid grid-cols-3 gap-2">
-            {allowedLayouts.map((layout) => (
-              <button
-                key={layout.id}
-                onClick={() => updateSectionLayout(section.id, layout.id)}
-                className={cn(
-                  "flex flex-col items-center rounded-xl border p-2.5 transition-colors",
-                  section.layout.id === layout.id
-                    ? "border-primary bg-primary/10 text-primary"
-                    : "border-border bg-muted/20 text-muted-foreground hover:border-primary/30",
-                )}
-              >
-                <LayoutThumbnail layout={layout} />
-                <span className="mt-1.5 text-[9px] font-medium leading-tight text-center">
-                  {layout.label}
-                </span>
-              </button>
-            ))}
-          </div>
-        </CollapsibleSection>
-
-        {/* Blocks List */}
-        <CollapsibleSection
-          title="Blocks"
-          isOpen={openSections.blocks}
-          onToggle={() => togglePanel("blocks")}
-        >
-          <div className="space-y-1">
-            {section.blocks
-              .slice()
-              .sort((a, b) => a.order - b.order)
-              .map((block) => {
-                const blockEntry = BLOCK_REGISTRY[block.type];
-                if (!blockEntry) return null;
-
-                const isBlockSelected = block.id === selectedBlockId;
-                const previewText = getBlockPreviewText(block.props);
-
-                return (
-                  <button
-                    key={block.id}
-                    onClick={() => selectBlock(section.id, block.id)}
-                    className={cn(
-                      "flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left transition-colors",
-                      isBlockSelected
-                        ? "bg-primary/10 border border-primary/30"
-                        : "border border-transparent hover:bg-sidebar-accent/60",
-                    )}
+        {!isGroupMode && (
+          <>
+            <CollapsibleSection
+              title="Groups"
+              isOpen={openSections.groups}
+              onToggle={() => togglePanel("groups")}
+            >
+              <div className="space-y-1">
+                {orderedGroups.map((group, index) => (
+                  <div
+                    key={group.id}
+                    onClick={() => selectGroup(section.id, group.id)}
+                    className="flex w-full cursor-pointer items-center gap-2 rounded-lg border border-transparent px-2 py-2 text-left transition-colors hover:border-primary/30 hover:bg-sidebar-accent/60"
                   >
-                    <div
-                      className={cn(
-                        "flex size-7 shrink-0 items-center justify-center rounded-md",
-                        isBlockSelected ? "bg-primary/20 text-primary" : "bg-sidebar-accent text-muted-foreground",
-                      )}
-                    >
+                    <div className="flex size-7 shrink-0 items-center justify-center rounded-md bg-sidebar-accent text-muted-foreground">
                       <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
-                        {blockEntry.icon}
+                        view_stream
                       </span>
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="truncate text-[11px] font-medium text-sidebar-foreground">
-                        {blockEntry.label}
+                        {group.label}
                       </div>
-                      {previewText && (
-                        <div className="truncate text-[9px] text-muted-foreground">
-                          {previewText}
-                        </div>
-                      )}
+                      <div className="truncate text-[9px] text-muted-foreground">
+                        {group.layout.label}
+                      </div>
                     </div>
-                    {block.slot !== section.layout.slots[0] && (
-                      <span className="shrink-0 text-[8px] text-muted-foreground/60 uppercase">
-                        {block.slot}
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
-            <button
-              onClick={() => setAddBlockOpen(true)}
-              className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-sidebar-border py-2 text-[11px] text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary"
+                    <div className="flex items-center gap-0.5">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (index > 0) reorderGroups(section.id, index, index - 1);
+                        }}
+                        className="rounded p-1 text-muted-foreground hover:bg-sidebar-accent"
+                        title="Move Up"
+                      >
+                        <span className="material-symbols-outlined" style={{ fontSize: 12 }}>
+                          keyboard_arrow_up
+                        </span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (index < orderedGroups.length - 1) reorderGroups(section.id, index, index + 1);
+                        }}
+                        className="rounded p-1 text-muted-foreground hover:bg-sidebar-accent"
+                        title="Move Down"
+                      >
+                        <span className="material-symbols-outlined" style={{ fontSize: 12 }}>
+                          keyboard_arrow_down
+                        </span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          duplicateGroup(section.id, group.id);
+                        }}
+                        className="rounded p-1 text-muted-foreground hover:bg-sidebar-accent"
+                        title="Duplicate Group"
+                      >
+                        <span className="material-symbols-outlined" style={{ fontSize: 12 }}>
+                          content_copy
+                        </span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeGroup(section.id, group.id);
+                        }}
+                        className="rounded p-1 text-muted-foreground hover:bg-destructive/20 hover:text-destructive"
+                        title="Delete Group"
+                      >
+                        <span className="material-symbols-outlined" style={{ fontSize: 12 }}>
+                          delete
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+                <button
+                  onClick={() => addGroup(section.id)}
+                  className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-sidebar-border py-2 text-[11px] text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary"
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
+                    add
+                  </span>
+                  Add Group
+                </button>
+              </div>
+            </CollapsibleSection>
+
+            <CollapsibleSection
+              title="Background"
+              isOpen={openSections.background}
+              onToggle={() => togglePanel("background")}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
-                add
-              </span>
-              Add Block
-            </button>
-          </div>
+              <BackgroundControl
+                style={section.style}
+                onChange={(style: Partial<SectionStyle>) =>
+                  updateSectionStyle(section.id, style)
+                }
+              />
+              <div className="mt-3">
+                <ColorControl
+                  label="Text Color"
+                  value={section.style.textColor || "#ffffff"}
+                  onChange={(v) => updateSectionStyle(section.id, { textColor: v })}
+                />
+              </div>
+              <div className="mt-3">
+                <ColorControl
+                  label="Accent Color"
+                  value={section.style.accentColor || "#00e5a0"}
+                  onChange={(v) => updateSectionStyle(section.id, { accentColor: v })}
+                />
+              </div>
+            </CollapsibleSection>
+          </>
+        )}
 
-          <AddBlockModal
-            open={addBlockOpen}
-            onOpenChange={setAddBlockOpen}
-            sectionId={section.id}
-            sectionType={section.type}
-            sectionSlots={section.layout.slots}
-          />
-        </CollapsibleSection>
+        {isGroupMode && activeGroup && (
+          <>
+            <div className="space-y-1.5 pb-2">
+              <label className="text-xs font-medium text-muted-foreground">Group Name</label>
+              <input
+                value={activeGroup.label}
+                onChange={(e) => renameGroup(section.id, activeGroup.id, e.target.value)}
+                className="w-full rounded-xl border border-border bg-input/50 px-3 py-2 text-sm text-foreground"
+                placeholder="Group name"
+              />
+            </div>
 
-        {/* Background */}
-        <CollapsibleSection
-          title="Background"
-          isOpen={openSections.background}
-          onToggle={() => togglePanel("background")}
-        >
-          <BackgroundControl
-            style={section.style}
-            onChange={(style: Partial<SectionStyle>) =>
-              updateSectionStyle(section.id, style)
-            }
-          />
-          <div className="mt-3">
-            <ColorControl
-              label="Text Color"
-              value={section.style.textColor || "#ffffff"}
-              onChange={(v) => updateSectionStyle(section.id, { textColor: v })}
-            />
-          </div>
-          <div className="mt-3">
-            <ColorControl
-              label="Accent Color"
-              value={section.style.accentColor || "#00e5a0"}
-              onChange={(v) => updateSectionStyle(section.id, { accentColor: v })}
-            />
-          </div>
-        </CollapsibleSection>
+            <CollapsibleSection
+              title="Layout"
+              isOpen={openSections.layout}
+              onToggle={() => togglePanel("layout")}
+            >
+              <div className="grid grid-cols-3 gap-2">
+                {allowedLayouts.map((layout) => (
+                  <button
+                    key={layout.id}
+                    onClick={() => updateGroupLayout(section.id, activeGroup.id, layout.id)}
+                    className={cn(
+                      "flex flex-col items-center rounded-xl border p-2.5 transition-colors",
+                      activeGroup.layout.id === layout.id
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-border bg-muted/20 text-muted-foreground hover:border-primary/30",
+                    )}
+                  >
+                    <LayoutThumbnail layout={layout} />
+                    <span className="mt-1.5 text-[9px] font-medium leading-tight text-center">
+                      {layout.label}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </CollapsibleSection>
+
+            <CollapsibleSection
+              title="Blocks"
+              isOpen={openSections.blocks}
+              onToggle={() => togglePanel("blocks")}
+            >
+              <div className="space-y-1">
+                {activeGroup.blocks
+                  .slice()
+                  .sort((a, b) => a.order - b.order)
+                  .map((block) => {
+                    const blockEntry = BLOCK_REGISTRY[block.type];
+                    if (!blockEntry) return null;
+
+                    const isBlockSelected = block.id === selectedBlockId;
+                    const previewText = getBlockPreviewText(block.props);
+                    const isAbsolute = block.style.positionMode === "absolute";
+
+                    return (
+                      <button
+                        key={block.id}
+                        onClick={() => selectBlock(section.id, activeGroup.id, block.id)}
+                        className={cn(
+                          "flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left transition-colors",
+                          isBlockSelected
+                            ? "bg-primary/10 border border-primary/30"
+                            : "border border-transparent hover:bg-sidebar-accent/60",
+                        )}
+                      >
+                        <div
+                          className={cn(
+                            "flex size-7 shrink-0 items-center justify-center rounded-md",
+                            isBlockSelected ? "bg-primary/20 text-primary" : "bg-sidebar-accent text-muted-foreground",
+                          )}
+                        >
+                          <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
+                            {blockEntry.icon}
+                          </span>
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="truncate text-[11px] font-medium text-sidebar-foreground">
+                            {blockEntry.label}
+                          </div>
+                          {previewText && (
+                            <div className="truncate text-[9px] text-muted-foreground">
+                              {previewText}
+                            </div>
+                          )}
+                        </div>
+                        <span className="shrink-0 text-[8px] text-muted-foreground/70 uppercase">
+                          {isAbsolute ? "abs" : block.slot}
+                        </span>
+                      </button>
+                    );
+                  })}
+                <button
+                  onClick={() => setAddBlockOpen(true)}
+                  className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-sidebar-border py-2 text-[11px] text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary"
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
+                    add
+                  </span>
+                  Add Block
+                </button>
+              </div>
+
+              <AddBlockModal
+                open={addBlockOpen}
+                onOpenChange={setAddBlockOpen}
+                sectionId={section.id}
+                sectionType={section.type}
+                groupId={activeGroup.id}
+                groupSlots={activeGroup.layout.slots}
+              />
+            </CollapsibleSection>
+
+            <CollapsibleSection
+              title="Group Style"
+              isOpen={openSections.groupStyle}
+              onToggle={() => togglePanel("groupStyle")}
+            >
+              <div className="space-y-3">
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-medium text-muted-foreground">Top Padding</label>
+                    <span className="text-[10px] text-muted-foreground">{activeGroup.style?.paddingTop ?? 0}px</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={0}
+                    max={160}
+                    step={4}
+                    value={activeGroup.style?.paddingTop ?? 0}
+                    onChange={(e) =>
+                      updateGroupStyle(section.id, activeGroup.id, {
+                        paddingTop: Number(e.target.value),
+                      })
+                    }
+                    className="w-full accent-primary"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-medium text-muted-foreground">Bottom Padding</label>
+                    <span className="text-[10px] text-muted-foreground">{activeGroup.style?.paddingBottom ?? 0}px</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={0}
+                    max={160}
+                    step={4}
+                    value={activeGroup.style?.paddingBottom ?? 0}
+                    onChange={(e) =>
+                      updateGroupStyle(section.id, activeGroup.id, {
+                        paddingBottom: Number(e.target.value),
+                      })
+                    }
+                    className="w-full accent-primary"
+                  />
+                </div>
+              </div>
+            </CollapsibleSection>
+          </>
+        )}
       </div>
     </div>
   );

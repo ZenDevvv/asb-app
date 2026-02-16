@@ -52,6 +52,7 @@ export default function EditorPreviewRoute() {
 							section={section}
 							globalStyle={globalStyle}
 							isEditing={false}
+							selectedGroupId={null}
 							selectedBlockId={null}
 						/>
 					))
