@@ -100,7 +100,7 @@ export const SECTION_REGISTRY: Record<SectionType, SectionRegistryEntry> = {
       },
     ],
     defaultStyle: {
-      backgroundColor: "#0a0f0d",
+      backgroundColor: "#101b17",
       textColor: "#ffffff",
       accentColor: "#00e5a0",
       paddingY: 80,
@@ -181,7 +181,7 @@ export const SECTION_REGISTRY: Record<SectionType, SectionRegistryEntry> = {
       },
     ],
     defaultStyle: {
-      backgroundColor: "#0d1512",
+      backgroundColor: "#0a120f",
       textColor: "#ffffff",
       accentColor: "#00e5a0",
       paddingY: 80,
@@ -220,7 +220,7 @@ export const SECTION_REGISTRY: Record<SectionType, SectionRegistryEntry> = {
       },
     ],
     defaultStyle: {
-      backgroundColor: "#0d1512",
+      backgroundColor: "#101b17",
       textColor: "#ffffff",
       accentColor: "#00e5a0",
       paddingY: 80,
@@ -268,7 +268,7 @@ export const SECTION_REGISTRY: Record<SectionType, SectionRegistryEntry> = {
       },
     ],
     defaultStyle: {
-      backgroundColor: "#0a0f0d",
+      backgroundColor: "#0a120f",
       textColor: "#ffffff",
       accentColor: "#00e5a0",
       paddingY: 80,
@@ -335,7 +335,7 @@ export const SECTION_REGISTRY: Record<SectionType, SectionRegistryEntry> = {
       },
     ],
     defaultStyle: {
-      backgroundColor: "#0a0f0d",
+      backgroundColor: "#101b17",
       textColor: "#ffffff",
       accentColor: "#00e5a0",
       paddingY: 80,
@@ -416,7 +416,7 @@ export const SECTION_REGISTRY: Record<SectionType, SectionRegistryEntry> = {
       },
     ],
     defaultStyle: {
-      backgroundColor: "#080c0a",
+      backgroundColor: "#0a120f",
       textColor: "#ffffff",
       accentColor: "#00e5a0",
       paddingY: 60,

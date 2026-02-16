@@ -6,34 +6,28 @@ import { EditorCanvas } from "./EditorCanvas";
 import { SectionSettings } from "./SectionSettings";
 import { AddSectionModal } from "./AddSectionModal";
 import { debounce } from "lodash";
+import { SECTION_REGISTRY } from "~/config/sectionRegistry";
+import type { SectionType } from "~/types/editor";
 
 export default function EditorPage() {
   const [addSectionModalOpen, setAddSectionModalOpen] = useState(false);
-  const loadFromLocalStorage = useEditorStore((s) => s.loadFromLocalStorage);
   const isDirty = useEditorStore((s) => s.isDirty);
   const saveToLocalStorage = useEditorStore((s) => s.saveToLocalStorage);
-  const sections = useEditorStore((s) => s.sections);
-  const addSection = useEditorStore((s) => s.addSection);
 
-  // Load saved state on mount
+  // Initialize editor state once: load from storage, then seed defaults only if still empty.
   useEffect(() => {
-    loadFromLocalStorage();
-  }, [loadFromLocalStorage]);
+    const store = useEditorStore.getState();
+    store.loadFromLocalStorage();
 
-  // Seed default sections if empty after load
-  useEffect(() => {
-    if (sections.length === 0) {
-      addSection("navbar");
-      addSection("hero");
-      addSection("features");
-      addSection("testimonials");
-      addSection("footer");
+    if (store.sections.length === 0) {
+      const defaultSections = Object.keys(SECTION_REGISTRY) as SectionType[];
+      defaultSections.forEach((type) => {
+        store.addSection(type);
+      });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Auto-save debounced
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const debouncedSave = useCallback(
     debounce(() => {
       saveToLocalStorage();

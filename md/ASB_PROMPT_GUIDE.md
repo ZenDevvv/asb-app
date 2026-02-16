@@ -211,6 +211,9 @@ STATE MANAGEMENT:
 - TanStack Query handles all API calls (fetch project, auto-save, publish)
 - Auto-save: debounced 3 seconds after any change
 - Three selection levels: section-level, group-level, and block-level
+- Editor initialization loads localStorage first; if empty, seeds all section types defined in `SECTION_REGISTRY` (registry order)
+- Default section seeding is idempotent to prevent duplicate sections when effects re-run in development strict mode
+- Default section preset backgrounds alternate between two dark tones to avoid adjacent sections using the same color on first load
 
 DRAG-AND-DROP:
 - Sections are reordered by dragging in the LEFT SIDEBAR list (not on the canvas)
