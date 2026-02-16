@@ -105,7 +105,7 @@ export function SettingsPanel() {
             allowedLayouts={allowedLayouts}
           />
         ) : (
-          <SectionModeSettings section={section} orderedGroups={orderedGroups} />
+          <SectionModeSettings section={section} />
         )}
       </div>
     </div>

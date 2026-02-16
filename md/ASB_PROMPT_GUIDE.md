@@ -160,6 +160,8 @@ The editor has a **LEFT sidebar (sections list) + CENTER canvas + RIGHT sidebar 
 - Displays all sections in page order as a **vertical list**
 - Each row shows: **drag handle (â˜°)** + **section type icon** + **section name** + **layout label** + **active indicator**
 - Sections are **reorderable via drag** within this list (dnd-kit sortable)
+- Focused section rows expand an inline **Groups** tree for that section
+- Group rows are draggable to reorder groups within the focused section
 - Clicking a row **selects** that section (highlights it on canvas + opens section settings in right sidebar) and auto-scrolls the canvas to keep the selected section in view.
 - **"+ Add Section"** button at the bottom of the list
 - The left sidebar is collapsible (hamburger icon in toolbar)
@@ -179,10 +181,11 @@ The editor has a **LEFT sidebar (sections list) + CENTER canvas + RIGHT sidebar 
 The right sidebar changes based on what is selected:
 
 **When a SECTION is selected** (click section in left sidebar or section background on canvas):
-1. **Groups** — ordered list of groups inside the section. Add/remove/duplicate/reorder groups and select a group to edit.
+1. **Section Actions** — duplicate/delete section.
 2. **Background** — section background options (solid/gradient/image + padding slider).
+3. **Group Management Location** — groups are listed and reordered from the LEFT sidebar section tree.
 
-**When a GROUP is selected** (click group container on the canvas or from section settings):
+**When a GROUP is selected** (click group container on the canvas or from the left sidebar section tree):
 1. **Layout** — visual thumbnail grid of layout templates for that group. Layout switching preserves that group's flow block placement using per-layout slot memory.
 2. **Blocks** — ordered list of blocks within the selected group. Clicking **+ Add Block** opens a modal of allowed block types; for multi-column layouts, users choose the target column/slot before inserting.
 3. **Group Style** — group-local spacing controls (top/bottom padding).
@@ -217,7 +220,7 @@ STATE MANAGEMENT:
 
 DRAG-AND-DROP:
 - Sections are reordered by dragging in the LEFT SIDEBAR list (not on the canvas)
-- Groups are reordered by dragging in the RIGHT SIDEBAR **Groups** panel (section mode)
+- Groups are reordered by dragging in the LEFT SIDEBAR section tree (focused section only)
 - Blocks within the selected group can be reordered in the RIGHT SIDEBAR block list
 - Both use @dnd-kit/sortable with vertical list strategy
 - Drag handle (â˜° grip icon) on each row
@@ -241,7 +244,7 @@ LAYOUT SWITCHING:
 
 SELECTION (three levels):
 - Selecting a section from the left sidebar auto-scrolls the canvas to that section when it is outside the current viewport
-- Click a section row in left sidebar â†’ selects SECTION (right sidebar shows layout + blocks + background)
+- Click a section row in left sidebar â†’ selects SECTION (right sidebar shows section actions + background)
 - Click a block on the canvas â†’ selects BLOCK (right sidebar shows block content + block style)
 - Click empty canvas area or press Escape â†’ deselects all â†’ right sidebar shows global settings
 - Selecting a block also implicitly selects its parent section (shown highlighted on canvas)
@@ -663,14 +666,9 @@ BlockStyle.textAlign        â†’ block-level alignment
 When a section is selected (not a specific group/block):
 
 - Shows section-level actions (duplicate/delete)
-- Shows **Groups** panel: add/remove/duplicate/reorder/select groups
 - Shows **Background** panel: section background + section color inheritance controls
 - Code organization: `SettingsPanel.tsx` routes to dedicated mode components (`SectionModeSettings`, `GroupModeSettings`, `BlockSettings`, `GlobalSettingsPanel`)
-
-Group list behavior:
-- Each row shows group label + active layout label + drag handle
-- Group rows can be selected to enter **Group Mode**
-- Dragging a group row updates order in real time and changes vertical stacking order in the canvas
+- Group list and group reordering are handled in the LEFT sidebar section tree when a section is focused
 
 Add Block modal behavior (in Group Mode):
 - Shows only block types allowed by the selected section type
@@ -958,7 +956,7 @@ app/
 â”‚   â”œâ”€â”€ EditorPage.tsx           # Main three-panel layout
 â”‚   â”œâ”€â”€ EditorCanvas.tsx         # Center: section rendering + zoom
 â”‚   â”œâ”€â”€ EditorToolbar.tsx        # Top bar: name, device, undo/redo, preview, publish
-â”‚   â”œâ”€â”€ SectionsListPanel.tsx    # LEFT sidebar: section list with drag reorder
+â”‚   â”œâ”€â”€ SectionsListPanel.tsx    # LEFT sidebar: section tree + focused section groups (drag reorder)
 â”‚   â”œâ”€â”€ SettingsPanel.tsx        # RIGHT sidebar orchestrator (mode router)
 â”‚   â”œâ”€â”€ SectionModeSettings.tsx  # RIGHT sidebar: section mode content
 â”‚   â”œâ”€â”€ GroupModeSettings.tsx    # RIGHT sidebar: group mode content
@@ -1202,7 +1200,7 @@ These decisions are final. Don't revisit or suggest alternatives:
 | Content model | Sections contain vertically stacked groups; groups contain blocks in layout slots | Supports mixed-layout sections without adding new variants |
 | Layout system | Pre-defined layout templates (NOT CSS grid config) | Users pick a visual layout, never configure columns directly |
 | Editor layout | Three panels: left (sections list) + center (canvas) + right (settings) | Matches reference design; separates navigation from editing |
-| Selection model | Three levels: section-level, group-level, and block-level | Section for background/groups, group for layout/blocks, block for content/style |
+| Selection model | Three levels: section-level, group-level, and block-level | Section for section style/actions, group for layout/blocks, block for content/style |
 | Editor theme | Dark theme | Premium feel; matches reference design. Tokens in Style Guide file |
 | Section reordering | Drag in the LEFT sidebar list (not on the canvas) | Cleaner UX; canvas stays WYSIWYG without drag handles cluttering |
 | Block reordering | Drag in the RIGHT sidebar block list (within selected group) | Mirrors section/group organization and keeps ordering local |
@@ -1360,9 +1358,9 @@ This contract ensures AI output can be validated and loaded directly into the ed
 | **Global Style** | Page-wide design settings (fontFamily, primaryColor, borderRadius). Inherited by all sections and blocks. |
 | **Style Inheritance** | The cascade: Global â†’ Section â†’ Block. Each level can override the parent. |
 | **Canvas** | The center panel where sections and blocks are rendered WYSIWYG. |
-| **Left Sidebar / Sections List** | The left panel showing all sections as a reorderable list. |
+| **Left Sidebar / Sections List** | The left panel showing section tree navigation: reorderable sections plus focused-section groups with drag reorder. |
 | **Right Sidebar / Settings Panel** | The right panel showing context-sensitive controls (section mode, group mode, block mode, or global settings). |
-| **Section Mode** | Right sidebar state when a section is selected: shows groups management and background controls. |
+| **Section Mode** | Right sidebar state when a section is selected: shows section actions and background controls. |
 | **Group Mode** | Right sidebar state when a group is selected: shows group layout, blocks list, and group style controls. |
 | **Block Mode** | Right sidebar state when a block is selected: shows block content and style controls. |
 | **InlineText** | The Tiptap-based component that makes text directly editable on the canvas. Used by heading and text blocks. |
