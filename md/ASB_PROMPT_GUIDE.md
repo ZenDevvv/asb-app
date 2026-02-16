@@ -967,6 +967,10 @@ app/
 â”‚   â”œâ”€â”€ SettingsCollapsibleSection.tsx # Shared settings collapsible UI
 â”‚   â”œâ”€â”€ AddSectionModal.tsx      # Section type picker dialog
 â”‚   â”œâ”€â”€ AddBlockModal.tsx        # Block type picker (within a section)
+â”‚   â”œâ”€â”€ sections-list/
+â”‚   â”‚   â”œâ”€â”€ SectionTreeItem.tsx  # Section node renderer for left tree
+â”‚   â”‚   â”œâ”€â”€ GroupTreeItem.tsx    # Group node renderer for left tree
+â”‚   â”‚   â””â”€â”€ sectionTreeDnd.ts   # DnD id helpers/parsers for section-group tree
 â”‚   â””â”€â”€ ...
 â”‚
 â”œâ”€â”€ pages/
