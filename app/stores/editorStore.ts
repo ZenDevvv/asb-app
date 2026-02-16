@@ -50,19 +50,30 @@ function mapSlotByIndex(
   return targetSlots[Math.min(sourceIndex, targetSlots.length - 1)];
 }
 
-function normalizeBlocksBySlotOrder(blocks: Block[], slots: string[]) {
+function normalizeBlocksBySlotOrder(
+  blocks: Block[],
+  slots: string[],
+  options?: { keepUnknownSlots?: boolean },
+) {
   if (slots.length === 0) return;
 
   const validSlots = new Set(slots);
   const fallbackSlot = slots[0];
+  const keepUnknownSlots = options?.keepUnknownSlots ?? false;
 
-  blocks.forEach((block) => {
-    if (!validSlots.has(block.slot)) {
-      block.slot = fallbackSlot;
-    }
-  });
+  if (!keepUnknownSlots) {
+    blocks.forEach((block) => {
+      if (!validSlots.has(block.slot)) {
+        block.slot = fallbackSlot;
+      }
+    });
+  }
 
-  slots.forEach((slot) => {
+  const slotsToNormalize = keepUnknownSlots
+    ? [...new Set([...slots, ...blocks.map((block) => block.slot)])]
+    : slots;
+
+  slotsToNormalize.forEach((slot) => {
     const blocksInSlot = blocks
       .filter((block) => block.slot === slot)
       .sort((a, b) => a.order - b.order);
@@ -71,6 +82,16 @@ function normalizeBlocksBySlotOrder(blocks: Block[], slots: string[]) {
       block.order = index;
     });
   });
+}
+
+function getNavbarSemanticSlot(block: Block, fallbackSlot: string): string {
+  if (fallbackSlot === "brand" || fallbackSlot === "links" || fallbackSlot === "actions") {
+    return fallbackSlot;
+  }
+
+  if (block.type === "button") return "actions";
+  if (block.type === "list" || block.type === "text") return "links";
+  return "brand";
 }
 
 function getBlocksForSingleColumnView(blocks: Block[], slots: string[]) {
@@ -231,9 +252,14 @@ export const useEditorStore = create<EditorState & EditorActions>()(
         const oldLayoutId = section.layout.id;
         const oldSlots = section.layout.slots;
         const newSlots = layout.slots;
+        const isNavbarSemanticSwitch =
+          section.type === "navbar" &&
+          (oldLayoutId.startsWith("nav-") || layout.id.startsWith("nav-"));
 
         if (oldSlots.length !== newSlots.length || oldSlots.some((s, i) => s !== newSlots[i])) {
-          normalizeBlocksBySlotOrder(section.blocks, oldSlots);
+          normalizeBlocksBySlotOrder(section.blocks, oldSlots, {
+            keepUnknownSlots: isNavbarSemanticSwitch,
+          });
 
           if (!section.layoutSlotMemories) {
             section.layoutSlotMemories = {};
@@ -251,23 +277,38 @@ export const useEditorStore = create<EditorState & EditorActions>()(
             section.layoutSlotMemory = currentLayoutMemory;
           }
 
-          const applyFromMemory = (memory: LayoutSlotMemory) => {
+          const applyFromMemory = (
+            memory: LayoutSlotMemory,
+            options?: {
+              preserveUnavailableSlots?: boolean;
+              useNavbarSemanticFallback?: boolean;
+            },
+          ) => {
             section.blocks.forEach((block) => {
               const targetMemory = memory.byBlockId[block.id];
               if (targetMemory) {
                 block.slot = newSlots.includes(targetMemory.slot)
                   ? targetMemory.slot
-                  : mapSlotByIndex(
-                    targetMemory.slot,
-                    memory.sourceSlots,
-                    newSlots,
-                  );
+                  : options?.preserveUnavailableSlots
+                    ? targetMemory.slot
+                    : mapSlotByIndex(
+                      targetMemory.slot,
+                      memory.sourceSlots,
+                      newSlots,
+                    );
                 block.order = targetMemory.order;
                 return;
               }
 
               const currentMemory = currentLayoutMemory.byBlockId[block.id];
               const sourceSlot = currentMemory?.slot || oldSlots[0];
+
+              if (options?.useNavbarSemanticFallback) {
+                block.slot = getNavbarSemanticSlot(block, sourceSlot);
+                block.order = currentMemory?.order ?? block.order;
+                return;
+              }
+
               block.slot = mapSlotByIndex(sourceSlot, oldSlots, newSlots);
               block.order = currentMemory?.order ?? block.order;
             });
@@ -280,9 +321,15 @@ export const useEditorStore = create<EditorState & EditorActions>()(
               : undefined;
 
           if (targetLayoutMemory) {
-            applyFromMemory(targetLayoutMemory);
+            applyFromMemory(targetLayoutMemory, {
+              preserveUnavailableSlots: isNavbarSemanticSwitch,
+              useNavbarSemanticFallback: isNavbarSemanticSwitch,
+            });
           } else if (fallbackFromSingle) {
-            applyFromMemory(fallbackFromSingle);
+            applyFromMemory(fallbackFromSingle, {
+              preserveUnavailableSlots: isNavbarSemanticSwitch,
+              useNavbarSemanticFallback: isNavbarSemanticSwitch,
+            });
           } else if (newSlots.length === 1) {
             const orderedBlocks = getBlocksForSingleColumnView(
               section.blocks,
@@ -293,36 +340,16 @@ export const useEditorStore = create<EditorState & EditorActions>()(
               block.order = index;
             });
           } else {
-            const isNavbarSmartMap =
-              section.type === "navbar" &&
-              oldSlots.length === 1 &&
-              newSlots.includes("brand");
-
-            if (isNavbarSmartMap) {
+            if (isNavbarSemanticSwitch) {
               section.blocks.forEach((block) => {
-                if (
-                  (block.type === "heading" ||
-                    block.type === "icon" ||
-                    block.type === "image" ||
-                    block.type === "badge") &&
-                  newSlots.includes("brand")
-                ) {
-                  block.slot = "brand";
-                } else if (
-                  (block.type === "list" || block.type === "text") &&
-                  newSlots.includes("links")
-                ) {
-                  block.slot = "links";
-                  if (block.type === "list") {
-                    block.props.inline = true;
-                  }
-                } else if (block.type === "button" && newSlots.includes("actions")) {
-                  block.slot = "actions";
-                } else {
-                  const currentMemory = currentLayoutMemory.byBlockId[block.id];
-                  const sourceSlot = currentMemory?.slot ?? block.slot;
-                  block.slot = mapSlotByIndex(sourceSlot, oldSlots, newSlots);
-                  block.order = currentMemory?.order ?? block.order;
+                const currentMemory = currentLayoutMemory.byBlockId[block.id];
+                const sourceSlot = currentMemory?.slot ?? block.slot;
+                const semanticSlot = getNavbarSemanticSlot(block, sourceSlot);
+                block.slot = semanticSlot;
+                block.order = currentMemory?.order ?? block.order;
+
+                if (block.type === "list" && semanticSlot === "links") {
+                  block.props.inline = true;
                 }
               });
             } else {
@@ -335,7 +362,9 @@ export const useEditorStore = create<EditorState & EditorActions>()(
             }
           }
 
-          normalizeBlocksBySlotOrder(section.blocks, newSlots);
+          normalizeBlocksBySlotOrder(section.blocks, newSlots, {
+            keepUnknownSlots: isNavbarSemanticSwitch,
+          });
           section.layoutSlotMemories[layout.id] = createLayoutSlotMemory(
             section.blocks,
             newSlots,

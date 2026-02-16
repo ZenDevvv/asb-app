@@ -236,7 +236,11 @@ function LayoutThumbnail({
 }: {
   layout: { id: string; columns: number; distribution: string; slots: string[] };
 }) {
-  if (layout.id.startsWith("nav-")) {
+  const isNavLayout =
+    layout.id.startsWith("nav-") ||
+    layout.slots.some((slot) => slot === "brand" || slot === "links" || slot === "actions");
+
+  if (isNavLayout) {
     return <NavbarLayoutThumbnail layout={layout} />;
   }
 
@@ -302,30 +306,31 @@ function NavbarLayoutThumbnail({
   const total = parts.length > 0 ? parts.reduce((sum, n) => sum + n, 0) : 100;
 
   return (
-    <div className="flex h-8 w-full items-center gap-0.5 rounded-md border border-current/20 bg-current/5 p-1">
+    <div className="flex h-8 w-full items-center gap-0.5 rounded-md border border-current/25 bg-current/10 p-1">
       {layout.slots.map((slot, i) => {
         const part = parts[i] ?? 100 / Math.max(1, layout.slots.length);
         return (
           <div
             key={slot}
-            className="flex h-full min-w-0 items-center justify-center rounded-sm bg-current/10 px-1"
+            className="flex h-full min-w-0 items-center justify-center rounded-sm bg-current/15 px-1"
             style={{ width: `${(part / total) * 100}%` }}
           >
             {slot === "brand" && (
               <div className="flex items-center gap-1">
-                <div className="size-1.5 rounded-full bg-current opacity-80" />
-                <div className="h-1.5 w-6 rounded bg-current opacity-70" />
+                <div className="size-2 rounded-sm bg-current opacity-85" />
+                <div className="h-1.5 w-5 rounded bg-current opacity-75" />
               </div>
             )}
             {slot === "links" && (
               <div className="flex items-center gap-0.5">
-                <div className="h-1 w-2 rounded bg-current opacity-65" />
-                <div className="h-1 w-2 rounded bg-current opacity-65" />
-                <div className="h-1 w-2 rounded bg-current opacity-65" />
+                <div className="h-1 w-2 rounded bg-current opacity-70" />
+                <div className="h-1 w-2 rounded bg-current opacity-70" />
+                <div className="h-1 w-2 rounded bg-current opacity-70" />
+                <div className="h-1 w-2 rounded bg-current opacity-70" />
               </div>
             )}
             {slot === "actions" && (
-              <div className="h-3 w-7 rounded-full border border-current/40 bg-current/25" />
+              <div className="h-3 w-7 rounded-full border border-current/45 bg-current/35" />
             )}
             {slot !== "brand" && slot !== "links" && slot !== "actions" && (
               <div className="h-1.5 w-5 rounded bg-current opacity-60" />

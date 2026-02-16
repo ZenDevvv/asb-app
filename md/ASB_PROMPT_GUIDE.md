@@ -227,6 +227,7 @@ LAYOUT SWITCHING:
 - Multi-column -> single-column keeps reading-order collapse; expanding back uses per-layout memory when available
 - This prevents cumulative scrambling when repeatedly switching between 1/2/3-column layout combinations
 - For legacy navbar sections (single-slot layouts), first switch to a nav layout smart-maps blocks by type (brand, links, actions).
+- Navbar layout switching uses semantic slot mapping (`brand`/`links`/`actions`); when a slot is absent in the current layout, its blocks stay preserved and reappear when switching back.
 
 SELECTION (two levels):
 - Selecting a section from the left sidebar auto-scrolls the canvas to that section when it is outside the current viewport
@@ -614,7 +615,6 @@ When a section is selected (not a specific block):
 │  SETTINGS                         │
 │                                   │
 │  ▼ Layout                         │  ← Visual thumbnail grid of allowed layouts
-- Navigation layouts use nav-specific thumbnails (brand/logo, links row, CTA pill) instead of generic equal bars for better visual accuracy.
 │  ┌──────┐ ┌──────┐ ┌──────┐     │
 │  │ [==] │ │[= ][=]│ │[=][ =]│   │
 │  │center│ │ 50/50 │ │ 60/40 │   │
@@ -635,6 +635,10 @@ When a section is selected (not a specific block):
 │                                   │
 └───────────────────────────────────┘
 ```
+
+- Navigation layouts use nav-specific thumbnails (brand/logo, links row, CTA pill) instead of generic equal bars.
+- For navigation, the layout thumbnail semantics match canvas slots: `brand`, `links`, `actions`.
+
 
 
 Add Block modal behavior:
@@ -1328,7 +1332,7 @@ This contract ensures AI output can be validated and loaded directly into the ed
 
 ---
 
-*Document Version: 3.7 � Navigation layout thumbnails now use nav-specific previews*
+*Document Version: 3.8 � Nav layout switching and nav thumbnails aligned with canvas behavior*
 *Last Updated: February 16, 2026*
 *Keep this document updated as architecture decisions change.*
 *For colors and theming, always reference the separate Style Guide file.*
