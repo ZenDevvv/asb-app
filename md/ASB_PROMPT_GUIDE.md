@@ -159,7 +159,7 @@ The editor has a **LEFT sidebar (sections list) + CENTER canvas + RIGHT sidebar 
 - Displays all sections in page order as a **vertical list**
 - Each row shows: **drag handle (☰)** + **section type icon** + **section name** + **layout label** + **active indicator**
 - Sections are **reorderable via drag** within this list (dnd-kit sortable)
-- Clicking a row **selects** that section (highlights it on canvas + opens section settings in right sidebar)
+- Clicking a row **selects** that section (highlights it on canvas + opens section settings in right sidebar) and auto-scrolls the canvas to keep the selected section in view.
 - **"+ Add Section"** button at the bottom of the list
 - The left sidebar is collapsible (hamburger icon in toolbar)
 
@@ -221,6 +221,7 @@ BLOCK ADDING:
 - If no slot is provided, fallback behavior inserts into the first layout slot
 
 SELECTION (two levels):
+- Selecting a section from the left sidebar auto-scrolls the canvas to that section when it is outside the current viewport
 - Click a section row in left sidebar → selects SECTION (right sidebar shows layout + blocks + background)
 - Click a block on the canvas → selects BLOCK (right sidebar shows block content + block style)
 - Click empty canvas area or press Escape → deselects all → right sidebar shows global settings
@@ -1313,7 +1314,7 @@ This contract ensures AI output can be validated and loaded directly into the ed
 
 ---
 
-*Document Version: 3.1 � Block add flow updated with slot/column target selection*
+*Document Version: 3.2 � Added section selection auto-scroll behavior*
 *Last Updated: February 16, 2026*
 *Keep this document updated as architecture decisions change.*
 *For colors and theming, always reference the separate Style Guide file.*

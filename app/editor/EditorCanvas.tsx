@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { useEditorStore } from "~/stores/editorStore";
 import { SECTION_REGISTRY } from "~/config/sectionRegistry";
 import { SectionRenderer } from "~/sections/SectionRenderer";
@@ -14,13 +15,44 @@ export function EditorCanvas() {
   const device = useEditorStore((s) => s.device);
   const zoom = useEditorStore((s) => s.zoom);
   const setZoom = useEditorStore((s) => s.setZoom);
+  const canvasScrollRef = useRef<HTMLDivElement | null>(null);
+  const previousSelectedSectionIdRef = useRef<string | null>(selectedSectionId);
 
   const canvasWidth = device === "mobile" ? "375px" : "100%";
   const maxWidth = device === "mobile" ? "375px" : "1440px";
 
+  useEffect(() => {
+    const previousSelectedSectionId = previousSelectedSectionIdRef.current;
+    previousSelectedSectionIdRef.current = selectedSectionId;
+
+    if (!selectedSectionId || !canvasScrollRef.current) return;
+    if (previousSelectedSectionId === selectedSectionId) return;
+
+    const container = canvasScrollRef.current;
+    const target = container.querySelector<HTMLElement>(
+      `[data-section-id="${selectedSectionId}"]`,
+    );
+    if (!target) return;
+
+    const containerRect = container.getBoundingClientRect();
+    const targetRect = target.getBoundingClientRect();
+    const margin = 24;
+    const isAboveViewport = targetRect.top < containerRect.top + margin;
+    const isBelowViewport = targetRect.bottom > containerRect.bottom - margin;
+
+    if (isAboveViewport || isBelowViewport) {
+      target.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+        inline: "nearest",
+      });
+    }
+  }, [selectedSectionId]);
+
   return (
     <div className="relative flex flex-1 flex-col bg-background overflow-hidden">
       <div
+        ref={canvasScrollRef}
         className="flex-1 overflow-auto p-8 minimal-scrollbar"
         onClick={(e) => {
           if (e.target === e.currentTarget) selectSection(null);
@@ -60,6 +92,7 @@ export function EditorCanvas() {
               return (
                 <div
                   key={section.id}
+                  data-section-id={section.id}
                   className={cn(
                     "relative cursor-pointer transition-all",
                     isSelected && "ring-2 ring-primary ring-offset-0",
