@@ -125,6 +125,9 @@ export function SectionRenderer({
 	const isNavbar = section.type === "navbar" || layout.id.startsWith("nav-");
 	const sectionContentRef = useRef<HTMLDivElement | null>(null);
 	const [draggingAbsoluteBlockId, setDraggingAbsoluteBlockId] = useState<string | null>(null);
+	const [absoluteMinWidthByBlockId, setAbsoluteMinWidthByBlockId] = useState<
+		Record<string, number>
+	>({});
 	const dragStateRef = useRef<{
 		blockId: string;
 		offsetX: number;
@@ -289,12 +292,24 @@ export function SectionRenderer({
 									zIndex,
 									transform: `scale(${absoluteScale / 100})`,
 									transformOrigin: "top left",
+									minWidth: absoluteMinWidthByBlockId[block.id]
+										? `${absoluteMinWidthByBlockId[block.id]}px`
+										: undefined,
 								}}
 								onPointerDown={(event) => {
 									if (!isEditing || !onUpdateBlockStyle) return;
 									event.preventDefault();
 									event.stopPropagation();
 									event.currentTarget.setPointerCapture(event.pointerId);
+
+									const measuredWidth = event.currentTarget.offsetWidth;
+									if (measuredWidth > 0) {
+										setAbsoluteMinWidthByBlockId((prev) => {
+											if (prev[block.id] === measuredWidth) return prev;
+											return { ...prev, [block.id]: measuredWidth };
+										});
+									}
+
 									const container = sectionContentRef.current;
 									if (!container) return;
 

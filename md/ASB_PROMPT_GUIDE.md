@@ -242,6 +242,7 @@ ABSOLUTE BLOCK POSITIONING:
 - Blocks can be switched between `flow` and `absolute` modes from block settings
 - Absolute blocks render in a section-relative layer (not viewport-relative)
 - Dragging an absolute block on the canvas updates its `positionX` / `positionY`
+- Absolute blocks keep a cached minimum width during drag so they do not auto-shrink near section/canvas edges
 - During absolute dragging, canvas hover/pointer reactions and text selection are temporarily disabled to avoid accidental highlight states
 - Layer order can be adjusted with block `zIndex`
 - Absolute blocks can be resized with a `Scale` control (shrink/enlarge)
@@ -1351,7 +1352,7 @@ This contract ensures AI output can be validated and loaded directly into the ed
 
 ---
 
-*Document Version: 3.11 — Absolute blocks now support scale control and selected-state markers*
+*Document Version: 3.12 — Absolute drag now preserves width near edges to prevent shrink*
 *Last Updated: February 16, 2026*
 *Keep this document updated as architecture decisions change.*
 *For colors and theming, always reference the separate Style Guide file.*
