@@ -214,6 +214,7 @@ STATE MANAGEMENT:
 
 DRAG-AND-DROP:
 - Sections are reordered by dragging in the LEFT SIDEBAR list (not on the canvas)
+- Groups are reordered by dragging in the RIGHT SIDEBAR **Groups** panel (section mode)
 - Blocks within the selected group can be reordered in the RIGHT SIDEBAR block list
 - Both use @dnd-kit/sortable with vertical list strategy
 - Drag handle (â˜° grip icon) on each row
@@ -663,9 +664,9 @@ When a section is selected (not a specific group/block):
 - Shows **Background** panel: section background + section color inheritance controls
 
 Group list behavior:
-- Each row shows group label + active layout label
+- Each row shows group label + active layout label + drag handle
 - Group rows can be selected to enter **Group Mode**
-- Reordering groups changes vertical stacking order in the canvas
+- Dragging a group row updates order in real time and changes vertical stacking order in the canvas
 
 Add Block modal behavior (in Group Mode):
 - Shows only block types allowed by the selected section type
