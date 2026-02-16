@@ -31,6 +31,7 @@ export interface BlockStyle {
   positionX?: number;
   positionY?: number;
   zIndex?: number;
+  scale?: number;
 }
 
 // ─── Block ───────────────────────────────────────────────────────────────────

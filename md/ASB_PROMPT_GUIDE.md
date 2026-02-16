@@ -244,6 +244,8 @@ ABSOLUTE BLOCK POSITIONING:
 - Dragging an absolute block on the canvas updates its `positionX` / `positionY`
 - During absolute dragging, canvas hover/pointer reactions and text selection are temporarily disabled to avoid accidental highlight states
 - Layer order can be adjusted with block `zIndex`
+- Absolute blocks can be resized with a `Scale` control (shrink/enlarge)
+- Selected absolute blocks show an `Abs` marker in the canvas for quick identification
 - Flow blocks continue to use layout slots and normal document flow
 
 ZOOM:
@@ -321,6 +323,7 @@ interface BlockStyle {
   positionX?: number;             // px from section container left
   positionY?: number;             // px from section container top
   zIndex?: number;                // Layer order for absolute blocks
+  scale?: number;                 // Absolute block scale percentage (default 100)
 }
 
 // ─── Layout Template ────────────────────────────────────────────────────
@@ -1327,7 +1330,7 @@ This contract ensures AI output can be validated and loaded directly into the ed
 | **Slot** | A named position within a layout template where blocks are placed ("main", "left", "right", "col-1", etc.). |
 | **Section Registry** | Central config mapping section types to allowed layouts, default blocks, and constraints. |
 | **Block Registry** | Central config mapping block types to components, default props/styles, and editable fields. |
-| **Block Style** | Constrained visual options for a block (fontSize, fontWeight, textAlign, width, spacing, positioning mode). Never raw CSS. |
+| **Block Style** | Constrained visual options for a block (fontSize, fontWeight, textAlign, width, spacing, positioning mode, scale). Never raw CSS. |
 | **Section Style** | Design data for a section (backgroundColor, backgroundType, paddingY, textColor, accentColor). |
 | **Global Style** | Page-wide design settings (fontFamily, primaryColor, borderRadius). Inherited by all sections and blocks. |
 | **Style Inheritance** | The cascade: Global → Section → Block. Each level can override the parent. |
@@ -1348,7 +1351,7 @@ This contract ensures AI output can be validated and loaded directly into the ed
 
 ---
 
-*Document Version: 3.10 � Absolute drag now suppresses canvas highlighting during move*
+*Document Version: 3.11 � Absolute blocks now support scale control and selected-state markers*
 *Last Updated: February 16, 2026*
 *Keep this document updated as architecture decisions change.*
 *For colors and theming, always reference the separate Style Guide file.*

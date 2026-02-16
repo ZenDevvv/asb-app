@@ -23,6 +23,7 @@ export function BlockSettings({ sectionId, block, onBack, onDelete }: BlockSetti
 	const positionX = block.style.positionX ?? 0;
 	const positionY = block.style.positionY ?? 0;
 	const zIndex = block.style.zIndex ?? 20;
+	const absoluteScale = block.style.scale ?? 100;
 
 	return (
 		<div className="flex h-full w-[300px] shrink-0 flex-col border-l border-sidebar-border bg-sidebar">
@@ -255,6 +256,7 @@ export function BlockSettings({ sectionId, block, onBack, onDelete }: BlockSetti
 										positionX,
 										positionY,
 										zIndex,
+										scale: absoluteScale,
 									})
 								}
 								className={cn(
@@ -335,6 +337,30 @@ export function BlockSettings({ sectionId, block, onBack, onDelete }: BlockSetti
 										onChange={(e) =>
 											updateBlockStyle(sectionId, block.id, {
 												zIndex: Number(e.target.value),
+											})
+										}
+										className="w-full accent-primary"
+									/>
+								</div>
+
+								<div className="space-y-1.5">
+									<div className="flex items-center justify-between">
+										<label className="text-xs font-medium text-muted-foreground">
+											Scale
+										</label>
+										<span className="text-[10px] text-muted-foreground">
+											{absoluteScale}%
+										</span>
+									</div>
+									<input
+										type="range"
+										min={25}
+										max={300}
+										step={5}
+										value={absoluteScale}
+										onChange={(e) =>
+											updateBlockStyle(sectionId, block.id, {
+												scale: Number(e.target.value),
 											})
 										}
 										className="w-full accent-primary"

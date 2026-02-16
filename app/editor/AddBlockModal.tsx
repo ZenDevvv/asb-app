@@ -49,6 +49,7 @@ export function AddBlockModal({
 					positionX: 24,
 					positionY: 24,
 					zIndex: 20,
+					scale: 100,
 				});
 			}
 		}

@@ -265,6 +265,7 @@ export function SectionRenderer({
 						const positionX = block.style.positionX ?? 0;
 						const positionY = block.style.positionY ?? 0;
 						const zIndex = block.style.zIndex ?? 20;
+						const absoluteScale = block.style.scale ?? 100;
 
 						return (
 							<div
@@ -286,6 +287,8 @@ export function SectionRenderer({
 									left: positionX,
 									top: positionY,
 									zIndex,
+									transform: `scale(${absoluteScale / 100})`,
+									transformOrigin: "top left",
 								}}
 								onPointerDown={(event) => {
 									if (!isEditing || !onUpdateBlockStyle) return;
@@ -311,6 +314,11 @@ export function SectionRenderer({
 										onBlockClick(block.id);
 									}
 								}}>
+								{isBlockSelected && (
+									<div className="pointer-events-none absolute -top-2 -right-2 z-[1] rounded-full bg-primary px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-primary-foreground shadow">
+										Abs
+									</div>
+								)}
 								<BlockRenderer
 									block={block}
 									sectionStyle={section.style}
