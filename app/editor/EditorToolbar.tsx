@@ -1,6 +1,35 @@
 import { useEditorStore } from "~/stores/editorStore";
 import { cn } from "~/lib/utils";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "~/components/ui/dialog";
+
+const SHORTCUTS = [
+	{
+		keys: ["Ctrl", "Z"],
+		macKeys: ["Cmd", "Z"],
+		description: "Undo",
+	},
+	{
+		keys: ["Ctrl", "Shift", "Z"],
+		macKeys: ["Cmd", "Shift", "Z"],
+		description: "Redo",
+	},
+	{
+		keys: ["Ctrl", "S"],
+		macKeys: ["Cmd", "S"],
+		description: "Save",
+	},
+	{
+		keys: ["Delete"],
+		macKeys: ["Delete"],
+		description: "Delete selected block or section",
+	},
+	{
+		keys: ["Esc"],
+		macKeys: ["Esc"],
+		description: "Back / Deselect",
+	},
+] as const;
 
 export function EditorToolbar() {
 	const device = useEditorStore((s) => s.device);
@@ -11,6 +40,7 @@ export function EditorToolbar() {
 	const future = useEditorStore((s) => s.future);
 	const lastSaved = useEditorStore((s) => s.lastSaved);
 	const saveToLocalStorage = useEditorStore((s) => s.saveToLocalStorage);
+	const [shortcutsOpen, setShortcutsOpen] = useState(false);
 
 	const savedAgo = useMemo(() => {
 		if (!lastSaved) return null;
@@ -95,6 +125,14 @@ export function EditorToolbar() {
 			{/* Right */}
 			<div className="flex items-center gap-2">
 				<button
+					onClick={() => setShortcutsOpen(true)}
+					className="flex items-center gap-1.5 rounded-xl border border-sidebar-border px-3 py-1.5 text-sm text-sidebar-foreground transition-colors hover:bg-sidebar-accent">
+					<span className="material-symbols-outlined" style={{ fontSize: 16 }}>
+						keyboard
+					</span>
+					Shortcuts
+				</button>
+				<button
 					onClick={() => {
 						saveToLocalStorage();
 						window.open("/editor/preview", "_blank");
@@ -114,6 +152,46 @@ export function EditorToolbar() {
 					</span>
 				</button>
 			</div>
+
+			<Dialog open={shortcutsOpen} onOpenChange={setShortcutsOpen}>
+				<DialogContent className="max-w-lg border-border bg-card rounded-2xl">
+					<DialogHeader>
+						<DialogTitle className="text-foreground">Keyboard Shortcuts</DialogTitle>
+					</DialogHeader>
+					<div className="space-y-2 pt-1">
+						{SHORTCUTS.map((shortcut) => (
+							<div
+								key={shortcut.description}
+								className="flex items-center justify-between rounded-xl border border-border/70 bg-muted/20 px-3 py-2">
+								<span className="text-sm text-foreground">
+									{shortcut.description}
+								</span>
+								<div className="flex items-center gap-2 text-[11px]">
+									<div className="flex items-center gap-1">
+										{shortcut.keys.map((key) => (
+											<kbd
+												key={`${shortcut.description}-${key}-pc`}
+												className="rounded-md border border-border bg-background px-1.5 py-0.5 font-semibold text-muted-foreground">
+												{key}
+											</kbd>
+										))}
+									</div>
+									<span className="text-muted-foreground/70">/</span>
+									<div className="flex items-center gap-1">
+										{shortcut.macKeys.map((key) => (
+											<kbd
+												key={`${shortcut.description}-${key}-mac`}
+												className="rounded-md border border-border bg-background px-1.5 py-0.5 font-semibold text-muted-foreground">
+												{key}
+											</kbd>
+										))}
+									</div>
+								</div>
+							</div>
+						))}
+					</div>
+				</DialogContent>
+			</Dialog>
 		</div>
 	);
 }

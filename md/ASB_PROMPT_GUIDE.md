@@ -195,7 +195,7 @@ The right sidebar changes based on what is selected:
 
 - **Left**: hamburger menu (collapse left sidebar) + page name (editable dropdown)
 - **Center**: device preview toggle (desktop/mobile icons) + undo/redo buttons
-- **Right**: Preview button (opens live preview in new tab), Publish button, "Last saved: X min ago" timestamp
+- **Right**: Keyboard Shortcuts button (opens shortcut list modal), Preview button (opens live preview in new tab), Publish button, "Last saved: X min ago" timestamp
 
 ### Key Behaviors
 
@@ -237,6 +237,14 @@ SELECTION (two levels):
 - Click a block on the canvas â†’ selects BLOCK (right sidebar shows block content + block style)
 - Click empty canvas area or press Escape â†’ deselects all â†’ right sidebar shows global settings
 - Selecting a block also implicitly selects its parent section (shown highlighted on canvas)
+
+KEYBOARD SHORTCUTS:
+- Toolbar has a **Shortcuts** button that opens a modal with all available editor keyboard shortcuts
+- Ctrl/Cmd + Z: Undo
+- Ctrl/Cmd + Shift + Z: Redo
+- Ctrl/Cmd + S: Save now
+- Delete: Delete currently selected block or section
+- Esc: Deselect current block/section level
 
 ABSOLUTE BLOCK POSITIONING:
 - Blocks can be switched between `flow` and `absolute` modes from block settings
@@ -1359,7 +1367,7 @@ This contract ensures AI output can be validated and loaded directly into the ed
 
 ---
 
-*Document Version: 3.14 — Live preview now auto-refreshes from editor autosave updates*
+*Document Version: 3.15 — Added keyboard shortcuts modal in editor toolbar*
 *Last Updated: February 16, 2026*
 *Keep this document updated as architecture decisions change.*
 *For colors and theming, always reference the separate Style Guide file.*

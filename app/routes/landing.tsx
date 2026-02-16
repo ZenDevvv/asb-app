@@ -11,10 +11,6 @@ export function meta({}: Route.MetaArgs) {
 
 export default function LandingPage() {
 	const navigate = useNavigate();
-	const { user } = useAuth();
-	useEffect(() => {
-		navigate("/login");
-	});
 
 	return <div className="flex flex-col min-h-screen"></div>;
 }
