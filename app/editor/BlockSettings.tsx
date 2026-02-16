@@ -180,6 +180,58 @@ export function BlockSettings({ sectionId, block, onBack, onDelete }: BlockSetti
 					</CollapsiblePanel>
 				)}
 
+				{/* Spacing */}
+				<CollapsiblePanel title="Spacing" defaultOpen={false}>
+					<div className="space-y-3">
+						<div className="space-y-1.5">
+							<div className="flex items-center justify-between">
+								<label className="text-xs font-medium text-muted-foreground">
+									Top Margin
+								</label>
+								<span className="text-[10px] text-muted-foreground">
+									{block.style.marginTop ?? 0}
+								</span>
+							</div>
+							<input
+								type="range"
+								min={0}
+								max={64}
+								step={4}
+								value={block.style.marginTop ?? 0}
+								onChange={(e) =>
+									updateBlockStyle(sectionId, block.id, {
+										marginTop: Number(e.target.value),
+									})
+								}
+								className="w-full accent-primary"
+							/>
+						</div>
+						<div className="space-y-1.5">
+							<div className="flex items-center justify-between">
+								<label className="text-xs font-medium text-muted-foreground">
+									Bottom Margin
+								</label>
+								<span className="text-[10px] text-muted-foreground">
+									{block.style.marginBottom ?? 0}
+								</span>
+							</div>
+							<input
+								type="range"
+								min={0}
+								max={64}
+								step={4}
+								value={block.style.marginBottom ?? 0}
+								onChange={(e) =>
+									updateBlockStyle(sectionId, block.id, {
+										marginBottom: Number(e.target.value),
+									})
+								}
+								className="w-full accent-primary"
+							/>
+						</div>
+					</div>
+				</CollapsiblePanel>
+
 				{/* Position */}
 				<CollapsiblePanel title="Position" defaultOpen={false}>
 					<div className="space-y-3">
@@ -290,58 +342,6 @@ export function BlockSettings({ sectionId, block, onBack, onDelete }: BlockSetti
 								</div>
 							</>
 						)}
-					</div>
-				</CollapsiblePanel>
-
-				{/* Spacing */}
-				<CollapsiblePanel title="Spacing" defaultOpen={false}>
-					<div className="space-y-3">
-						<div className="space-y-1.5">
-							<div className="flex items-center justify-between">
-								<label className="text-xs font-medium text-muted-foreground">
-									Top Margin
-								</label>
-								<span className="text-[10px] text-muted-foreground">
-									{block.style.marginTop ?? 0}
-								</span>
-							</div>
-							<input
-								type="range"
-								min={0}
-								max={64}
-								step={4}
-								value={block.style.marginTop ?? 0}
-								onChange={(e) =>
-									updateBlockStyle(sectionId, block.id, {
-										marginTop: Number(e.target.value),
-									})
-								}
-								className="w-full accent-primary"
-							/>
-						</div>
-						<div className="space-y-1.5">
-							<div className="flex items-center justify-between">
-								<label className="text-xs font-medium text-muted-foreground">
-									Bottom Margin
-								</label>
-								<span className="text-[10px] text-muted-foreground">
-									{block.style.marginBottom ?? 0}
-								</span>
-							</div>
-							<input
-								type="range"
-								min={0}
-								max={64}
-								step={4}
-								value={block.style.marginBottom ?? 0}
-								onChange={(e) =>
-									updateBlockStyle(sectionId, block.id, {
-										marginBottom: Number(e.target.value),
-									})
-								}
-								className="w-full accent-primary"
-							/>
-						</div>
 					</div>
 				</CollapsiblePanel>
 			</div>

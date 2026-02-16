@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { BlockRenderer } from "~/blocks/BlockRenderer";
 import type { Section, Block, BlockStyle, GlobalStyle, LayoutTemplate } from "~/types/editor";
 
@@ -124,6 +124,7 @@ export function SectionRenderer({
 	);
 	const isNavbar = section.type === "navbar" || layout.id.startsWith("nav-");
 	const sectionContentRef = useRef<HTMLDivElement | null>(null);
+	const [draggingAbsoluteBlockId, setDraggingAbsoluteBlockId] = useState<string | null>(null);
 	const dragStateRef = useRef<{
 		blockId: string;
 		offsetX: number;
@@ -131,6 +132,7 @@ export function SectionRenderer({
 		lastX: number;
 		lastY: number;
 	} | null>(null);
+	const isDraggingAbsoluteBlock = draggingAbsoluteBlockId !== null;
 
 	const gridClasses = getLayoutGridClasses(layout, section.type);
 	const bgStyle = getSectionBackground(section);
@@ -158,6 +160,7 @@ export function SectionRenderer({
 
 		const stopDragging = () => {
 			dragStateRef.current = null;
+			setDraggingAbsoluteBlockId(null);
 		};
 
 		window.addEventListener("pointermove", handlePointerMove);
@@ -171,12 +174,37 @@ export function SectionRenderer({
 		};
 	}, [isEditing, onUpdateBlockStyle]);
 
+	useEffect(() => {
+		if (!isDraggingAbsoluteBlock) return;
+
+		const originalUserSelect = document.body.style.userSelect;
+		const originalWebkitUserSelect =
+			document.body.style.getPropertyValue("-webkit-user-select");
+
+		document.body.style.userSelect = "none";
+		document.body.style.setProperty("-webkit-user-select", "none");
+
+		return () => {
+			document.body.style.userSelect = originalUserSelect;
+			if (originalWebkitUserSelect) {
+				document.body.style.setProperty("-webkit-user-select", originalWebkitUserSelect);
+			} else {
+				document.body.style.removeProperty("-webkit-user-select");
+			}
+		};
+	}, [isDraggingAbsoluteBlock]);
+
 	return (
-		<section className={isNavbar ? "border-b border-white/10" : undefined} style={bgStyle}>
+		<section
+			className={isNavbar ? "border-b border-white/10" : undefined}
+			style={{
+				...bgStyle,
+				userSelect: isDraggingAbsoluteBlock ? "none" : undefined,
+			}}>
 			<div className={isNavbar ? "mx-auto max-w-7xl px-6" : "mx-auto max-w-6xl px-6"}>
 				<div ref={sectionContentRef} className="relative">
 					<div
-						className={gridClasses}
+						className={`${gridClasses} ${isDraggingAbsoluteBlock ? "pointer-events-none" : ""}`}
 						style={{
 							direction: layout.direction === "row-reverse" ? "rtl" : "ltr",
 						}}>
@@ -196,7 +224,7 @@ export function SectionRenderer({
 											} ${
 												isBlockSelected
 													? "ring-2 ring-primary/60 ring-offset-1 ring-offset-transparent rounded-md"
-													: isEditing
+													: isEditing && !isDraggingAbsoluteBlock
 														? "hover:ring-1 hover:ring-primary/20 rounded-md"
 														: ""
 											}`}
@@ -244,9 +272,13 @@ export function SectionRenderer({
 								className={`absolute transition-all ${
 									isEditing ? "cursor-grab active:cursor-grabbing touch-none" : ""
 								} ${
+									isDraggingAbsoluteBlock && draggingAbsoluteBlockId !== block.id
+										? "pointer-events-none"
+										: ""
+								} ${
 									isBlockSelected
 										? "ring-2 ring-primary/60 ring-offset-1 ring-offset-transparent rounded-md"
-										: isEditing
+										: isEditing && !isDraggingAbsoluteBlock
 											? "hover:ring-1 hover:ring-primary/20 rounded-md"
 											: ""
 								}`}
@@ -257,7 +289,9 @@ export function SectionRenderer({
 								}}
 								onPointerDown={(event) => {
 									if (!isEditing || !onUpdateBlockStyle) return;
+									event.preventDefault();
 									event.stopPropagation();
+									event.currentTarget.setPointerCapture(event.pointerId);
 									const container = sectionContentRef.current;
 									if (!container) return;
 
@@ -269,6 +303,7 @@ export function SectionRenderer({
 										lastX: positionX,
 										lastY: positionY,
 									};
+									setDraggingAbsoluteBlockId(block.id);
 								}}
 								onClick={(e) => {
 									if (isEditing && onBlockClick) {

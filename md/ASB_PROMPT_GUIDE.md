@@ -242,6 +242,7 @@ ABSOLUTE BLOCK POSITIONING:
 - Blocks can be switched between `flow` and `absolute` modes from block settings
 - Absolute blocks render in a section-relative layer (not viewport-relative)
 - Dragging an absolute block on the canvas updates its `positionX` / `positionY`
+- During absolute dragging, canvas hover/pointer reactions and text selection are temporarily disabled to avoid accidental highlight states
 - Layer order can be adjusted with block `zIndex`
 - Flow blocks continue to use layout slots and normal document flow
 
@@ -1347,7 +1348,7 @@ This contract ensures AI output can be validated and loaded directly into the ed
 
 ---
 
-*Document Version: 3.9 — Absolute block positioning with section-relative canvas dragging*
+*Document Version: 3.10 — Absolute drag now suppresses canvas highlighting during move*
 *Last Updated: February 16, 2026*
 *Keep this document updated as architecture decisions change.*
 *For colors and theming, always reference the separate Style Guide file.*
