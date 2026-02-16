@@ -183,9 +183,10 @@ The right sidebar changes based on what is selected:
 3. **Background** — section background options (solid/gradient/image + padding slider).
 
 **When a BLOCK is selected** (click a specific block on the canvas):
-1. **Block Content** — auto-generated controls based on block type (text input, image upload, etc.)
-2. **Block Style** — constrained style options for that block (size, alignment, spacing).
-3. **Back to Section** — button to go back to section-level settings.
+1. **Block Content** - auto-generated controls based on block type (text input, image upload, etc.)
+2. **Block Style** - constrained style options for that block (size, alignment, spacing).
+3. **Position** - choose `flow` or `absolute`. Absolute blocks are positioned relative to the section and can be moved on the canvas by dragging.
+4. **Back to Section** - button to go back to section-level settings.
 
 **When NOTHING is selected** (click empty canvas area):
 - **Global Page Settings** — font family, primary color, corner style.
@@ -219,6 +220,7 @@ BLOCK ADDING:
 - If the current layout has multiple slots (e.g., `left/right`, `col-1/col-2/col-3`), the modal shows a **Column** selector
 - New blocks are inserted into the selected slot with `addBlock(sectionId, blockType, slot)`
 - If no slot is provided, fallback behavior inserts into the first layout slot
+- The modal also supports **Add as absolute block**. Absolute blocks are created with section-relative coordinates.
 
 LAYOUT SWITCHING:
 - Every layout change snapshots block slot/order for the current layout id
@@ -236,17 +238,24 @@ SELECTION (two levels):
 - Click empty canvas area or press Escape → deselects all → right sidebar shows global settings
 - Selecting a block also implicitly selects its parent section (shown highlighted on canvas)
 
+ABSOLUTE BLOCK POSITIONING:
+- Blocks can be switched between `flow` and `absolute` modes from block settings
+- Absolute blocks render in a section-relative layer (not viewport-relative)
+- Dragging an absolute block on the canvas updates its `positionX` / `positionY`
+- Layer order can be adjusted with block `zIndex`
+- Flow blocks continue to use layout slots and normal document flow
+
 ZOOM:
 - Zoom controls at bottom of canvas: minus button, percentage display, plus button
 - Zoom range: 50% to 150% (default 100%)
 - Affects canvas scale only, not sidebar panels
 
 EDITOR DOES NOT HAVE (by design):
-- Freeform element positioning (blocks live within section layout slots)
+- Global freeform canvas with unrestricted layers and arbitrary parent containers
 - Raw CSS property panels (no margin/padding/font-size inputs — constrained choices only)
 - Layer tree or component tree
 - Custom HTML/CSS/JS editing
-- Pixel-level positioning
+- Viewport-level absolute positioning
 - Blocks cannot be nested inside other blocks
 ```
 
@@ -305,6 +314,12 @@ interface BlockStyle {
 
   // Appearance
   opacity?: number;               // 0-100 slider
+
+  // Positioning (editor controls)
+  positionMode?: "flow" | "absolute";
+  positionX?: number;             // px from section container left
+  positionY?: number;             // px from section container top
+  zIndex?: number;                // Layer order for absolute blocks
 }
 
 // ─── Layout Template ────────────────────────────────────────────────────
@@ -1311,7 +1326,7 @@ This contract ensures AI output can be validated and loaded directly into the ed
 | **Slot** | A named position within a layout template where blocks are placed ("main", "left", "right", "col-1", etc.). |
 | **Section Registry** | Central config mapping section types to allowed layouts, default blocks, and constraints. |
 | **Block Registry** | Central config mapping block types to components, default props/styles, and editable fields. |
-| **Block Style** | Constrained visual options for a block (fontSize, fontWeight, textAlign, width, spacing). Never raw CSS. |
+| **Block Style** | Constrained visual options for a block (fontSize, fontWeight, textAlign, width, spacing, positioning mode). Never raw CSS. |
 | **Section Style** | Design data for a section (backgroundColor, backgroundType, paddingY, textColor, accentColor). |
 | **Global Style** | Page-wide design settings (fontFamily, primaryColor, borderRadius). Inherited by all sections and blocks. |
 | **Style Inheritance** | The cascade: Global → Section → Block. Each level can override the parent. |
@@ -1332,7 +1347,7 @@ This contract ensures AI output can be validated and loaded directly into the ed
 
 ---
 
-*Document Version: 3.8 � Nav layout switching and nav thumbnails aligned with canvas behavior*
+*Document Version: 3.9 � Absolute block positioning with section-relative canvas dragging*
 *Last Updated: February 16, 2026*
 *Keep this document updated as architecture decisions change.*
 *For colors and theming, always reference the separate Style Guide file.*

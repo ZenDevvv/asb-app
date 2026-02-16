@@ -27,6 +27,10 @@ export interface BlockStyle {
   width?: "auto" | "sm" | "md" | "lg" | "full";
   height?: number;
   opacity?: number;
+  positionMode?: "flow" | "absolute";
+  positionX?: number;
+  positionY?: number;
+  zIndex?: number;
 }
 
 // ─── Block ───────────────────────────────────────────────────────────────────
