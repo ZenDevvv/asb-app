@@ -19,6 +19,26 @@ import type {
 } from "~/types/editor";
 
 const STORAGE_KEY = "asb-editor-state";
+const BLOCK_STYLE_HISTORY_DEBOUNCE_MS = 400;
+const blockStyleHistoryWindows = new Map<string, ReturnType<typeof setTimeout>>();
+
+function scheduleBlockStyleHistoryWindow(windowKey: string) {
+  const existingTimer = blockStyleHistoryWindows.get(windowKey);
+  if (existingTimer) {
+    clearTimeout(existingTimer);
+  }
+
+  const timer = setTimeout(() => {
+    blockStyleHistoryWindows.delete(windowKey);
+  }, BLOCK_STYLE_HISTORY_DEBOUNCE_MS);
+
+  blockStyleHistoryWindows.set(windowKey, timer);
+}
+
+function clearBlockStyleHistoryWindows() {
+  blockStyleHistoryWindows.forEach((timer) => clearTimeout(timer));
+  blockStyleHistoryWindows.clear();
+}
 
 const DEFAULT_GLOBAL_STYLE: GlobalStyle = {
   fontFamily: "Inter",
@@ -465,15 +485,28 @@ export const useEditorStore = create<EditorState & EditorActions>()(
     },
 
     updateBlockStyle: (sectionId: string, blockId: string, style: Partial<BlockStyle>) => {
+      const historyWindowKey = `${sectionId}:${blockId}`;
+      const shouldPushHistory = !blockStyleHistoryWindows.has(historyWindowKey);
+      let didUpdate = false;
+
       set((state) => {
         const section = state.sections.find((s) => s.id === sectionId);
         if (!section) return;
         const block = section.blocks.find((b) => b.id === blockId);
         if (block) {
+          if (shouldPushHistory) {
+            state.history.push(JSON.parse(JSON.stringify(state.sections)));
+            state.future = [];
+          }
           Object.assign(block.style, style);
           state.isDirty = true;
+          didUpdate = true;
         }
       });
+
+      if (didUpdate) {
+        scheduleBlockStyleHistoryWindow(historyWindowKey);
+      }
     },
 
     // ─── Global Style ─────────────────────────────────────────────
@@ -488,6 +521,7 @@ export const useEditorStore = create<EditorState & EditorActions>()(
     // ─── History ──────────────────────────────────────────────────
 
     undo: () => {
+      clearBlockStyleHistoryWindows();
       set((state) => {
         if (state.history.length === 0) return;
         const previous = state.history.pop()!;
@@ -498,6 +532,7 @@ export const useEditorStore = create<EditorState & EditorActions>()(
     },
 
     redo: () => {
+      clearBlockStyleHistoryWindows();
       set((state) => {
         if (state.future.length === 0) return;
         const next = state.future.pop()!;
@@ -508,6 +543,7 @@ export const useEditorStore = create<EditorState & EditorActions>()(
     },
 
     pushHistory: () => {
+      clearBlockStyleHistoryWindows();
       set((state) => {
         state.history.push(JSON.parse(JSON.stringify(state.sections)));
         state.future = [];
@@ -551,6 +587,7 @@ export const useEditorStore = create<EditorState & EditorActions>()(
     },
 
     loadFromLocalStorage: () => {
+      clearBlockStyleHistoryWindows();
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
         if (raw) {
@@ -584,6 +621,7 @@ export const useEditorStore = create<EditorState & EditorActions>()(
     // ─── Reset ────────────────────────────────────────────────────
 
     loadSections: (sections: Section[], globalStyle?: GlobalStyle) => {
+      clearBlockStyleHistoryWindows();
       set((state) => {
         state.sections = sections;
         if (globalStyle) state.globalStyle = globalStyle;

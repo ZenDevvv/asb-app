@@ -161,19 +161,41 @@ export function SectionRenderer({
 			});
 		};
 
-		const stopDragging = () => {
+		const commitFinalDragPosition = (event: PointerEvent) => {
+			const dragState = dragStateRef.current;
+			const container = sectionContentRef.current;
+			if (!dragState || !container) return;
+
+			const rect = container.getBoundingClientRect();
+			const positionX = Math.round(event.clientX - rect.left - dragState.offsetX);
+			const positionY = Math.round(event.clientY - rect.top - dragState.offsetY);
+			if (positionX === dragState.lastX && positionY === dragState.lastY) return;
+
+			onUpdateBlockStyle(dragState.blockId, {
+				positionX,
+				positionY,
+			});
+		};
+
+		const handlePointerUp = (event: PointerEvent) => {
+			commitFinalDragPosition(event);
+			dragStateRef.current = null;
+			setDraggingAbsoluteBlockId(null);
+		};
+
+		const handlePointerCancel = () => {
 			dragStateRef.current = null;
 			setDraggingAbsoluteBlockId(null);
 		};
 
 		window.addEventListener("pointermove", handlePointerMove);
-		window.addEventListener("pointerup", stopDragging);
-		window.addEventListener("pointercancel", stopDragging);
+		window.addEventListener("pointerup", handlePointerUp);
+		window.addEventListener("pointercancel", handlePointerCancel);
 
 		return () => {
 			window.removeEventListener("pointermove", handlePointerMove);
-			window.removeEventListener("pointerup", stopDragging);
-			window.removeEventListener("pointercancel", stopDragging);
+			window.removeEventListener("pointerup", handlePointerUp);
+			window.removeEventListener("pointercancel", handlePointerCancel);
 		};
 	}, [isEditing, onUpdateBlockStyle]);
 

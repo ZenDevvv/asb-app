@@ -250,6 +250,8 @@ ABSOLUTE BLOCK POSITIONING:
 - Blocks can be switched between `flow` and `absolute` modes from block settings
 - Absolute blocks render in a section-relative layer (not viewport-relative)
 - Dragging an absolute block on the canvas updates its `positionX` / `positionY`
+- Absolute drag position updates are history-grouped with debounce so one drag is one undo/redo step
+- Final pointer-up coordinates are committed before drag end so the last dropped position is undoable
 - Absolute blocks keep a cached minimum width during drag so they do not auto-shrink near section/canvas edges
 - During absolute dragging, canvas hover/pointer reactions and text selection are temporarily disabled to avoid accidental highlight states
 - Layer order can be adjusted with block `zIndex`
@@ -1367,7 +1369,7 @@ This contract ensures AI output can be validated and loaded directly into the ed
 
 ---
 
-*Document Version: 3.15 — Added keyboard shortcuts modal in editor toolbar*
+*Document Version: 3.16 — Debounced absolute drag history with final-position undo support*
 *Last Updated: February 16, 2026*
 *Keep this document updated as architecture decisions change.*
 *For colors and theming, always reference the separate Style Guide file.*
