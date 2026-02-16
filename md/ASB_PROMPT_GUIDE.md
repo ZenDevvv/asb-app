@@ -195,7 +195,7 @@ The right sidebar changes based on what is selected:
 
 - **Left**: hamburger menu (collapse left sidebar) + page name (editable dropdown)
 - **Center**: device preview toggle (desktop/mobile icons) + undo/redo buttons
-- **Right**: Preview button, Publish button, "Last saved: X min ago" timestamp
+- **Right**: Preview button (opens live preview in new tab), Publish button, "Last saved: X min ago" timestamp
 
 ### Key Behaviors
 
@@ -248,6 +248,13 @@ ABSOLUTE BLOCK POSITIONING:
 - Absolute blocks can be resized with a `Scale` control (shrink/enlarge)
 - Selected absolute blocks show an `Abs` marker in the canvas for quick identification
 - Flow blocks continue to use layout slots and normal document flow
+
+LIVE PREVIEW:
+- Preview button saves current editor state to localStorage before opening preview
+- Opens `/editor/preview` in a new tab
+- Preview route loads saved sections/global style and renders the page with `isEditing=false`
+- Preview tab listens for editor localStorage updates and refreshes automatically as autosave runs
+- Hidden sections remain hidden in preview
 
 ZOOM:
 - Zoom controls at bottom of canvas: minus button, percentage display, plus button
@@ -1352,7 +1359,7 @@ This contract ensures AI output can be validated and loaded directly into the ed
 
 ---
 
-*Document Version: 3.12 — Absolute drag now preserves width near edges to prevent shrink*
+*Document Version: 3.14 — Live preview now auto-refreshes from editor autosave updates*
 *Last Updated: February 16, 2026*
 *Keep this document updated as architecture decisions change.*
 *For colors and theming, always reference the separate Style Guide file.*
