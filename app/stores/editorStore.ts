@@ -7,6 +7,7 @@ import { getLayoutById } from "~/config/layoutTemplates";
 import type {
   Section,
   Block,
+  LayoutSlotMemory,
   BlockType,
   BlockStyle,
   SectionType,
@@ -37,6 +38,63 @@ const initialState: EditorState = {
   zoom: 100,
   lastSaved: null,
 };
+
+function mapSlotByIndex(
+  sourceSlot: string,
+  sourceSlots: string[],
+  targetSlots: string[],
+): string {
+  if (targetSlots.length === 0) return sourceSlot;
+  const sourceIndex = sourceSlots.indexOf(sourceSlot);
+  if (sourceIndex === -1) return targetSlots[0];
+  return targetSlots[Math.min(sourceIndex, targetSlots.length - 1)];
+}
+
+function normalizeBlocksBySlotOrder(blocks: Block[], slots: string[]) {
+  if (slots.length === 0) return;
+
+  const validSlots = new Set(slots);
+  const fallbackSlot = slots[0];
+
+  blocks.forEach((block) => {
+    if (!validSlots.has(block.slot)) {
+      block.slot = fallbackSlot;
+    }
+  });
+
+  slots.forEach((slot) => {
+    const blocksInSlot = blocks
+      .filter((block) => block.slot === slot)
+      .sort((a, b) => a.order - b.order);
+
+    blocksInSlot.forEach((block, index) => {
+      block.order = index;
+    });
+  });
+}
+
+function getBlocksForSingleColumnView(blocks: Block[], slots: string[]) {
+  const slotPriority = new Map(slots.map((slot, index) => [slot, index]));
+
+  return [...blocks].sort((a, b) => {
+    const slotA = slotPriority.get(a.slot) ?? slots.length;
+    const slotB = slotPriority.get(b.slot) ?? slots.length;
+    if (slotA !== slotB) return slotA - slotB;
+    return a.order - b.order;
+  });
+}
+
+function createLayoutSlotMemory(
+  blocks: Block[],
+  slots: string[],
+): LayoutSlotMemory {
+  return {
+    sourceSlots: [...slots],
+    byBlockId: Object.fromEntries(
+      blocks.map((block) => [block.id, { slot: block.slot, order: block.order }]),
+    ),
+  };
+}
 
 export const useEditorStore = create<EditorState & EditorActions>()(
   immer((set, get) => ({
@@ -109,6 +167,8 @@ export const useEditorStore = create<EditorState & EditorActions>()(
           ...b,
           id: nanoid(10),
         }));
+        clone.layoutSlotMemory = undefined;
+        clone.layoutSlotMemories = undefined;
 
         state.sections.splice(idx + 1, 0, clone);
         state.selectedSectionId = clone.id;
@@ -168,29 +228,84 @@ export const useEditorStore = create<EditorState & EditorActions>()(
         state.history.push(JSON.parse(JSON.stringify(state.sections)));
         state.future = [];
 
+        const oldLayoutId = section.layout.id;
         const oldSlots = section.layout.slots;
         const newSlots = layout.slots;
 
         if (oldSlots.length !== newSlots.length || oldSlots.some((s, i) => s !== newSlots[i])) {
-          if (newSlots.length === 1) {
-            let order = 0;
-            section.blocks.forEach((b) => {
-              b.slot = newSlots[0];
-              b.order = order++;
+          normalizeBlocksBySlotOrder(section.blocks, oldSlots);
+
+          if (!section.layoutSlotMemories) {
+            section.layoutSlotMemories = {};
+          }
+
+          section.layoutSlotMemories[oldLayoutId] = createLayoutSlotMemory(
+            section.blocks,
+            oldSlots,
+          );
+          const currentLayoutMemory = section.layoutSlotMemories[oldLayoutId];
+
+          if (oldSlots.length > 1 && newSlots.length === 1) {
+            // Keep latest multi-column snapshot for restoring from single-column
+            // to other layouts that don't have their own memory yet.
+            section.layoutSlotMemory = currentLayoutMemory;
+          }
+
+          const applyFromMemory = (memory: LayoutSlotMemory) => {
+            section.blocks.forEach((block) => {
+              const targetMemory = memory.byBlockId[block.id];
+              if (targetMemory) {
+                block.slot = newSlots.includes(targetMemory.slot)
+                  ? targetMemory.slot
+                  : mapSlotByIndex(
+                    targetMemory.slot,
+                    memory.sourceSlots,
+                    newSlots,
+                  );
+                block.order = targetMemory.order;
+                return;
+              }
+
+              const currentMemory = currentLayoutMemory.byBlockId[block.id];
+              const sourceSlot = currentMemory?.slot || oldSlots[0];
+              block.slot = mapSlotByIndex(sourceSlot, oldSlots, newSlots);
+              block.order = currentMemory?.order ?? block.order;
             });
-          } else if (oldSlots.length === 1) {
-            section.blocks.forEach((b) => {
-              b.slot = newSlots[0];
+          };
+
+          const targetLayoutMemory = section.layoutSlotMemories[layout.id];
+          const fallbackFromSingle =
+            oldSlots.length === 1 && newSlots.length > 1
+              ? section.layoutSlotMemory
+              : undefined;
+
+          if (targetLayoutMemory) {
+            applyFromMemory(targetLayoutMemory);
+          } else if (fallbackFromSingle) {
+            applyFromMemory(fallbackFromSingle);
+          } else if (newSlots.length === 1) {
+            const orderedBlocks = getBlocksForSingleColumnView(
+              section.blocks,
+              oldSlots,
+            );
+            orderedBlocks.forEach((block, index) => {
+              block.slot = newSlots[0];
+              block.order = index;
             });
           } else {
-            const mapping: Record<string, string> = {};
-            oldSlots.forEach((old, i) => {
-              mapping[old] = newSlots[Math.min(i, newSlots.length - 1)];
-            });
-            section.blocks.forEach((b) => {
-              b.slot = mapping[b.slot] || newSlots[0];
+            section.blocks.forEach((block) => {
+              const currentMemory = currentLayoutMemory.byBlockId[block.id];
+              const sourceSlot = currentMemory?.slot ?? block.slot;
+              block.slot = mapSlotByIndex(sourceSlot, oldSlots, newSlots);
+              block.order = currentMemory?.order ?? block.order;
             });
           }
+
+          normalizeBlocksBySlotOrder(section.blocks, newSlots);
+          section.layoutSlotMemories[layout.id] = createLayoutSlotMemory(
+            section.blocks,
+            newSlots,
+          );
         }
 
         section.layout = { ...layout };

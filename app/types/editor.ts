@@ -77,6 +77,16 @@ export interface SectionStyle {
   paddingY?: number;
 }
 
+export interface LayoutSlotMemoryEntry {
+  slot: string;
+  order: number;
+}
+
+export interface LayoutSlotMemory {
+  sourceSlots: string[];
+  byBlockId: Record<string, LayoutSlotMemoryEntry>;
+}
+
 // ─── Section Data ────────────────────────────────────────────────────────────
 
 export interface Section {
@@ -86,6 +96,12 @@ export interface Section {
   blocks: Block[];
   style: SectionStyle;
   isVisible: boolean;
+  // Legacy single-memory field kept for backwards compatibility with
+  // previously persisted editor state.
+  layoutSlotMemory?: LayoutSlotMemory;
+  // Per-layout slot memory used to keep block placement stable when
+  // switching across different layout combinations.
+  layoutSlotMemories?: Record<string, LayoutSlotMemory>;
 }
 
 // ─── Global Style ────────────────────────────────────────────────────────────

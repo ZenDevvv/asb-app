@@ -178,7 +178,7 @@ The editor has a **LEFT sidebar (sections list) + CENTER canvas + RIGHT sidebar 
 The right sidebar changes based on what is selected:
 
 **When a SECTION is selected** (click section in left sidebar or section background on canvas):
-1. **Layout** â€” visual thumbnail grid of layout templates. Click to change column structure.
+1. **Layout** — visual thumbnail grid of layout templates. Click to change column structure. Layout switching preserves block placement across layout combinations by using per-layout slot memory and deterministic slot mapping.
 2. **Blocks** — ordered list of blocks within the section. Add/remove/reorder blocks. Clicking **+ Add Block** opens a modal of allowed block types; for multi-column layouts, users choose the target column/slot before inserting.
 3. **Background** â€” section background options (solid/gradient/image + padding slider).
 
@@ -219,6 +219,13 @@ BLOCK ADDING:
 - If the current layout has multiple slots (e.g., `left/right`, `col-1/col-2/col-3`), the modal shows a **Column** selector
 - New blocks are inserted into the selected slot with `addBlock(sectionId, blockType, slot)`
 - If no slot is provided, fallback behavior inserts into the first layout slot
+
+LAYOUT SWITCHING:
+- Every layout change snapshots block slot/order for the current layout id
+- Switching to a previously used layout restores that layout's saved slot/order map per block
+- First-time switches to a layout use deterministic slot-index mapping, then normalize order per slot
+- Multi-column -> single-column keeps reading-order collapse; expanding back uses per-layout memory when available
+- This prevents cumulative scrambling when repeatedly switching between 1/2/3-column layout combinations
 
 SELECTION (two levels):
 - Selecting a section from the left sidebar auto-scrolls the canvas to that section when it is outside the current viewport
@@ -1314,7 +1321,7 @@ This contract ensures AI output can be validated and loaded directly into the ed
 
 ---
 
-*Document Version: 3.2 — Added section selection auto-scroll behavior*
+*Document Version: 3.4 — Layout switching stabilized across all column combinations*
 *Last Updated: February 16, 2026*
 *Keep this document updated as architecture decisions change.*
 *For colors and theming, always reference the separate Style Guide file.*
