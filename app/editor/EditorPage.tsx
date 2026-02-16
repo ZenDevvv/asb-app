@@ -3,7 +3,7 @@ import { useEditorStore } from "~/stores/editorStore";
 import { EditorToolbar } from "./EditorToolbar";
 import { SectionsListPanel } from "./SectionsListPanel";
 import { EditorCanvas } from "./EditorCanvas";
-import { SectionSettings } from "./SectionSettings";
+import { SettingsPanel } from "./SettingsPanel";
 import { AddSectionModal } from "./AddSectionModal";
 import { debounce } from "lodash";
 import { SECTION_REGISTRY } from "~/config/sectionRegistry";
@@ -109,7 +109,7 @@ export default function EditorPage() {
       <div className="flex flex-1 overflow-hidden">
         <SectionsListPanel onAddSection={() => setAddSectionModalOpen(true)} />
         <EditorCanvas />
-        <SectionSettings />
+        <SettingsPanel />
       </div>
 
       <AddSectionModal

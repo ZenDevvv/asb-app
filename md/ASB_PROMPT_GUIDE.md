@@ -665,6 +665,7 @@ When a section is selected (not a specific group/block):
 - Shows section-level actions (duplicate/delete)
 - Shows **Groups** panel: add/remove/duplicate/reorder/select groups
 - Shows **Background** panel: section background + section color inheritance controls
+- Code organization: `SettingsPanel.tsx` routes to dedicated mode components (`SectionModeSettings`, `GroupModeSettings`, `BlockSettings`, `GlobalSettingsPanel`)
 
 Group list behavior:
 - Each row shows group label + active layout label + drag handle
@@ -958,11 +959,15 @@ app/
 â”‚   â”œâ”€â”€ EditorCanvas.tsx         # Center: section rendering + zoom
 â”‚   â”œâ”€â”€ EditorToolbar.tsx        # Top bar: name, device, undo/redo, preview, publish
 â”‚   â”œâ”€â”€ SectionsListPanel.tsx    # LEFT sidebar: section list with drag reorder
-â”‚   â”œâ”€â”€ SectionSettings.tsx      # RIGHT sidebar: section/group/block context settings
+â”‚   â”œâ”€â”€ SettingsPanel.tsx        # RIGHT sidebar orchestrator (mode router)
+â”‚   â”œâ”€â”€ SectionModeSettings.tsx  # RIGHT sidebar: section mode content
+â”‚   â”œâ”€â”€ GroupModeSettings.tsx    # RIGHT sidebar: group mode content
 â”‚   â”œâ”€â”€ BlockSettings.tsx        # RIGHT sidebar: block mode (content + style)
+â”‚   â”œâ”€â”€ GlobalSettingsPanel.tsx  # RIGHT sidebar: global page settings
+â”‚   â”œâ”€â”€ SettingsCollapsibleSection.tsx # Shared settings collapsible UI
 â”‚   â”œâ”€â”€ AddSectionModal.tsx      # Section type picker dialog
 â”‚   â”œâ”€â”€ AddBlockModal.tsx        # Block type picker (within a section)
-â”‚   â””â”€â”€ GlobalStylePanel.tsx     # RIGHT sidebar when nothing selected
+â”‚   â””â”€â”€ ...
 â”‚
 â”œâ”€â”€ pages/
 â”‚   â”œâ”€â”€ Dashboard.tsx
