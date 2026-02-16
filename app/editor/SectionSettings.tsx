@@ -193,6 +193,7 @@ export function SectionSettings() {
             onOpenChange={setAddBlockOpen}
             sectionId={section.id}
             sectionType={section.type}
+            sectionSlots={section.layout.slots}
           />
         </CollapsibleSection>
 

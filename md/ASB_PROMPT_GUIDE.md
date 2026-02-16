@@ -179,7 +179,7 @@ The right sidebar changes based on what is selected:
 
 **When a SECTION is selected** (click section in left sidebar or section background on canvas):
 1. **Layout** — visual thumbnail grid of layout templates. Click to change column structure.
-2. **Blocks** — ordered list of blocks within the section. Add/remove/reorder blocks.
+2. **Blocks** � ordered list of blocks within the section. Add/remove/reorder blocks. Clicking **+ Add Block** opens a modal of allowed block types; for multi-column layouts, users choose the target column/slot before inserting.
 3. **Background** — section background options (solid/gradient/image + padding slider).
 
 **When a BLOCK is selected** (click a specific block on the canvas):
@@ -213,6 +213,12 @@ DRAG-AND-DROP:
 - Both use @dnd-kit/sortable with vertical list strategy
 - Drag handle (☰ grip icon) on each row
 - Canvas updates in real-time as items are reordered
+
+BLOCK ADDING:
+- Clicking **+ Add Block** opens a block picker modal filtered by the section's `allowedBlockTypes`
+- If the current layout has multiple slots (e.g., `left/right`, `col-1/col-2/col-3`), the modal shows a **Column** selector
+- New blocks are inserted into the selected slot with `addBlock(sectionId, blockType, slot)`
+- If no slot is provided, fallback behavior inserts into the first layout slot
 
 SELECTION (two levels):
 - Click a section row in left sidebar → selects SECTION (right sidebar shows layout + blocks + background)
@@ -266,7 +272,7 @@ type BlockType =
 interface Block {
   id: string;                     // nanoid(10)
   type: BlockType;
-  slot: string;                   // Layout slot name ("main", "left", "right", "center")
+  slot: string;                   // Layout slot name ("main", "left", "right", "col-1", "col-2", "col-3")
   order: number;                  // Position within the slot (0-indexed)
   props: Record<string, any>;     // Content data (text, url, src, items[], etc.)
   style: BlockStyle;              // Constrained visual options
@@ -616,6 +622,12 @@ When a section is selected (not a specific block):
 │                                   │
 └───────────────────────────────────┘
 ```
+
+
+Add Block modal behavior:
+- Shows only block types allowed by the selected section type
+- In multi-column layouts, includes a **Column** picker based on `section.layout.slots`
+- In single-column layouts, column picker is hidden and blocks go to the default slot (`main`)
 
 ### Right Sidebar — Block Mode
 
@@ -1301,7 +1313,7 @@ This contract ensures AI output can be validated and loaded directly into the ed
 
 ---
 
-*Document Version: 3.0 — Refactored to block composition system, AI features parked*
-*Last Updated: February 2026*
+*Document Version: 3.1 � Block add flow updated with slot/column target selection*
+*Last Updated: February 16, 2026*
 *Keep this document updated as architecture decisions change.*
 *For colors and theming, always reference the separate Style Guide file.*

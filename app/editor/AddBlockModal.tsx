@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -14,6 +15,7 @@ interface AddBlockModalProps {
   onOpenChange: (open: boolean) => void;
   sectionId: string;
   sectionType: SectionType;
+  sectionSlots: string[];
 }
 
 export function AddBlockModal({
@@ -21,13 +23,27 @@ export function AddBlockModal({
   onOpenChange,
   sectionId,
   sectionType,
+  sectionSlots,
 }: AddBlockModalProps) {
   const addBlock = useEditorStore((s) => s.addBlock);
   const registry = SECTION_REGISTRY[sectionType];
   const allowedTypes = registry?.allowedBlockTypes || [];
+  const [selectedSlot, setSelectedSlot] = useState(sectionSlots[0] || "main");
+
+  const targetSlot = useMemo(() => {
+    if (sectionSlots.includes(selectedSlot)) return selectedSlot;
+    return sectionSlots[0] || "main";
+  }, [sectionSlots, selectedSlot]);
+
+  useEffect(() => {
+    if (!open) return;
+    setSelectedSlot((prev) =>
+      sectionSlots.includes(prev) ? prev : sectionSlots[0] || "main",
+    );
+  }, [open, sectionSlots]);
 
   const handleAdd = (type: BlockType) => {
-    addBlock(sectionId, type);
+    addBlock(sectionId, type, targetSlot);
     onOpenChange(false);
   };
 
@@ -37,6 +53,33 @@ export function AddBlockModal({
         <DialogHeader>
           <DialogTitle className="text-foreground">Add Block</DialogTitle>
         </DialogHeader>
+
+        {sectionSlots.length > 1 && (
+          <div className="pt-2">
+            <div className="mb-2 text-xs font-medium text-muted-foreground">
+              Column
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              {sectionSlots.map((slot) => {
+                const isActive = slot === targetSlot;
+                return (
+                  <button
+                    key={slot}
+                    type="button"
+                    onClick={() => setSelectedSlot(slot)}
+                    className={`rounded-lg border px-2 py-1.5 text-[11px] transition-colors ${
+                      isActive
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                    }`}
+                  >
+                    {formatSlotLabel(slot)}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-2 gap-2 pt-2">
           {allowedTypes.map((type) => {
@@ -69,4 +112,13 @@ export function AddBlockModal({
       </DialogContent>
     </Dialog>
   );
+}
+
+function formatSlotLabel(slot: string): string {
+  if (slot === "main") return "Main";
+  if (slot === "left") return "Left";
+  if (slot === "right") return "Right";
+  const colMatch = /^col-(\d+)$/.exec(slot);
+  if (colMatch) return `Column ${colMatch[1]}`;
+  return slot.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }

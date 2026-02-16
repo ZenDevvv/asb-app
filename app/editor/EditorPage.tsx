@@ -119,6 +119,7 @@ export default function EditorPage() {
           onOpenChange={setAddBlockModalOpen}
           sectionId={selectedSection.id}
           sectionType={selectedSection.type}
+          sectionSlots={selectedSection.layout.slots}
         />
       )}
     </div>
