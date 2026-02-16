@@ -47,6 +47,7 @@ const DEFAULT_GLOBAL_STYLE: GlobalStyle = {
   fontFamily: "Inter",
   primaryColor: "#00e5a0",
   borderRadius: "md",
+  themeMode: "dark",
 };
 
 const initialState: EditorState = {
@@ -54,7 +55,7 @@ const initialState: EditorState = {
   selectedSectionId: null,
   selectedGroupId: null,
   selectedBlockId: null,
-  globalStyle: DEFAULT_GLOBAL_STYLE,
+  globalStyle: { ...DEFAULT_GLOBAL_STYLE },
   history: [],
   future: [],
   isDirty: false,
@@ -62,6 +63,38 @@ const initialState: EditorState = {
   zoom: 100,
   lastSaved: null,
 };
+
+function normalizeIncomingGlobalStyle(styleLike: unknown): GlobalStyle {
+  if (!styleLike || typeof styleLike !== "object") {
+    return { ...DEFAULT_GLOBAL_STYLE };
+  }
+
+  const rawStyle = styleLike as Partial<GlobalStyle>;
+  const borderRadius = rawStyle.borderRadius;
+  const themeMode = rawStyle.themeMode;
+
+  return {
+    fontFamily:
+      typeof rawStyle.fontFamily === "string" && rawStyle.fontFamily.trim().length > 0
+        ? rawStyle.fontFamily
+        : DEFAULT_GLOBAL_STYLE.fontFamily,
+    primaryColor:
+      typeof rawStyle.primaryColor === "string" && rawStyle.primaryColor.trim().length > 0
+        ? rawStyle.primaryColor
+        : DEFAULT_GLOBAL_STYLE.primaryColor,
+    borderRadius:
+      borderRadius === "none" ||
+      borderRadius === "sm" ||
+      borderRadius === "md" ||
+      borderRadius === "lg" ||
+      borderRadius === "full"
+        ? borderRadius
+        : DEFAULT_GLOBAL_STYLE.borderRadius,
+    themeMode: themeMode === "light" || themeMode === "dark"
+      ? themeMode
+      : DEFAULT_GLOBAL_STYLE.themeMode,
+  };
+}
 
 function isAbsoluteBlock(block: Block): boolean {
   return block.style.positionMode === "absolute";
@@ -1080,7 +1113,7 @@ export const useEditorStore = create<EditorState & EditorActions>()(
 
           set((state) => {
             state.sections = normalizedSections;
-            state.globalStyle = data.globalStyle || DEFAULT_GLOBAL_STYLE;
+            state.globalStyle = normalizeIncomingGlobalStyle(data.globalStyle);
             state.selectedSectionId = null;
             state.selectedGroupId = null;
             state.selectedBlockId = null;
@@ -1104,7 +1137,9 @@ export const useEditorStore = create<EditorState & EditorActions>()(
       clearBlockStyleHistoryWindows();
       set((state) => {
         state.sections = normalizeIncomingSections(sections);
-        if (globalStyle) state.globalStyle = globalStyle;
+        if (globalStyle) {
+          state.globalStyle = normalizeIncomingGlobalStyle(globalStyle);
+        }
         state.history = [];
         state.future = [];
         state.selectedSectionId = null;

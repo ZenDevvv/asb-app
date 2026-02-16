@@ -22,19 +22,24 @@ export function ImageBlock({ block, globalStyle }: BlockComponentProps) {
 
   const widthClass = WIDTH_MAP[s.width || "full"] || "w-full";
   const radius = RADIUS_MAP[globalStyle.borderRadius || "md"] || "rounded-lg";
+  const isLightTheme = globalStyle.themeMode === "light";
 
   if (!src) {
     return (
       <div
-        className={`flex aspect-video items-center justify-center bg-white/5 ${widthClass} ${radius}`}
+        className={`flex aspect-video items-center justify-center ${widthClass} ${radius}`}
         style={{
           marginTop: s.marginTop ?? 0,
           marginBottom: s.marginBottom ?? 0,
+          backgroundColor: isLightTheme ? "rgba(16,26,22,0.06)" : "rgba(255,255,255,0.05)",
         }}
       >
         <span
-          className="material-symbols-outlined text-white/20"
-          style={{ fontSize: 48 }}
+          className="material-symbols-outlined"
+          style={{
+            fontSize: 48,
+            color: isLightTheme ? "rgba(16,26,22,0.32)" : "rgba(255,255,255,0.2)",
+          }}
         >
           image
         </span>

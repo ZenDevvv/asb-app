@@ -23,6 +23,7 @@ export function EditorCanvas() {
 
 	const canvasWidth = device === "mobile" ? "375px" : "100%";
 	const maxWidth = device === "mobile" ? "375px" : "1440px";
+	const canvasThemeClass = globalStyle.themeMode === "light" ? "light" : "dark";
 
 	useEffect(() => {
 		const previousSelectedSectionId = previousSelectedSectionIdRef.current;
@@ -53,7 +54,7 @@ export function EditorCanvas() {
 	}, [selectedSectionId]);
 
 	return (
-		<div className="relative flex flex-1 flex-col bg-background overflow-hidden">
+		<div className={cn("relative flex flex-1 flex-col bg-background overflow-hidden", canvasThemeClass)}>
 			<div
 				ref={canvasScrollRef}
 				className="flex-1 overflow-auto p-8 minimal-scrollbar"

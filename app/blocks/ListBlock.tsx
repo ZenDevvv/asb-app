@@ -51,7 +51,7 @@ export function ListBlock({ block, sectionStyle, globalStyle }: BlockComponentPr
             {item.url ? (
               <a
                 href={item.url}
-                className="font-medium text-white/85 transition-colors hover:text-white"
+                className="font-medium transition-opacity hover:opacity-90"
                 style={{ color }}
               >
                 {item.text}

@@ -19,6 +19,32 @@ export function GlobalSettingsPanel() {
 
       <div className="minimal-scrollbar flex-1 space-y-4 overflow-y-auto px-4 py-4">
         <div className="space-y-1.5">
+          <label className="text-xs font-medium text-muted-foreground">Canvas Theme</label>
+          <div className="grid grid-cols-2 gap-1.5">
+            {([
+              { value: "dark", label: "Dark", icon: "dark_mode" },
+              { value: "light", label: "Light", icon: "light_mode" },
+            ] as const).map((themeOption) => (
+              <button
+                key={themeOption.value}
+                onClick={() => updateGlobalStyle({ themeMode: themeOption.value })}
+                className={cn(
+                  "flex items-center justify-center gap-1.5 rounded-lg border py-2 text-[11px] font-medium transition-colors",
+                  globalStyle.themeMode === themeOption.value
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border text-muted-foreground hover:border-primary/30",
+                )}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
+                  {themeOption.icon}
+                </span>
+                {themeOption.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-1.5">
           <label className="text-xs font-medium text-muted-foreground">Font Family</label>
           <select
             value={globalStyle.fontFamily}

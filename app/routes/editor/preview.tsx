@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { Link } from "react-router";
 import { SectionRenderer } from "~/sections/SectionRenderer";
 import { useEditorStore } from "~/stores/editorStore";
+import { cn } from "~/lib/utils";
 
 const STORAGE_KEY = "asb-editor-state";
 
@@ -23,9 +24,10 @@ export default function EditorPreviewRoute() {
 	}, [loadFromLocalStorage]);
 
 	const visibleSections = sections.filter((section) => section.isVisible);
+	const themeClass = globalStyle.themeMode === "light" ? "light" : "dark";
 
 	return (
-		<div className="min-h-screen bg-background text-foreground">
+		<div className={cn("min-h-screen bg-background text-foreground", themeClass)}>
 			<div className="sticky top-0 z-20 border-b border-border/60 bg-background/95 backdrop-blur">
 				<div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between px-6">
 					<div className="text-sm font-semibold tracking-wide">Live Preview</div>

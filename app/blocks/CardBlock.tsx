@@ -81,6 +81,7 @@ export function CardBlock({
   const bodySizeClass = BODY_SIZE_MAP[s.fontSize || "base"] || "text-base";
   const titleSizeClass = TITLE_SIZE_MAP[s.fontSize || "base"] || "text-lg";
   const cardRadiusClass = RADIUS_MAP[globalStyle.borderRadius || "md"] || "rounded-lg";
+  const isLightTheme = globalStyle.themeMode === "light";
 
   return (
     <div
@@ -96,8 +97,10 @@ export function CardBlock({
           color: contentColor,
           opacity: (s.opacity ?? 100) / 100,
           borderColor: `${accentColor}40`,
-          backgroundColor: "rgba(255,255,255,0.04)",
-          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.06)",
+          backgroundColor: isLightTheme ? "rgba(255,255,255,0.76)" : "rgba(255,255,255,0.04)",
+          boxShadow: isLightTheme
+            ? "inset 0 1px 0 rgba(255,255,255,0.95), 0 4px 12px rgba(15,23,18,0.06)"
+            : "inset 0 1px 0 rgba(255,255,255,0.06)",
         }}
       >
         {imageSrc ? (

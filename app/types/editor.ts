@@ -115,6 +115,7 @@ export interface GlobalStyle {
   fontFamily: string;
   primaryColor: string;
   borderRadius: "none" | "sm" | "md" | "lg" | "full";
+  themeMode: "dark" | "light";
 }
 
 export interface BlockComponentProps {

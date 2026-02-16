@@ -198,7 +198,7 @@ The right sidebar changes based on what is selected:
 3. **Position** - choose `flow` or `absolute`. Absolute blocks are positioned relative to the selected group and can be moved on the canvas by dragging.
 4. **Back to Group** - button to go back to group-level settings.
 **When NOTHING is selected** (click empty canvas area):
-- **Global Page Settings** â€” font family, primary color, corner style.
+- **Global Page Settings** â€” website theme mode (dark/light), font family, primary color, corner style.
 
 ### Toolbar
 
@@ -424,6 +424,7 @@ interface GlobalStyle {
   fontFamily: string;             // Google Font name ("Inter", "Playfair Display")
   primaryColor: string;           // Default accent color for all sections
   borderRadius: "none" | "sm" | "md" | "lg" | "full";  // Button/card corners
+  themeMode: "dark" | "light";   // Applies website theme in editor canvas + preview
 }
 
 // â”€â”€â”€ Project â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -652,6 +653,7 @@ Styles cascade from global â†’ section â†’ block:
 GlobalStyle.primaryColor    â†’ used as default accentColor for all sections
 GlobalStyle.fontFamily      â†’ applied to all text
 GlobalStyle.borderRadius    â†’ applied to buttons, cards, images
+GlobalStyle.themeMode       â†’ applies light/dark website rendering in canvas + preview (section surfaces + inherited text/accent)
 
 SectionStyle.textColor      â†’ inherited by all blocks in the section
 SectionStyle.accentColor    â†’ inherited by buttons, icons, links in the section
@@ -807,7 +809,7 @@ Project:
       isVisible
     }]
   }],
-  globalStyle: { fontFamily, primaryColor, borderRadius },
+  globalStyle: { themeMode, fontFamily, primaryColor, borderRadius },
   seo: { title, description, ogImage },
   templateId (refâ†’Template), publishedUrl, publishedAt, publishedHtml,
   createdAt, updatedAt
@@ -1364,7 +1366,7 @@ This contract ensures AI output can be validated and loaded directly into the ed
 | **Block Registry** | Central config mapping block types to components, default props/styles, and editable fields. |
 | **Block Style** | Constrained visual options for a block (fontSize, fontWeight, textAlign, width, spacing, positioning mode, scale). Never raw CSS. |
 | **Section Style** | Design data for a section (backgroundColor, backgroundType, paddingY, textColor, accentColor). |
-| **Global Style** | Page-wide design settings (fontFamily, primaryColor, borderRadius). Inherited by all sections and blocks. |
+| **Global Style** | Page-wide design settings (themeMode, fontFamily, primaryColor, borderRadius). Inherited by sections/blocks where applicable, with themeMode driving website rendering in canvas/preview. |
 | **Style Inheritance** | The cascade: Global â†’ Section â†’ Block. Each level can override the parent. |
 | **Canvas** | The center panel where sections and blocks are rendered WYSIWYG. |
 | **Left Sidebar / Sections List** | The left panel showing section tree navigation: reorderable sections plus focused-section groups with drag reorder. |
@@ -1384,7 +1386,7 @@ This contract ensures AI output can be validated and loaded directly into the ed
 
 ---
 
-*Document Version: 3.18 — Section→Group→Block architecture with group-relative absolute positioning*
+*Document Version: 3.20 — Section→Group→Block architecture with group-relative absolute positioning*
 *Last Updated: February 16, 2026*
 *Keep this document updated as architecture decisions change.*
 *For colors and theming, always reference the separate Style Guide file.*

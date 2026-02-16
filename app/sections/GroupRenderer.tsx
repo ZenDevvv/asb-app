@@ -268,7 +268,7 @@ export function GroupRenderer({
 
 							{isEditing &&
 								(!blocksBySlot[slotName] || blocksBySlot[slotName].length === 0) && (
-									<div className="flex min-h-[60px] items-center justify-center rounded-lg border border-dashed border-white/10 text-xs text-white/20">
+									<div className="flex min-h-[60px] items-center justify-center rounded-lg border border-dashed border-border/60 text-xs text-muted-foreground/70">
 										{slotName}
 									</div>
 								)}
@@ -360,7 +360,9 @@ export function GroupRenderer({
 				})}
 			</div>
 
-			{isEditing && isNavbar && <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-white/10" />}
+			{isEditing && isNavbar && (
+				<div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-border/60" />
+			)}
 		</div>
 	);
 }
