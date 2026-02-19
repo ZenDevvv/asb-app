@@ -122,8 +122,8 @@ export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
           { label: "Link", value: "link" },
         ],
       },
-      { key: "iconLeft", label: "Icon (Left)", type: "short-text" },
-      { key: "iconRight", label: "Icon (Right)", type: "short-text" },
+      { key: "iconLeft", label: "Left Icon", type: "icon-picker" },
+      { key: "iconRight", label: "Right Icon", type: "icon-picker" },
     ],
     editableStyles: [
       {

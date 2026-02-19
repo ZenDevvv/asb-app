@@ -3,7 +3,28 @@ import { useEditorStore } from "~/stores/editorStore";
 import { BLOCK_REGISTRY } from "~/config/blockRegistry";
 import { FieldRenderer } from "~/components/controls/FieldRenderer";
 import { cn } from "~/lib/utils";
-import type { Block, BlockStyle } from "~/types/editor";
+import type { Block, BlockStyle, EditableField } from "~/types/editor";
+
+// Group consecutive icon-picker fields into pairs so they render side-by-side
+function groupEditableFields(
+  fields: EditableField[],
+): (EditableField | [EditableField, EditableField])[] {
+  const result: (EditableField | [EditableField, EditableField])[] = [];
+  let i = 0;
+  while (i < fields.length) {
+    if (
+      fields[i].type === "icon-picker" &&
+      fields[i + 1]?.type === "icon-picker"
+    ) {
+      result.push([fields[i], fields[i + 1]]);
+      i += 2;
+    } else {
+      result.push(fields[i]);
+      i++;
+    }
+  }
+  return result;
+}
 
 interface BlockSettingsProps {
 	sectionId: string;
@@ -63,16 +84,35 @@ export function BlockSettings({ sectionId, groupId, block, onBack, onDelete }: B
 				{blockEntry.editableProps.length > 0 && (
 					<CollapsiblePanel title="Content" defaultOpen>
 						<div className="space-y-3">
-							{blockEntry.editableProps.map((field) => (
-								<FieldRenderer
-									key={field.key}
-									field={field}
-									value={block.props[field.key]}
-									onChange={(value) => {
-										updateBlockProp(sectionId, groupId, block.id, field.key, value);
-									}}
-								/>
-							))}
+							{groupEditableFields(blockEntry.editableProps).map((item, idx) => {
+								if (Array.isArray(item)) {
+									// Render paired icon-picker fields side by side
+									return (
+										<div key={`icon-pair-${idx}`} className="grid grid-cols-2 gap-2">
+											{item.map((field) => (
+												<FieldRenderer
+													key={field.key}
+													field={field}
+													value={block.props[field.key]}
+													onChange={(value) =>
+														updateBlockProp(sectionId, groupId, block.id, field.key, value)
+													}
+												/>
+											))}
+										</div>
+									);
+								}
+								return (
+									<FieldRenderer
+										key={item.key}
+										field={item}
+										value={block.props[item.key]}
+										onChange={(value) =>
+											updateBlockProp(sectionId, groupId, block.id, item.key, value)
+										}
+									/>
+								);
+							})}
 						</div>
 					</CollapsiblePanel>
 				)}

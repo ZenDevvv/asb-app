@@ -5,6 +5,7 @@ import { UrlControl } from "./UrlControl";
 import { ColorControl } from "./ColorControl";
 import { ImageControl } from "./ImageControl";
 import { RepeaterControl } from "./RepeaterControl";
+import { IconPickerControl } from "./IconPickerControl";
 
 interface FieldRendererProps {
   field: EditableField;
@@ -61,6 +62,14 @@ export function FieldRenderer({ field, value, onChange }: FieldRendererProps) {
           value={value as Record<string, unknown>[]}
           onChange={onChange as (value: Record<string, unknown>[]) => void}
           subFields={field.subFields || []}
+        />
+      );
+    case "icon-picker":
+      return (
+        <IconPickerControl
+          label={field.label}
+          value={(value as string) || ""}
+          onChange={onChange as (value: string) => void}
         />
       );
     case "select":
