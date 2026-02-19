@@ -128,27 +128,90 @@ function getRenderSectionStyle(section: Section, globalStyle: GlobalStyle): Sect
 	return style;
 }
 
+interface EffectPattern {
+	image: string;
+	size: string;
+	position?: string;
+}
+
+function getEffectPattern(
+	effect: SectionStyle["backgroundEffect"],
+	themeMode: GlobalStyle["themeMode"],
+): EffectPattern | null {
+	if (!effect || effect === "none") return null;
+
+	const isLight = themeMode === "light";
+
+	if (effect === "dots") {
+		const color = isLight ? "rgba(0,0,0,0.10)" : "rgba(255,255,255,0.12)";
+		return {
+			image: `radial-gradient(circle, ${color} 1px, transparent 1px)`,
+			size: "24px 24px",
+		};
+	}
+
+	if (effect === "grid") {
+		const color = isLight ? "rgba(0,0,0,0.07)" : "rgba(255,255,255,0.07)";
+		return {
+			image: [
+				`linear-gradient(${color} 1px, transparent 1px)`,
+				`linear-gradient(90deg, ${color} 1px, transparent 1px)`,
+			].join(", "),
+			size: "40px 40px, 40px 40px",
+		};
+	}
+
+	if (effect === "noise") {
+		const opacity = isLight ? "0.04" : "0.06";
+		const svg = `%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='${opacity}'/%3E%3C/svg%3E`;
+		return {
+			image: `url("data:image/svg+xml,${svg}")`,
+			size: "200px 200px",
+		};
+	}
+
+	return null;
+}
+
 function getSectionBackground(
 	sectionStyle: SectionStyle,
 	themeMode: GlobalStyle["themeMode"],
 ): React.CSSProperties {
 	const s = sectionStyle;
+	const effect = getEffectPattern(s.backgroundEffect, themeMode);
 	const style: React.CSSProperties = {
 		paddingTop: s.paddingY ?? 80,
 		paddingBottom: s.paddingY ?? 80,
 	};
 
 	if (s.backgroundType === "gradient" && s.gradientFrom && s.gradientTo) {
-		style.background = `linear-gradient(${s.gradientDirection || "to bottom"}, ${s.gradientFrom}, ${s.gradientTo})`;
+		const gradient = `linear-gradient(${s.gradientDirection || "to bottom"}, ${s.gradientFrom}, ${s.gradientTo})`;
+		if (effect) {
+			style.backgroundImage = `${effect.image}, ${gradient}`;
+			style.backgroundSize = `${effect.size}, auto`;
+		} else {
+			style.background = gradient;
+		}
 	} else if (s.backgroundType === "image" && s.backgroundImage) {
-		style.backgroundImage = `url(${s.backgroundImage})`;
-		style.backgroundSize = "cover";
-		style.backgroundPosition = "center";
+		const imageLayer = `url(${s.backgroundImage})`;
+		if (effect) {
+			style.backgroundImage = `${effect.image}, ${imageLayer}`;
+			style.backgroundSize = `${effect.size}, cover`;
+			style.backgroundPosition = "left top, center";
+		} else {
+			style.backgroundImage = imageLayer;
+			style.backgroundSize = "cover";
+			style.backgroundPosition = "center";
+		}
 		if (s.backgroundColor) {
 			style.backgroundColor = s.backgroundColor;
 		}
 	} else {
 		style.backgroundColor = s.backgroundColor || (themeMode === "light" ? "#f3faf6" : "#0a0f0d");
+		if (effect) {
+			style.backgroundImage = effect.image;
+			style.backgroundSize = effect.size;
+		}
 	}
 
 	return style;

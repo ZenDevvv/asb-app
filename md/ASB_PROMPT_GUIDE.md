@@ -419,6 +419,7 @@ interface SectionStyle {
   gradientTo?: string;            // Hex color (if gradient)
   gradientDirection?: string;     // "to bottom" | "to right" | etc.
   paddingY?: number;              // Continuous value (px), controlled by slider
+  backgroundEffect?: "none" | "noise" | "dots" | "grid";  // CSS overlay pattern layered via multiple backgrounds
 }
 
 // â”€â”€â”€ Global Style â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -806,7 +807,16 @@ The Background section in the right sidebar is a **composite control** with:
    - **Solid**: single color picker
    - **Gradient**: two color pickers + direction dropdown
    - **Image**: upload button + optional overlay color/opacity
-3. **Y-axis padding slider** â€” continuous Radix Slider from Small (e.g., 20px) to Large (e.g., 160px)
+3. **Overlay Effect selector** â€” 4-button icon row: None | Noise | Dots | Grid
+   - Implemented via `SectionStyle.backgroundEffect`
+   - Rendered as CSS multiple background layers (no extra DOM elements, no z-index issues)
+   - `none` â†' no overlay (default)
+   - `noise` â†' SVG feTurbulence fractal noise at low opacity (grainy texture)
+   - `dots` â†' `radial-gradient` dot pattern, 24px grid
+   - `grid` â†' 1px line grid via two `linear-gradient` layers, 40px grid
+   - Colors adapt to `globalStyle.themeMode`: light dots/lines use dark rgba, dark uses white rgba
+   - Effect layers stack on top of the background via CSS background-image chaining (effect layer first, bg layer second)
+4. **Y-axis padding slider** â€” continuous Radix Slider from Small (e.g., 20px) to Large (e.g., 160px)
 
 
 - `list` blocks support an `Inline Row` toggle (useful for navigation links in nav layouts).
@@ -1454,7 +1464,7 @@ This contract ensures AI output can be validated and loaded directly into the ed
 
 ---
 
-*Document Version: 3.23 — heading textStyle prop (default/gradient); icon displayStyle (plain/circle/square/rounded-square) + bgOpacity (subtle/medium/strong); GroupStyle.surface/borderRadius/gap; Group Style panel expanded with Surface/Corners/Block Gap controls*
+*Document Version: 3.24 — SectionStyle.backgroundEffect (none/noise/dots/grid); CSS multiple-background-layer implementation in SectionRenderer; Overlay Effect 4-button toggle added to BackgroundControl*
 *Last Updated: February 19, 2026*
 *Keep this document updated as architecture decisions change.*
 *For colors and theming, always reference the separate Style Guide file.*

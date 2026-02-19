@@ -68,6 +68,7 @@ export interface SectionStyle {
   gradientTo?: string;
   gradientDirection?: string;
   paddingY?: number;
+  backgroundEffect?: "none" | "noise" | "dots" | "grid";
 }
 
 export interface GroupStyle {

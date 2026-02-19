@@ -14,6 +14,13 @@ const BG_TYPES = [
   { id: "image" as const, icon: "image", label: "Image" },
 ];
 
+const EFFECT_TYPES = [
+  { id: "none" as const, icon: "do_not_disturb_on", label: "None" },
+  { id: "noise" as const, icon: "grain", label: "Noise" },
+  { id: "dots" as const, icon: "scatter_plot", label: "Dots" },
+  { id: "grid" as const, icon: "grid_4x4", label: "Grid" },
+];
+
 export function BackgroundControl({ style, onChange }: BackgroundControlProps) {
   const bgType = style.backgroundType || "solid";
 
@@ -87,6 +94,32 @@ export function BackgroundControl({ style, onChange }: BackgroundControlProps) {
           />
         </div>
       )}
+
+      <div className="space-y-1.5">
+        <label className="text-xs font-medium text-muted-foreground">Overlay Effect</label>
+        <div className="flex gap-1.5">
+          {EFFECT_TYPES.map((t) => {
+            const active = (style.backgroundEffect ?? "none") === t.id;
+            return (
+              <button
+                key={t.id}
+                onClick={() => onChange({ backgroundEffect: t.id })}
+                className={cn(
+                  "flex size-10 items-center justify-center rounded-xl border transition-colors",
+                  active
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border bg-muted/30 text-muted-foreground hover:text-foreground",
+                )}
+                title={t.label}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+                  {t.icon}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
       <SliderControl
         label="Padding (Y-Axis)"
