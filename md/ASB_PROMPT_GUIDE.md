@@ -308,7 +308,7 @@ EDITOR DOES NOT HAVE (by design):
 type BlockType =
   | "heading"        // H1-H4 text with size/weight options
   | "text"           // Body/paragraph text
-  | "button"         // CTA button with text + link
+  | "button"         // CTA button — variant (solid/outline/ghost/link) + text + link + optional iconLeft/iconRight
   | "card"           // Surface card with title/body/button/image
   | "image"          // Single image with alt text
   | "icon"           // Material Symbol icon with optional label
@@ -602,6 +602,23 @@ Rules for block components:
 - If `inlineEditable` is true, render a Tiptap wrapper for direct text editing on canvas
 - Never import or read from the Zustand store directly â€” only use passed props
 
+**Button block props (implemented):**
+```typescript
+// button block.props shape
+{
+  text: string;
+  url: string;
+  variant: “solid” | “outline” | “ghost” | “link”;  // default: “solid”
+  iconLeft?: string;   // Material Symbol name â€” empty string = no icon
+  iconRight?: string;  // Material Symbol name â€” empty string = no icon
+}
+// variant drives className/style branching in ButtonBlock.tsx
+// all 4 variants inherit accentColor from sectionStyle (or globalStyle.primaryColor)
+// globalStyle.borderRadius applies to solid, outline, ghost â€” NOT link
+// iconLeft/iconRight render as <span class=”material-symbols-outlined”> inside the <a>
+// icon size tracks block.style.fontSize: sm=16, base=18, lg=20, xl=22px
+```
+
 ### Section Renderer
 
 The section renderer is responsible for:
@@ -726,7 +743,7 @@ type ControlType =
   | "repeater"        // Add/remove/reorder list items with sub-fields
   | "icon-picker"     // Searchable Material Symbols grid
   | "toggle"          // Radix Switch (boolean)
-  | "select"          // Radix Select dropdown
+  | "select"          // Native <select> dropdown (implemented in FieldRenderer — used by button variant)
   | "size-picker"     // Segmented control for size choices (sm/md/lg/xl)
   | "align-picker";   // Segmented control for alignment (left/center/right)
 ```
@@ -1386,8 +1403,8 @@ This contract ensures AI output can be validated and loaded directly into the ed
 
 ---
 
-*Document Version: 3.20 — Section→Group→Block architecture with group-relative absolute positioning*
-*Last Updated: February 16, 2026*
+*Document Version: 3.21 — Button variants (solid/outline/ghost/link) + icon slots (iconLeft/iconRight) added to button block*
+*Last Updated: February 19, 2026*
 *Keep this document updated as architecture decisions change.*
 *For colors and theming, always reference the separate Style Guide file.*
 

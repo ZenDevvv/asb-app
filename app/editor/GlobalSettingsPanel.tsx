@@ -19,7 +19,7 @@ export function GlobalSettingsPanel() {
 
       <div className="minimal-scrollbar flex-1 space-y-4 overflow-y-auto px-4 py-4">
         <div className="space-y-1.5">
-          <label className="text-xs font-medium text-muted-foreground">Canvas Theme</label>
+          <label className="text-xs font-medium text-muted-foreground">Website Theme</label>
           <div className="grid grid-cols-2 gap-1.5">
             {([
               { value: "dark", label: "Dark", icon: "dark_mode" },

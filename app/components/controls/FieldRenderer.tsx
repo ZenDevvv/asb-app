@@ -63,6 +63,25 @@ export function FieldRenderer({ field, value, onChange }: FieldRendererProps) {
           subFields={field.subFields || []}
         />
       );
+    case "select":
+      return (
+        <div className="space-y-1.5">
+          <label className="text-xs font-medium text-muted-foreground">
+            {field.label}
+          </label>
+          <select
+            value={(value as string) || ""}
+            onChange={(e) => onChange(e.target.value)}
+            className="w-full rounded-xl border border-border bg-input/50 px-3 py-2 text-sm text-foreground"
+          >
+            {field.options?.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+        </div>
+      );
     case "toggle":
       return (
         <div className="flex items-center justify-between">

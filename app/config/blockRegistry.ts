@@ -100,11 +100,30 @@ export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
     component: ButtonBlock,
     label: "Button",
     icon: "smart_button",
-    defaultProps: { text: "Get Started", url: "#" },
+    defaultProps: {
+      text: "Get Started",
+      url: "#",
+      variant: "solid",
+      iconLeft: "",
+      iconRight: "",
+    },
     defaultStyle: { fontSize: "base", textAlign: "left" },
     editableProps: [
       { key: "text", label: "Button Text", type: "short-text" },
       { key: "url", label: "Button Link", type: "url" },
+      {
+        key: "variant",
+        label: "Style",
+        type: "select",
+        options: [
+          { label: "Solid", value: "solid" },
+          { label: "Outline", value: "outline" },
+          { label: "Ghost", value: "ghost" },
+          { label: "Link", value: "link" },
+        ],
+      },
+      { key: "iconLeft", label: "Icon (Left)", type: "short-text" },
+      { key: "iconRight", label: "Icon (Right)", type: "short-text" },
     ],
     editableStyles: [
       {

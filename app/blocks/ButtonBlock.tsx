@@ -1,5 +1,7 @@
 import type { BlockComponentProps } from "~/types/editor";
 
+type ButtonVariant = "solid" | "outline" | "ghost" | "link";
+
 const RADIUS_MAP: Record<string, string> = {
   none: "rounded-none",
   sm: "rounded-md",
@@ -15,11 +17,54 @@ const FONT_SIZE_MAP: Record<string, string> = {
   xl: "text-xl px-10 py-3.5",
 };
 
+const ICON_SIZE_MAP: Record<string, number> = {
+  sm: 16,
+  base: 18,
+  lg: 20,
+  xl: 22,
+};
+
 const TEXT_ALIGN_MAP: Record<string, string> = {
   left: "justify-start",
   center: "justify-center",
   right: "justify-end",
 };
+
+interface ButtonVariantConfig {
+  className: string;
+  style: React.CSSProperties;
+}
+
+function getVariantConfig(
+  variant: ButtonVariant,
+  accentColor: string,
+  radius: string,
+  sizeClass: string,
+): ButtonVariantConfig {
+  switch (variant) {
+    case "outline":
+      return {
+        className: `inline-flex items-center gap-2 font-semibold transition-opacity hover:opacity-80 border-2 ${radius} ${sizeClass}`,
+        style: { color: accentColor, borderColor: accentColor, backgroundColor: "transparent" },
+      };
+    case "ghost":
+      return {
+        className: `inline-flex items-center gap-2 font-semibold transition-opacity hover:opacity-80 ${radius} ${sizeClass}`,
+        style: { color: accentColor, backgroundColor: `${accentColor}14` },
+      };
+    case "link":
+      return {
+        className: "inline-flex items-center gap-1.5 font-semibold transition-opacity hover:opacity-70 underline underline-offset-4",
+        style: { color: accentColor },
+      };
+    case "solid":
+    default:
+      return {
+        className: `inline-flex items-center gap-2 font-semibold text-white transition-opacity hover:opacity-90 ${radius} ${sizeClass}`,
+        style: { backgroundColor: accentColor },
+      };
+  }
+}
 
 export function ButtonBlock({
   block,
@@ -27,18 +72,30 @@ export function ButtonBlock({
   globalStyle,
   isEditing,
 }: BlockComponentProps) {
-  const { text, url } = block.props as { text: string; url: string };
-  const s = block.style;
+  const { text, url, variant = "solid", iconLeft, iconRight } = block.props as {
+    text: string;
+    url: string;
+    variant?: ButtonVariant;
+    iconLeft?: string;
+    iconRight?: string;
+  };
 
+  const s = block.style;
   const accentColor = sectionStyle.accentColor || globalStyle.primaryColor || "#00e5a0";
   const radius = RADIUS_MAP[globalStyle.borderRadius || "md"] || "rounded-lg";
   const sizeClass = FONT_SIZE_MAP[s.fontSize || "base"] || FONT_SIZE_MAP.base;
-  const alignClass = TEXT_ALIGN_MAP[s.textAlign || "left"] || "";
+  const alignClass = TEXT_ALIGN_MAP[s.textAlign || "left"] || "justify-start";
+  const iconSize = ICON_SIZE_MAP[s.fontSize || "base"] || 18;
+
+  const { className: variantClass, style: variantStyle } = getVariantConfig(
+    variant,
+    accentColor,
+    radius,
+    sizeClass,
+  );
 
   const handleClick = (e: React.MouseEvent) => {
-    if (isEditing) {
-      e.preventDefault();
-    }
+    if (isEditing) e.preventDefault();
   };
 
   return (
@@ -52,10 +109,20 @@ export function ButtonBlock({
       <a
         href={isEditing ? undefined : url || "#"}
         onClick={handleClick}
-        className={`inline-flex items-center font-semibold text-white transition-opacity hover:opacity-90 ${radius} ${sizeClass}`}
-        style={{ backgroundColor: accentColor }}
+        className={variantClass}
+        style={variantStyle}
       >
+        {iconLeft ? (
+          <span className="material-symbols-outlined" style={{ fontSize: iconSize }}>
+            {iconLeft}
+          </span>
+        ) : null}
         {text || "Click me"}
+        {iconRight ? (
+          <span className="material-symbols-outlined" style={{ fontSize: iconSize }}>
+            {iconRight}
+          </span>
+        ) : null}
       </a>
     </div>
   );
