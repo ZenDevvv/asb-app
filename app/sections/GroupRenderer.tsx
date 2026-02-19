@@ -44,38 +44,7 @@ function getLayoutGridClasses(layout: LayoutTemplate, sectionType: Section["type
 			: layout.alignment === "bottom"
 				? "items-end"
 				: "items-start";
-
-	const direction = layout.direction === "row-reverse" ? "direction-rtl" : "";
-
-	if (layout.columns === 1) {
-		return `${base} grid-cols-1 ${alignment}`;
-	}
-
-	if (layout.columns === 2) {
-		const colClass =
-			layout.distribution === "60-40"
-				? "grid-cols-[3fr_2fr]"
-				: layout.distribution === "40-60"
-					? "grid-cols-[2fr_3fr]"
-					: layout.distribution === "30-70"
-						? "grid-cols-[3fr_7fr]"
-						: layout.distribution === "70-30"
-							? "grid-cols-[7fr_3fr]"
-							: "grid-cols-2";
-		return `${base} ${colClass} ${alignment} ${direction}`;
-	}
-
-	if (layout.columns === 3) {
-		if (layout.distribution === "25-50-25") {
-			return `${base} grid-cols-[1fr_2fr_1fr] ${alignment}`;
-		}
-		if (layout.distribution === "20-60-20") {
-			return `${base} grid-cols-[1fr_3fr_1fr] ${alignment}`;
-		}
-		return `${base} grid-cols-3 ${alignment}`;
-	}
-
-	return `${base} grid-cols-1`;
+	return `${base} ${alignment}`;
 }
 
 const SURFACE_BORDER_RADIUS_MAP: Record<string, number> = { none: 0, sm: 8, md: 12, lg: 16 };
@@ -259,7 +228,8 @@ export function GroupRenderer({
 				<div
 					className={`${gridClasses} ${isDraggingAbsoluteBlock ? "pointer-events-none" : ""}`}
 					style={{
-						direction: layout.direction === "row-reverse" ? "rtl" : "ltr",
+						gridTemplateColumns: layout.spans.map((s) => `${s}fr`).join(" "),
+						direction: layout.reversed ? "rtl" : "ltr",
 					}}>
 					{layout.slots.map((slotName) => (
 						<div key={slotName} className="flex flex-col" style={{ direction: "ltr", gap: slotGap }}>

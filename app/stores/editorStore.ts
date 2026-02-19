@@ -110,16 +110,15 @@ function getSafeLayout(layoutId?: string): LayoutTemplate {
     if (byId) return { ...byId };
   }
 
-  const fallback = getLayoutById("1-col-center") || getLayoutById("1-col-left");
+  const fallback = getLayoutById("1col") || getLayoutById("1col-left");
   if (fallback) return { ...fallback };
 
   return {
-    id: "fallback-1-col",
-    label: "Main",
-    columns: 1,
-    distribution: "100",
-    alignment: "top",
-    direction: "row",
+    id: "1col",
+    label: "Centered",
+    spans: [6],
+    alignment: "center",
+    reversed: false,
     slots: ["main"],
   };
 }
@@ -133,32 +132,29 @@ function resolveLayout(layoutLike: unknown, fallbackLayoutId?: string): LayoutTe
       if (known) return { ...known };
     }
 
-    const hasValidColumns = candidate.columns === 1 || candidate.columns === 2 || candidate.columns === 3;
+    const hasValidSpans =
+      Array.isArray(candidate.spans) &&
+      candidate.spans.length > 0 &&
+      candidate.spans.every((n) => typeof n === "number" && n > 0);
     const hasValidAlignment =
       candidate.alignment === "top" ||
       candidate.alignment === "center" ||
       candidate.alignment === "bottom";
-    const hasValidDirection = candidate.direction === "row" || candidate.direction === "row-reverse";
 
     if (
       typeof candidate.id === "string" &&
       typeof candidate.label === "string" &&
-      hasValidColumns &&
-      typeof candidate.distribution === "string" &&
+      hasValidSpans &&
       hasValidAlignment &&
-      hasValidDirection &&
+      typeof candidate.reversed === "boolean" &&
       Array.isArray(candidate.slots)
     ) {
-      const columns = candidate.columns as 1 | 2 | 3;
-      const alignment = candidate.alignment as "top" | "center" | "bottom";
-      const direction = candidate.direction as "row" | "row-reverse";
       return {
         id: candidate.id,
         label: candidate.label,
-        columns,
-        distribution: candidate.distribution,
-        alignment,
-        direction,
+        spans: [...(candidate.spans as number[])],
+        alignment: candidate.alignment as "top" | "center" | "bottom",
+        reversed: candidate.reversed,
         slots: [...candidate.slots],
       };
     }
@@ -712,6 +708,8 @@ export const useEditorStore = create<EditorState & EditorActions>()(
         state.future = [];
 
         const oldLayoutId = group.layout.id;
+        const oldAlignment = group.layout.alignment;
+        const oldReversed = group.layout.reversed;
         const oldSlots = group.layout.slots;
         const newSlots = layout.slots;
         const isNavbarSemanticSwitch =
@@ -823,7 +821,29 @@ export const useEditorStore = create<EditorState & EditorActions>()(
           group.layoutSlotMemories[layout.id] = createLayoutSlotMemory(group.blocks, newSlots);
         }
 
-        group.layout = { ...layout };
+        group.layout = {
+          ...layout,
+          // Preserve user's alignment and reversed preferences across layout switches.
+          // Reversed is only preserved when the slot count stays the same.
+          alignment: oldAlignment,
+          reversed: newSlots.length === oldSlots.length ? oldReversed : false,
+        };
+        state.isDirty = true;
+      });
+    },
+
+    updateGroupLayoutOptions: (sectionId, groupId, options) => {
+      set((state) => {
+        const section = findSection(state, sectionId);
+        if (!section) return;
+        const group = findGroup(section, groupId);
+        if (!group) return;
+
+        state.history.push(JSON.parse(JSON.stringify(state.sections)));
+        state.future = [];
+
+        if (options.alignment !== undefined) group.layout.alignment = options.alignment;
+        if (options.reversed !== undefined) group.layout.reversed = options.reversed;
         state.isDirty = true;
       });
     },

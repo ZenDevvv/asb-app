@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useEditorStore } from "~/stores/editorStore";
 import { BLOCK_REGISTRY } from "~/config/blockRegistry";
+import { LAYOUT_TEMPLATES } from "~/config/layoutTemplates";
 import { AddBlockModal } from "./AddBlockModal";
 import { SettingsCollapsibleSection } from "./SettingsCollapsibleSection";
 import { cn } from "~/lib/utils";
@@ -10,16 +11,36 @@ interface GroupModeSettingsProps {
   section: Section;
   activeGroup: Group;
   selectedBlockId: string | null;
-  allowedLayouts: LayoutTemplate[];
 }
+
+// Layouts by column count (non-navbar only), deduplicated by spans signature.
+const NAV_LAYOUTS = LAYOUT_TEMPLATES.filter((l) => l.id.startsWith("nav-"));
+const NON_NAV_LAYOUTS = LAYOUT_TEMPLATES.filter((l) => !l.id.startsWith("nav-"));
+
+function getDistributions(colCount: 1 | 2 | 3): LayoutTemplate[] {
+  const seen = new Set<string>();
+  return NON_NAV_LAYOUTS.filter((l) => {
+    if (l.spans.length !== colCount) return false;
+    const key = l.spans.join("-");
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+const DEFAULT_COL_LAYOUT_IDS: Record<1 | 2 | 3, string> = {
+  1: "1col",
+  2: "2col-3-3",
+  3: "3col-2-2-2",
+};
 
 export function GroupModeSettings({
   section,
   activeGroup,
   selectedBlockId,
-  allowedLayouts,
 }: GroupModeSettingsProps) {
   const updateGroupLayout = useEditorStore((s) => s.updateGroupLayout);
+  const updateGroupLayoutOptions = useEditorStore((s) => s.updateGroupLayoutOptions);
   const updateGroupStyle = useEditorStore((s) => s.updateGroupStyle);
   const renameGroup = useEditorStore((s) => s.renameGroup);
   const selectBlock = useEditorStore((s) => s.selectBlock);
@@ -34,6 +55,25 @@ export function GroupModeSettings({
   const togglePanel = (key: "layout" | "blocks" | "groupStyle") => {
     setOpenSections((prev) => ({ ...prev, [key]: !prev[key] }));
   };
+
+  const isNavbarSection = section.type === "navbar";
+  const currentSpansLen = activeGroup.layout.spans.length;
+  const colCount: 1 | 2 | 3 =
+    currentSpansLen === 1 ? 1 : currentSpansLen === 2 ? 2 : 3;
+
+  const distributions = getDistributions(colCount);
+
+  // Find the active distribution: match by spans signature (ignoring reversed)
+  const activeSpansKey = activeGroup.layout.spans.join("-");
+
+  function handleColCountSwitch(count: 1 | 2 | 3) {
+    if (count === colCount) return;
+    updateGroupLayout(section.id, activeGroup.id, DEFAULT_COL_LAYOUT_IDS[count]);
+  }
+
+  function handleDistributionClick(layout: LayoutTemplate) {
+    updateGroupLayout(section.id, activeGroup.id, layout.id);
+  }
 
   return (
     <>
@@ -52,25 +92,128 @@ export function GroupModeSettings({
         isOpen={openSections.layout}
         onToggle={() => togglePanel("layout")}
       >
-        <div className="grid grid-cols-3 gap-2">
-          {allowedLayouts.map((layout) => (
-            <button
-              key={layout.id}
-              onClick={() => updateGroupLayout(section.id, activeGroup.id, layout.id)}
-              className={cn(
-                "flex flex-col items-center rounded-xl border p-2.5 transition-colors",
-                activeGroup.layout.id === layout.id
-                  ? "border-primary bg-primary/10 text-primary"
-                  : "border-border bg-muted/20 text-muted-foreground hover:border-primary/30",
-              )}
-            >
-              <LayoutThumbnail layout={layout} />
-              <span className="mt-1.5 text-center text-[9px] font-medium leading-tight">
-                {layout.label}
-              </span>
-            </button>
-          ))}
-        </div>
+        {isNavbarSection ? (
+          /* ── Navbar: show fixed nav-layout thumbnails ── */
+          <div className="grid grid-cols-3 gap-2">
+            {NAV_LAYOUTS.map((layout) => (
+              <button
+                key={layout.id}
+                onClick={() => updateGroupLayout(section.id, activeGroup.id, layout.id)}
+                className={cn(
+                  "flex flex-col items-center rounded-xl border p-2.5 transition-colors",
+                  activeGroup.layout.id === layout.id
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border bg-muted/20 text-muted-foreground hover:border-primary/30",
+                )}
+              >
+                <NavbarLayoutThumbnail layout={layout} />
+                <span className="mt-1.5 text-center text-[9px] font-medium leading-tight">
+                  {layout.label}
+                </span>
+              </button>
+            ))}
+          </div>
+        ) : (
+          /* ── Non-navbar: column-count tabs + distribution + alignment + reversed ── */
+          <div className="space-y-3">
+            {/* Column count tabs */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">Columns</label>
+              <div className="flex gap-1">
+                {([1, 2, 3] as const).map((count) => (
+                  <button
+                    key={count}
+                    onClick={() => handleColCountSwitch(count)}
+                    className={cn(
+                      "flex-1 rounded-lg border py-1.5 text-[11px] font-medium transition-colors",
+                      colCount === count
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-border bg-muted/20 text-muted-foreground hover:border-primary/30",
+                    )}
+                  >
+                    {count}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Distribution thumbnails */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">Distribution</label>
+              <div className="grid grid-cols-3 gap-2">
+                {distributions.map((layout) => (
+                  <button
+                    key={layout.id}
+                    onClick={() => handleDistributionClick(layout)}
+                    className={cn(
+                      "flex flex-col items-center rounded-xl border p-2.5 transition-colors",
+                      layout.spans.join("-") === activeSpansKey
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-border bg-muted/20 text-muted-foreground hover:border-primary/30",
+                    )}
+                  >
+                    <ColumnDistributionThumbnail spans={layout.spans} />
+                    <span className="mt-1.5 text-center text-[9px] font-medium leading-tight">
+                      {layout.spans.join(" · ")}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Alignment */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">Alignment</label>
+              <div className="flex gap-1">
+                {(["top", "center", "bottom"] as const).map((align) => (
+                  <button
+                    key={align}
+                    onClick={() =>
+                      updateGroupLayoutOptions(section.id, activeGroup.id, { alignment: align })
+                    }
+                    title={align.charAt(0).toUpperCase() + align.slice(1)}
+                    className={cn(
+                      "flex flex-1 items-center justify-center rounded-lg border py-1.5 transition-colors",
+                      activeGroup.layout.alignment === align
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-border bg-muted/20 text-muted-foreground hover:border-primary/30",
+                    )}
+                  >
+                    <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
+                      {align === "top"
+                        ? "vertical_align_top"
+                        : align === "center"
+                          ? "vertical_align_center"
+                          : "vertical_align_bottom"}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Reversed toggle (multi-col only) */}
+            {colCount > 1 && (
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-medium text-muted-foreground">Reversed</label>
+                <button
+                  onClick={() =>
+                    updateGroupLayoutOptions(section.id, activeGroup.id, {
+                      reversed: !activeGroup.layout.reversed,
+                    })
+                  }
+                  className={cn(
+                    "rounded-lg border px-3 py-1 text-[10px] font-medium transition-colors",
+                    activeGroup.layout.reversed
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border bg-muted/20 text-muted-foreground hover:border-primary/30",
+                  )}
+                >
+                  {activeGroup.layout.reversed ? "On" : "Off"}
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </SettingsCollapsibleSection>
 
       <SettingsCollapsibleSection
@@ -282,65 +425,17 @@ export function GroupModeSettings({
   );
 }
 
-function LayoutThumbnail({
-  layout,
-}: {
-  layout: { id: string; columns: number; distribution: string; slots: string[] };
-}) {
-  const isNavLayout =
-    layout.id.startsWith("nav-") ||
-    layout.slots.some((slot) => slot === "brand" || slot === "links" || slot === "actions");
-
-  if (isNavLayout) {
-    return <NavbarLayoutThumbnail layout={layout} />;
-  }
-
-  if (layout.columns === 1) {
-    return (
-      <div className="flex h-8 w-full items-center justify-center">
-        <div className="h-full w-full rounded bg-current opacity-20" />
-      </div>
-    );
-  }
-
-  if (layout.columns === 2) {
-    const [left, right] = layout.distribution.split("-").map(Number);
-    const total = left + right;
-    return (
-      <div className="flex h-8 w-full gap-0.5">
-        <div
-          className="h-full rounded bg-current opacity-20"
-          style={{ width: `${(left / total) * 100}%` }}
-        />
-        <div
-          className="h-full rounded bg-current opacity-20"
-          style={{ width: `${(right / total) * 100}%` }}
-        />
-      </div>
-    );
-  }
-
-  const parts = layout.distribution.split("-").map(Number);
-  if (parts.length === 3 && parts.every((n) => Number.isFinite(n) && n > 0)) {
-    const total = parts.reduce((sum, n) => sum + n, 0);
-    return (
-      <div className="flex h-8 w-full gap-0.5">
-        {parts.map((part, i) => (
-          <div
-            key={i}
-            className="h-full rounded bg-current opacity-20"
-            style={{ width: `${(part / total) * 100}%` }}
-          />
-        ))}
-      </div>
-    );
-  }
-
+function ColumnDistributionThumbnail({ spans }: { spans: number[] }) {
+  const total = spans.reduce((sum, s) => sum + s, 0);
   return (
     <div className="flex h-8 w-full gap-0.5">
-      <div className="h-full flex-1 rounded bg-current opacity-20" />
-      <div className="h-full flex-1 rounded bg-current opacity-20" />
-      <div className="h-full flex-1 rounded bg-current opacity-20" />
+      {spans.map((span, i) => (
+        <div
+          key={i}
+          className="h-full rounded bg-current opacity-20"
+          style={{ width: `${(span / total) * 100}%` }}
+        />
+      ))}
     </div>
   );
 }
@@ -348,18 +443,14 @@ function LayoutThumbnail({
 function NavbarLayoutThumbnail({
   layout,
 }: {
-  layout: { columns: number; distribution: string; slots: string[] };
+  layout: { spans: number[]; slots: string[] };
 }) {
-  const parts = layout.distribution
-    .split("-")
-    .map(Number)
-    .filter((n) => Number.isFinite(n) && n > 0);
-  const total = parts.length > 0 ? parts.reduce((sum, n) => sum + n, 0) : 100;
+  const total = layout.spans.reduce((sum, n) => sum + n, 0);
 
   return (
     <div className="flex h-8 w-full items-center gap-0.5 rounded-md border border-current/25 bg-current/10 p-1">
       {layout.slots.map((slot, i) => {
-        const part = parts[i] ?? 100 / Math.max(1, layout.slots.length);
+        const part = layout.spans[i] ?? total / Math.max(1, layout.slots.length);
         return (
           <div
             key={slot}

@@ -42,11 +42,10 @@ export interface Block {
 export interface LayoutTemplate {
   id: string;
   label: string;
-  columns: 1 | 2 | 3;
-  distribution: string;
+  spans: number[];                       // Column widths summing to 6, e.g. [6], [3,3], [4,2], [1,4,1]
   alignment: "top" | "center" | "bottom";
-  direction: "row" | "row-reverse";
-  slots: string[];
+  reversed: boolean;                     // Reverses column visual order (rtl trick)
+  slots: string[];                       // ["main"] (1-col) | ["col-1","col-2",...] (multi) | semantic for navbar
 }
 
 export type SectionType =
@@ -238,6 +237,11 @@ export interface EditorActions {
 
   // Section/Group updates
   updateGroupLayout: (sectionId: string, groupId: string, layoutId: string) => void;
+  updateGroupLayoutOptions: (
+    sectionId: string,
+    groupId: string,
+    options: { alignment?: "top" | "center" | "bottom"; reversed?: boolean },
+  ) => void;
   updateSectionStyle: (id: string, style: Partial<SectionStyle>) => void;
   updateGroupStyle: (sectionId: string, groupId: string, style: Partial<GroupStyle>) => void;
 

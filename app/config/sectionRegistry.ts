@@ -60,40 +60,40 @@ export const SECTION_REGISTRY: Record<SectionType, SectionRegistryEntry> = {
     label: "Hero Section",
     icon: "star",
     description: "Main hero area with headline, subheadline, and CTA",
-    allowedLayouts: ["1-col-center", "1-col-left", "2-col-50-50", "2-col-60-40", "2-col-40-60", "2-col-50-50-reverse"],
-    defaultLayoutId: "2-col-50-50",
+    allowedLayouts: ["1col", "1col-left", "2col-3-3", "2col-4-2", "2col-2-4", "2col-3-3-rev"],
+    defaultLayoutId: "2col-3-3",
     defaultBlocks: [
       {
         type: "badge",
-        slot: "left",
+        slot: "col-1",
         order: 0,
         props: { text: "Now Available" },
         style: { fontSize: "base", marginBottom: 12 },
       },
       {
         type: "heading",
-        slot: "left",
+        slot: "col-1",
         order: 1,
         props: { text: "Build Faster. Design Better." },
         style: { fontSize: "5xl", fontWeight: "bold", marginBottom: 16 },
       },
       {
         type: "text",
-        slot: "left",
+        slot: "col-1",
         order: 2,
         props: { text: "Create stunning, high-converting landing pages in minutes without writing a single line of code." },
         style: { fontSize: "lg", marginBottom: 24, opacity: 70 },
       },
       {
         type: "button",
-        slot: "left",
+        slot: "col-1",
         order: 3,
         props: { text: "Start Building Free", url: "#" },
         style: { fontSize: "lg" },
       },
       {
         type: "image",
-        slot: "right",
+        slot: "col-2",
         order: 0,
         props: { src: "", alt: "Hero image" },
         style: { width: "full" },
@@ -113,8 +113,8 @@ export const SECTION_REGISTRY: Record<SectionType, SectionRegistryEntry> = {
     label: "Features Grid",
     icon: "grid_view",
     description: "Showcase features or benefits with icons",
-    allowedLayouts: ["1-col-center", "2-col-50-50", "3-col-equal"],
-    defaultLayoutId: "3-col-equal",
+    allowedLayouts: ["1col", "2col-3-3", "3col-2-2-2"],
+    defaultLayoutId: "3col-2-2-2",
     defaultBlocks: [
       {
         type: "icon",
@@ -194,8 +194,8 @@ export const SECTION_REGISTRY: Record<SectionType, SectionRegistryEntry> = {
     label: "Call to Action",
     icon: "campaign",
     description: "Call-to-action section with headline and button",
-    allowedLayouts: ["1-col-center", "1-col-left", "2-col-50-50", "2-col-60-40"],
-    defaultLayoutId: "1-col-center",
+    allowedLayouts: ["1col", "1col-left", "2col-3-3", "2col-4-2"],
+    defaultLayoutId: "1col",
     defaultBlocks: [
       {
         type: "heading",
@@ -233,8 +233,8 @@ export const SECTION_REGISTRY: Record<SectionType, SectionRegistryEntry> = {
     label: "Testimonials",
     icon: "format_quote",
     description: "Customer reviews and social proof",
-    allowedLayouts: ["1-col-center", "2-col-50-50", "3-col-equal"],
-    defaultLayoutId: "3-col-equal",
+    allowedLayouts: ["1col", "2col-3-3", "3col-2-2-2"],
+    defaultLayoutId: "3col-2-2-2",
     defaultBlocks: [
       {
         type: "quote",
@@ -281,8 +281,8 @@ export const SECTION_REGISTRY: Record<SectionType, SectionRegistryEntry> = {
     label: "FAQ",
     icon: "help",
     description: "Frequently asked questions section",
-    allowedLayouts: ["1-col-center", "1-col-left"],
-    defaultLayoutId: "1-col-center",
+    allowedLayouts: ["1col", "1col-left"],
+    defaultLayoutId: "1col",
     defaultBlocks: [
       {
         type: "heading",
@@ -348,8 +348,8 @@ export const SECTION_REGISTRY: Record<SectionType, SectionRegistryEntry> = {
     label: "Footer",
     icon: "bottom_navigation",
     description: "Page footer with links and social icons",
-    allowedLayouts: ["1-col-center", "3-col-equal"],
-    defaultLayoutId: "3-col-equal",
+    allowedLayouts: ["1col", "3col-2-2-2"],
+    defaultLayoutId: "3col-2-2-2",
     defaultBlocks: [
       {
         type: "heading",

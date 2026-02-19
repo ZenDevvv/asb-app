@@ -44,7 +44,7 @@ ARCHITECTURE MODEL:
 - Section = full-width container with section style + vertically stacked groups
 - Group = sub-container inside a section with its own layout template and blocks
 - Block = individual content piece (heading, text, button, image, etc.)
-- Layout Template = defines how blocks are arranged in a group (columns, distribution, alignment)
+- Layout Template = defines how blocks are arranged in a group (spans[], alignment, reversed)
 - Groups contain blocks placed into named slots defined by the chosen layout
 - Users can add/remove/reorder blocks within a section â€” not just edit fixed fields
 - This replaces the old rigid "variant with hardcoded props" model
@@ -188,7 +188,7 @@ The right sidebar changes based on what is selected:
 3. **Group Management Location** — groups are listed and reordered from the LEFT sidebar section tree.
 
 **When a GROUP is selected** (click group container on the canvas or from the left sidebar section tree):
-1. **Layout** — visual thumbnail grid of layout templates for that group. Layout switching preserves that group's flow block placement using per-layout slot memory.
+1. **Layout** — flexible picker for non-navbar groups: segmented [1][2][3] column count tabs → distribution thumbnails (active matched by spans signature) → alignment buttons (top/center/bottom) → reversed On/Off toggle (multi-col only). Navbar groups show the fixed 3 nav-layout thumbnails. Layout switching preserves flow block placement via per-layout slot memory; alignment and reversed are preserved across distribution changes within the same column count.
 2. **Blocks** — ordered list of blocks within the selected group. Clicking **+ Add Block** opens a modal of allowed block types; for multi-column layouts, users choose the target column/slot before inserting.
 3. **Group Style** — group-local spacing controls (top/bottom padding).
 
@@ -365,14 +365,13 @@ interface BlockStyle {
 // â”€â”€â”€ Layout Template â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 interface LayoutTemplate {
-  id: string;                     // "1-col-center", "2-col-50-50", etc.
-  label: string;                  // "Centered", "Split 50/50", etc.
-  columns: 1 | 2 | 3;
-  distribution: string;           // "100" | "50-50" | "60-40" | "40-60" | "33-33-33"
+  id: string;                     // "1col", "2col-3-3", "3col-2-2-2", "nav-brand-links-cta", etc.
+  label: string;                  // "Centered", "Split", "Wide Left", "Feature Center", etc.
+  spans: number[];                // Column widths on a 6-unit grid — must sum to 6.
+                                  // [6] = full-width, [3,3] = 50/50, [4,2] = 67/33, [1,4,1] = narrow-wide-narrow
   alignment: "top" | "center" | "bottom";
-  direction: "row" | "row-reverse";
-  slots: string[];                // Ordered slot names: ["main"] or ["left", "right"]
-  thumbnail?: string;             // Optional thumbnail for the layout picker
+  reversed: boolean;              // When true, column order is visually reversed (CSS direction: rtl trick)
+  slots: string[];                // ["main"] (1-col) | ["col-1","col-2",...] (multi) | semantic for navbar
 }
 
 // â”€â”€â”€ Section â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -459,83 +458,43 @@ interface Page {
 }
 ```
 
-Navbar presets also include dedicated layout ids: `nav-brand-links`, `nav-brand-cta`, and `nav-brand-links-cta` with semantic slots (`brand`, `links`, `actions`).
+Navbar presets use dedicated layout ids: `nav-brand-links`, `nav-brand-cta`, and `nav-brand-links-cta` with semantic slots (`brand`, `links`, `actions`). These are the only layouts with non-standard slot names; all other layouts use `"main"` (1-col) or `"col-1"` / `"col-2"` / `"col-3"` (multi-column).
 
 
 ### Layout Templates (pre-defined)
 
-Layouts are pre-defined templates that control how blocks are spatially arranged within a section. Users pick a layout from a visual grid â€” they never configure columns or grids directly.
+Layouts are pre-defined templates that control how blocks are spatially arranged within a group. Users pick via a **flexible column-count picker** — they never configure columns or grids directly. The picker shows: **[1][2][3] column count tabs** → **distribution thumbnails** (matched by spans signature, e.g. “3·3”, “4·2”) → **alignment (top/center/bottom)** → **reversed toggle** (multi-col only). Navbar sections show a fixed set of 3 semantic nav-layout thumbnails instead. `reversed` is a per-group toggle — not a separate layout template.
 
 ```typescript
+// All layouts use a 6-unit column grid. spans[] values must sum to 6.
+// Rendering: gridTemplateColumns = spans.map(s => `${s}fr`).join(" ")
+// Users pick via the flexible column-count picker — they never see numbers directly.
+// `reversed` is a UI toggle (not a separate template) — picker preserves it across distribution switches.
+
 const LAYOUT_TEMPLATES: LayoutTemplate[] = [
-  // Single column
-  {
-    id: "1-col-center",
-    label: "Centered",
-    columns: 1,
-    distribution: "100",
-    alignment: "center",
-    direction: "row",
-    slots: ["main"],
-  },
-  {
-    id: "1-col-left",
-    label: "Left Aligned",
-    columns: 1,
-    distribution: "100",
-    alignment: "top",
-    direction: "row",
-    slots: ["main"],
-  },
+  // ─── 1 Column ──────────────────────────────────────────────────
+  { id: "1col",       label: "Centered",     spans: [6], alignment: "center", reversed: false, slots: ["main"] },
+  { id: "1col-left",  label: "Left Aligned", spans: [6], alignment: "top",    reversed: false, slots: ["main"] },
 
-  // Two columns
-  {
-    id: "2-col-50-50",
-    label: "Split 50/50",
-    columns: 2,
-    distribution: "50-50",
-    alignment: "center",
-    direction: "row",
-    slots: ["left", "right"],
-  },
-  {
-    id: "2-col-60-40",
-    label: "Content + Side",
-    columns: 2,
-    distribution: "60-40",
-    alignment: "center",
-    direction: "row",
-    slots: ["left", "right"],
-  },
-  {
-    id: "2-col-40-60",
-    label: "Side + Content",
-    columns: 2,
-    distribution: "40-60",
-    alignment: "center",
-    direction: "row",
-    slots: ["left", "right"],
-  },
-  {
-    id: "2-col-50-50-reverse",
-    label: "Split Reverse",
-    columns: 2,
-    distribution: "50-50",
-    alignment: "center",
-    direction: "row-reverse",
-    slots: ["left", "right"],
-  },
+  // ─── Navbar (semantic slots — picker shows these for navbar sections only) ───
+  { id: "nav-brand-links",     label: "Brand + Links",       spans: [2, 4],    alignment: "center", reversed: false, slots: ["brand", "links"] },
+  { id: "nav-brand-cta",       label: "Brand + CTA",         spans: [4, 2],    alignment: "center", reversed: false, slots: ["brand", "actions"] },
+  { id: "nav-brand-links-cta", label: "Brand + Links + CTA", spans: [2, 3, 1], alignment: "center", reversed: false, slots: ["brand", "links", "actions"] },
 
-  // Three columns
-  {
-    id: "3-col-equal",
-    label: "3 Columns",
-    columns: 3,
-    distribution: "33-33-33",
-    alignment: "top",
-    direction: "row",
-    slots: ["col-1", "col-2", "col-3"],
-  },
+  // ─── 2 Columns (all distributions; reversed is a toggle, not a separate entry) ───
+  { id: "2col-1-5", label: "Sidebar Left",  spans: [1, 5], alignment: "center", reversed: false, slots: ["col-1", "col-2"] },
+  { id: "2col-2-4", label: "Wide Right",    spans: [2, 4], alignment: "center", reversed: false, slots: ["col-1", "col-2"] },
+  { id: "2col-3-3", label: "Split",         spans: [3, 3], alignment: "center", reversed: false, slots: ["col-1", "col-2"] },
+  { id: "2col-4-2", label: "Wide Left",     spans: [4, 2], alignment: "center", reversed: false, slots: ["col-1", "col-2"] },
+  { id: "2col-5-1", label: "Sidebar Right", spans: [5, 1], alignment: "center", reversed: false, slots: ["col-1", "col-2"] },
+
+  // ─── 3 Columns ─────────────────────────────────────────────────
+  { id: "3col-1-1-4", label: "Wide Right",      spans: [1, 1, 4], alignment: "top", reversed: false, slots: ["col-1", "col-2", "col-3"] },
+  { id: "3col-1-2-3", label: "Ascending",       spans: [1, 2, 3], alignment: "top", reversed: false, slots: ["col-1", "col-2", "col-3"] },
+  { id: "3col-1-4-1", label: "Feature Center",  spans: [1, 4, 1], alignment: "top", reversed: false, slots: ["col-1", "col-2", "col-3"] },
+  { id: "3col-2-2-2", label: "Equal",           spans: [2, 2, 2], alignment: "top", reversed: false, slots: ["col-1", "col-2", "col-3"] },
+  { id: "3col-3-2-1", label: "Descending",      spans: [3, 2, 1], alignment: "top", reversed: false, slots: ["col-1", "col-2", "col-3"] },
+  { id: "3col-4-1-1", label: "Wide Left",       spans: [4, 1, 1], alignment: "top", reversed: false, slots: ["col-1", "col-2", "col-3"] },
 ];
 ```
 
@@ -549,7 +508,8 @@ SECTION_REGISTRY[sectionType] = {
   label: string,                          // "Hero", "Features", etc.
   icon: string,                           // Material Symbol icon name
   description: string,                    // For the "Add Section" modal
-  allowedLayouts: string[],               // IDs of layout templates this section supports
+  allowedLayouts: string[],               // Legacy: no longer restricts the picker. Still used
+                                          //   to resolve defaultLayoutId. Navbar uses it implicitly.
   defaultLayoutId: string,                // Which layout to use when section is first added
   defaultBlocks: Block[],                 // Legacy fallback: wrapped into one default group
   defaultStyle: SectionStyle,             // Default background/padding
@@ -711,15 +671,17 @@ function SectionRenderer({ section, isEditing, globalStyle }) {
 
 Each section type is a **preset** — a combination of default group(s) + default block composition. Users start with the preset and can modify from there.
 
-| Type | Default Layout | Default Blocks | Allowed Layouts |
-|------|---------------|----------------|-----------------|
-| navbar | nav-brand-links-cta | `heading` (brand), inline `list` (links), `button` (CTA) | nav-brand-links, nav-brand-cta, nav-brand-links-cta |
-| hero | 2-col-50-50 | `badge` + `heading` + `text` + `button` (left slot), `image` (right slot) | All 1-col and 2-col |
-| features | 3-col-equal | `heading` (above) + 3x (`icon` + `heading` + `text`) per column | 1-col, 2-col, 3-col |
-| cta | 1-col-center | `heading` + `text` + `button` | All 1-col and 2-col |
-| testimonials | 3-col-equal | 3x (`quote` + `text` (name/role)) per column | 1-col, 2-col, 3-col |
-| faq | 1-col-center | `heading` + `list` (Q&A pairs, rendered as accordion) | 1-col only |
-| footer | 3-col-equal | `heading` + `list` (links) per column + `divider` + `text` (copyright) | 1-col, 3-col |
+| Type | Default Layout | Default Blocks | Picker Layouts |
+|------|---------------|----------------|----------------|
+| navbar | nav-brand-links-cta | `heading` (brand), inline `list` (links), `button` (CTA) | nav-brand-links, nav-brand-cta, nav-brand-links-cta (fixed set) |
+| hero | 2col-3-3 | `badge` + `heading` + `text` + `button` (col-1), `image` (col-2) | all standard (1-col, 2-col, 3-col) |
+| features | 3col-2-2-2 | 3x (`icon` + `heading` + `text`) per col-1/col-2/col-3 | all standard |
+| cta | 1col | `heading` + `text` + `button` | all standard |
+| testimonials | 3col-2-2-2 | 3x `quote` per col-1/col-2/col-3 | all standard |
+| faq | 1col | `heading` + Q&A pairs (`heading` + `text`) | all standard |
+| footer | 3col-2-2-2 | `heading` + `list` (links) per col-1/col-2/col-3 | all standard |
+
+> **Picker note:** Non-navbar groups always show the full 5 × 2-col and 6 × 3-col distribution grid. `allowedLayouts` in sectionRegistry still exists but is no longer used to restrict the picker — it only drives `defaultLayoutId` resolution.
 
 ### Style Inheritance Chain
 
@@ -762,7 +724,7 @@ Add Block modal behavior (in Group Mode):
 
 When a group is selected:
 
-- **Layout** panel applies only to that group
+- **Layout** panel applies only to that group. Uses `updateGroupLayout(sectionId, groupId, layoutId)` for distribution/column-count changes and `updateGroupLayoutOptions(sectionId, groupId, { alignment?, reversed? })` for alignment and reversed without triggering slot migration.
 - **Blocks** panel lists only blocks owned by that group
 - **Group Style** panel controls group-local visual properties:
   - **Top/Bottom Padding** — continuous slider, adds spacing inside the group container
@@ -1306,7 +1268,7 @@ These decisions are final. Don't revisit or suggest alternatives:
 |----------|--------|--------|
 | Editor paradigm | Section-based with block composition (NOT freeform) | Target users are non-technical; sections provide structure, blocks provide flexibility |
 | Content model | Sections contain vertically stacked groups; groups contain blocks in layout slots | Supports mixed-layout sections without adding new variants |
-| Layout system | Pre-defined layout templates (NOT CSS grid config) | Users pick a visual layout, never configure columns directly |
+| Layout system | 6-unit column grid — `spans[]` array drives `gridTemplateColumns` via `Nfr` units | Users pick via [1][2][3] column tabs + distribution thumbnails; never configure columns or CSS directly. `reversed` and `alignment` are separate toggle/button controls, not distinct layout templates. All non-navbar groups share the same full distribution set. |
 | Editor layout | Three panels: left (sections list) + center (canvas) + right (settings) | Matches reference design; separates navigation from editing |
 | Selection model | Three levels: section-level, group-level, and block-level | Section for section style/actions, group for layout/blocks, block for content/style |
 | Editor theme | Dark theme | Premium feel; matches reference design. Tokens in Style Guide file |
@@ -1457,7 +1419,7 @@ This contract ensures AI output can be validated and loaded directly into the ed
 | **Group** | A sub-container inside a section with its own layout and block list. Groups are stacked vertically. |
 | **Block** | An individual content piece within a group (heading, text, button, image, icon, etc.). The atomic unit of content. |
 | **Block Type** | The kind of content a block represents (heading, text, button, image, etc.). Determines what controls appear in the sidebar. |
-| **Layout Template** | A pre-defined spatial arrangement for blocks within a group (1-col centered, 2-col 50/50, etc.). Users pick from a visual grid. |
+| **Layout Template** | A pre-defined spatial arrangement for blocks within a group. Defined by `spans[]` (6-unit grid), `alignment`, and `reversed`. Users pick from visual thumbnails — never configure numbers directly. |
 | **Slot** | A named position within a layout template where blocks are placed ("main", "left", "right", "col-1", etc.). |
 | **Section Registry** | Central config mapping section types to allowed layouts, default groups/default blocks fallback, and constraints. |
 | **Block Registry** | Central config mapping block types to components, default props/styles, and editable fields. |
@@ -1483,7 +1445,7 @@ This contract ensures AI output can be validated and loaded directly into the ed
 
 ---
 
-*Document Version: 3.26 — Block Position panel now includes a Column slot picker for multi-slot layouts (flow blocks only); `moveBlockToSlot` action added to EditorActions and store*
+*Document Version: 3.28 — Flexible layout picker: GroupModeSettings shows [1][2][3] column count tabs + full span-distribution thumbnails + alignment buttons + reversed toggle (no longer uses `allowedLayouts` to restrict choices). Full distribution set: 5×2-col (`2col-1-5`, `2col-2-4`, `2col-3-3`, `2col-4-2`, `2col-5-1`) and 6×3-col (`3col-1-1-4`, `3col-1-2-3`, `3col-1-4-1`, `3col-2-2-2`, `3col-3-2-1`, `3col-4-1-1`); removed `2col-3-3-rev`. Added `updateGroupLayoutOptions` store action for alignment/reversed without slot migration. `updateGroupLayout` preserves alignment across all switches; reversed preserved when column count stays the same.*
 *Last Updated: February 19, 2026*
 *Keep this document updated as architecture decisions change.*
 *For colors and theming, always reference the separate Style Guide file.*

@@ -1,6 +1,5 @@
 import { useEditorStore } from "~/stores/editorStore";
 import { SECTION_REGISTRY } from "~/config/sectionRegistry";
-import { getLayoutsByIds } from "~/config/layoutTemplates";
 import { BlockSettings } from "./BlockSettings";
 import { SectionModeSettings } from "./SectionModeSettings";
 import { GroupModeSettings } from "./GroupModeSettings";
@@ -51,7 +50,6 @@ export function SettingsPanel() {
   }
 
   const isGroupMode = Boolean(selectedGroupId && activeGroup);
-  const allowedLayouts = getLayoutsByIds(registry.allowedLayouts);
 
   return (
     <div className="flex h-full w-[300px] shrink-0 flex-col border-l border-sidebar-border bg-sidebar">
@@ -107,7 +105,6 @@ export function SettingsPanel() {
             section={section}
             activeGroup={activeGroup}
             selectedBlockId={selectedBlockId}
-            allowedLayouts={allowedLayouts}
           />
         ) : (
           <SectionModeSettings section={section} />
