@@ -16,10 +16,19 @@ export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
     component: HeadingBlock,
     label: "Heading",
     icon: "title",
-    defaultProps: { text: "Heading text" },
+    defaultProps: { text: "Heading text", textStyle: "default" },
     defaultStyle: { fontSize: "4xl", fontWeight: "bold", textAlign: "left" },
     editableProps: [
       { key: "text", label: "Text", type: "short-text" },
+      {
+        key: "textStyle",
+        label: "Style",
+        type: "select",
+        options: [
+          { label: "Default", value: "default" },
+          { label: "Gradient", value: "gradient" },
+        ],
+      },
     ],
     editableStyles: [
       {

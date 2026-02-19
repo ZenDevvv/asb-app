@@ -24,26 +24,40 @@ const TEXT_ALIGN_MAP: Record<string, string> = {
   right: "text-right",
 };
 
-export function HeadingBlock({ block, sectionStyle }: BlockComponentProps) {
-  const { text } = block.props as { text: string };
+export function HeadingBlock({ block, sectionStyle, globalStyle }: BlockComponentProps) {
+  const { text, textStyle = "default" } = block.props as { text: string; textStyle?: string };
   const s = block.style;
+
+  const isGradient = textStyle === "gradient";
+
+  const accentColor = sectionStyle.accentColor || globalStyle.primaryColor;
+  const gradientTo = globalStyle.themeMode === "dark" ? "#ffffff" : "#111111";
 
   const classes = [
     FONT_SIZE_MAP[s.fontSize || "4xl"] || "text-4xl",
     FONT_WEIGHT_MAP[s.fontWeight || "bold"] || "font-bold",
     TEXT_ALIGN_MAP[s.textAlign || "left"] || "text-left",
     "leading-tight",
+    "text-balance",
   ].join(" ");
 
+  const inlineStyle: React.CSSProperties = {
+    ...(isGradient
+      ? {
+          background: `linear-gradient(135deg, ${accentColor}, ${gradientTo})`,
+          WebkitBackgroundClip: "text",
+          backgroundClip: "text",
+          color: "transparent",
+        }
+      : {
+          color: s.textColor || sectionStyle.textColor || "#ffffff",
+        }),
+    marginTop: s.marginTop ?? 0,
+    marginBottom: s.marginBottom ?? 0,
+  };
+
   return (
-    <h2
-      className={classes}
-      style={{
-        color: s.textColor || sectionStyle.textColor || "#ffffff",
-        marginTop: s.marginTop ?? 0,
-        marginBottom: s.marginBottom ?? 0,
-      }}
-    >
+    <h2 className={classes} style={inlineStyle}>
       {text || "Heading text"}
     </h2>
   );
