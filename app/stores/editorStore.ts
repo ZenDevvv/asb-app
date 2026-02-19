@@ -174,32 +174,20 @@ function mapSlotByIndex(sourceSlot: string, sourceSlots: string[], targetSlots: 
   return targetSlots[Math.min(sourceIndex, targetSlots.length - 1)];
 }
 
-function normalizeBlocksBySlotOrder(
-  blocks: Block[],
-  slots: string[],
-  options?: { keepUnknownSlots?: boolean },
-) {
+function normalizeBlocksBySlotOrder(blocks: Block[], slots: string[]) {
   if (slots.length === 0) return;
   const flowBlocks = getFlowBlocks(blocks);
   if (flowBlocks.length === 0) return;
 
   const validSlots = new Set(slots);
   const fallbackSlot = slots[0];
-  const keepUnknownSlots = options?.keepUnknownSlots ?? false;
+  flowBlocks.forEach((block) => {
+    if (!validSlots.has(block.slot)) {
+      block.slot = fallbackSlot;
+    }
+  });
 
-  if (!keepUnknownSlots) {
-    flowBlocks.forEach((block) => {
-      if (!validSlots.has(block.slot)) {
-        block.slot = fallbackSlot;
-      }
-    });
-  }
-
-  const slotsToNormalize = keepUnknownSlots
-    ? [...new Set([...slots, ...flowBlocks.map((block) => block.slot)])]
-    : slots;
-
-  slotsToNormalize.forEach((slot) => {
+  slots.forEach((slot) => {
     const blocksInSlot = flowBlocks
       .filter((block) => block.slot === slot)
       .sort((a, b) => a.order - b.order);
@@ -208,16 +196,6 @@ function normalizeBlocksBySlotOrder(
       block.order = index;
     });
   });
-}
-
-function getNavbarSemanticSlot(block: Block, fallbackSlot: string): string {
-  if (fallbackSlot === "brand" || fallbackSlot === "links" || fallbackSlot === "actions") {
-    return fallbackSlot;
-  }
-
-  if (block.type === "button") return "actions";
-  if (block.type === "list" || block.type === "text") return "links";
-  return "brand";
 }
 
 function getBlocksForSingleColumnView(blocks: Block[], slots: string[]) {
@@ -290,9 +268,7 @@ function buildDefaultGroups(sectionType: SectionType): Group[] {
   ];
 
   groups.forEach((group) => {
-    normalizeBlocksBySlotOrder(group.blocks, group.layout.slots, {
-      keepUnknownSlots: sectionType === "navbar",
-    });
+    normalizeBlocksBySlotOrder(group.blocks, group.layout.slots);
   });
 
   return groups;
@@ -358,9 +334,7 @@ function normalizeIncomingGroups(sectionType: SectionType, sectionLike: unknown)
         layoutSlotMemories: rawGroup.layoutSlotMemories,
       };
 
-      normalizeBlocksBySlotOrder(group.blocks, group.layout.slots, {
-        keepUnknownSlots: sectionType === "navbar",
-      });
+      normalizeBlocksBySlotOrder(group.blocks, group.layout.slots);
       groups.push(group);
     });
 
@@ -388,9 +362,7 @@ function normalizeIncomingGroups(sectionType: SectionType, sectionLike: unknown)
       layoutSlotMemories: (rawSection as { layoutSlotMemories?: Record<string, LayoutSlotMemory> }).layoutSlotMemories,
     };
 
-    normalizeBlocksBySlotOrder(group.blocks, group.layout.slots, {
-      keepUnknownSlots: sectionType === "navbar",
-    });
+    normalizeBlocksBySlotOrder(group.blocks, group.layout.slots);
 
     return [group];
   }
@@ -712,14 +684,9 @@ export const useEditorStore = create<EditorState & EditorActions>()(
         const oldReversed = group.layout.reversed;
         const oldSlots = group.layout.slots;
         const newSlots = layout.slots;
-        const isNavbarSemanticSwitch =
-          section.type === "navbar" &&
-          (oldLayoutId.startsWith("nav-") || layout.id.startsWith("nav-"));
 
         if (oldSlots.length !== newSlots.length || oldSlots.some((s, i) => s !== newSlots[i])) {
-          normalizeBlocksBySlotOrder(group.blocks, oldSlots, {
-            keepUnknownSlots: isNavbarSemanticSwitch,
-          });
+          normalizeBlocksBySlotOrder(group.blocks, oldSlots);
 
           if (!group.layoutSlotMemories) {
             group.layoutSlotMemories = {};
@@ -737,34 +704,19 @@ export const useEditorStore = create<EditorState & EditorActions>()(
 
           const flowBlocks = getFlowBlocks(group.blocks);
 
-          const applyFromMemory = (
-            memory: LayoutSlotMemory,
-            options?: {
-              preserveUnavailableSlots?: boolean;
-              useNavbarSemanticFallback?: boolean;
-            },
-          ) => {
+          const applyFromMemory = (memory: LayoutSlotMemory) => {
             flowBlocks.forEach((block) => {
               const targetMemory = memory.byBlockId[block.id];
               if (targetMemory) {
                 block.slot = newSlots.includes(targetMemory.slot)
                   ? targetMemory.slot
-                  : options?.preserveUnavailableSlots
-                    ? targetMemory.slot
-                    : mapSlotByIndex(targetMemory.slot, memory.sourceSlots, newSlots);
+                  : mapSlotByIndex(targetMemory.slot, memory.sourceSlots, newSlots);
                 block.order = targetMemory.order;
                 return;
               }
 
               const currentMemory = currentLayoutMemory.byBlockId[block.id];
               const sourceSlot = currentMemory?.slot || oldSlots[0];
-
-              if (options?.useNavbarSemanticFallback) {
-                block.slot = getNavbarSemanticSlot(block, sourceSlot);
-                block.order = currentMemory?.order ?? block.order;
-                return;
-              }
-
               block.slot = mapSlotByIndex(sourceSlot, oldSlots, newSlots);
               block.order = currentMemory?.order ?? block.order;
             });
@@ -777,15 +729,9 @@ export const useEditorStore = create<EditorState & EditorActions>()(
               : undefined;
 
           if (targetLayoutMemory) {
-            applyFromMemory(targetLayoutMemory, {
-              preserveUnavailableSlots: isNavbarSemanticSwitch,
-              useNavbarSemanticFallback: isNavbarSemanticSwitch,
-            });
+            applyFromMemory(targetLayoutMemory);
           } else if (fallbackFromSingle) {
-            applyFromMemory(fallbackFromSingle, {
-              preserveUnavailableSlots: isNavbarSemanticSwitch,
-              useNavbarSemanticFallback: isNavbarSemanticSwitch,
-            });
+            applyFromMemory(fallbackFromSingle);
           } else if (newSlots.length === 1) {
             const orderedBlocks = getBlocksForSingleColumnView(flowBlocks, oldSlots);
             orderedBlocks.forEach((block, index) => {
@@ -793,31 +739,15 @@ export const useEditorStore = create<EditorState & EditorActions>()(
               block.order = index;
             });
           } else {
-            if (isNavbarSemanticSwitch) {
-              flowBlocks.forEach((block) => {
-                const currentMemory = currentLayoutMemory.byBlockId[block.id];
-                const sourceSlot = currentMemory?.slot ?? block.slot;
-                const semanticSlot = getNavbarSemanticSlot(block, sourceSlot);
-                block.slot = semanticSlot;
-                block.order = currentMemory?.order ?? block.order;
-
-                if (block.type === "list" && semanticSlot === "links") {
-                  block.props.inline = true;
-                }
-              });
-            } else {
-              flowBlocks.forEach((block) => {
-                const currentMemory = currentLayoutMemory.byBlockId[block.id];
-                const sourceSlot = currentMemory?.slot ?? block.slot;
-                block.slot = mapSlotByIndex(sourceSlot, oldSlots, newSlots);
-                block.order = currentMemory?.order ?? block.order;
-              });
-            }
+            flowBlocks.forEach((block) => {
+              const currentMemory = currentLayoutMemory.byBlockId[block.id];
+              const sourceSlot = currentMemory?.slot ?? block.slot;
+              block.slot = mapSlotByIndex(sourceSlot, oldSlots, newSlots);
+              block.order = currentMemory?.order ?? block.order;
+            });
           }
 
-          normalizeBlocksBySlotOrder(group.blocks, newSlots, {
-            keepUnknownSlots: isNavbarSemanticSwitch,
-          });
+          normalizeBlocksBySlotOrder(group.blocks, newSlots);
           group.layoutSlotMemories[layout.id] = createLayoutSlotMemory(group.blocks, newSlots);
         }
 
@@ -1004,9 +934,7 @@ export const useEditorStore = create<EditorState & EditorActions>()(
         block.slot = slot;
         block.order = maxOrder + 1;
 
-        normalizeBlocksBySlotOrder(group.blocks, group.layout.slots, {
-          keepUnknownSlots: section.type === "navbar",
-        });
+        normalizeBlocksBySlotOrder(group.blocks, group.layout.slots);
 
         state.isDirty = true;
       });

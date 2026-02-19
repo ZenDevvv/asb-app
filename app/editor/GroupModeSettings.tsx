@@ -13,13 +13,12 @@ interface GroupModeSettingsProps {
   selectedBlockId: string | null;
 }
 
-// Layouts by column count (non-navbar only), deduplicated by spans signature.
-const NAV_LAYOUTS = LAYOUT_TEMPLATES.filter((l) => l.id.startsWith("nav-"));
-const NON_NAV_LAYOUTS = LAYOUT_TEMPLATES.filter((l) => !l.id.startsWith("nav-"));
+// Layouts by column count, deduplicated by spans signature.
+const DISTRIBUTION_LAYOUTS = LAYOUT_TEMPLATES;
 
 function getDistributions(colCount: 1 | 2 | 3): LayoutTemplate[] {
   const seen = new Set<string>();
-  return NON_NAV_LAYOUTS.filter((l) => {
+  return DISTRIBUTION_LAYOUTS.filter((l) => {
     if (l.spans.length !== colCount) return false;
     const key = l.spans.join("-");
     if (seen.has(key)) return false;
@@ -56,7 +55,6 @@ export function GroupModeSettings({
     setOpenSections((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
-  const isNavbarSection = section.type === "navbar";
   const currentSpansLen = activeGroup.layout.spans.length;
   const colCount: 1 | 2 | 3 =
     currentSpansLen === 1 ? 1 : currentSpansLen === 2 ? 2 : 3;
@@ -92,128 +90,104 @@ export function GroupModeSettings({
         isOpen={openSections.layout}
         onToggle={() => togglePanel("layout")}
       >
-        {isNavbarSection ? (
-          /* ── Navbar: show fixed nav-layout thumbnails ── */
-          <div className="grid grid-cols-3 gap-2">
-            {NAV_LAYOUTS.map((layout) => (
-              <button
-                key={layout.id}
-                onClick={() => updateGroupLayout(section.id, activeGroup.id, layout.id)}
-                className={cn(
-                  "flex flex-col items-center rounded-xl border p-2.5 transition-colors",
-                  activeGroup.layout.id === layout.id
-                    ? "border-primary bg-primary/10 text-primary"
-                    : "border-border bg-muted/20 text-muted-foreground hover:border-primary/30",
-                )}
-              >
-                <NavbarLayoutThumbnail layout={layout} />
-                <span className="mt-1.5 text-center text-[9px] font-medium leading-tight">
-                  {layout.label}
-                </span>
-              </button>
-            ))}
-          </div>
-        ) : (
-          /* ── Non-navbar: column-count tabs + distribution + alignment + reversed ── */
-          <div className="space-y-3">
-            {/* Column count tabs */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-muted-foreground">Columns</label>
-              <div className="flex gap-1">
-                {([1, 2, 3] as const).map((count) => (
-                  <button
-                    key={count}
-                    onClick={() => handleColCountSwitch(count)}
-                    className={cn(
-                      "flex-1 rounded-lg border py-1.5 text-[11px] font-medium transition-colors",
-                      colCount === count
-                        ? "border-primary bg-primary/10 text-primary"
-                        : "border-border bg-muted/20 text-muted-foreground hover:border-primary/30",
-                    )}
-                  >
-                    {count}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Distribution thumbnails */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-muted-foreground">Distribution</label>
-              <div className="grid grid-cols-3 gap-2">
-                {distributions.map((layout) => (
-                  <button
-                    key={layout.id}
-                    onClick={() => handleDistributionClick(layout)}
-                    className={cn(
-                      "flex flex-col items-center rounded-xl border p-2.5 transition-colors",
-                      layout.spans.join("-") === activeSpansKey
-                        ? "border-primary bg-primary/10 text-primary"
-                        : "border-border bg-muted/20 text-muted-foreground hover:border-primary/30",
-                    )}
-                  >
-                    <ColumnDistributionThumbnail spans={layout.spans} />
-                    <span className="mt-1.5 text-center text-[9px] font-medium leading-tight">
-                      {layout.spans.join(" · ")}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Alignment */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-muted-foreground">Alignment</label>
-              <div className="flex gap-1">
-                {(["top", "center", "bottom"] as const).map((align) => (
-                  <button
-                    key={align}
-                    onClick={() =>
-                      updateGroupLayoutOptions(section.id, activeGroup.id, { alignment: align })
-                    }
-                    title={align.charAt(0).toUpperCase() + align.slice(1)}
-                    className={cn(
-                      "flex flex-1 items-center justify-center rounded-lg border py-1.5 transition-colors",
-                      activeGroup.layout.alignment === align
-                        ? "border-primary bg-primary/10 text-primary"
-                        : "border-border bg-muted/20 text-muted-foreground hover:border-primary/30",
-                    )}
-                  >
-                    <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
-                      {align === "top"
-                        ? "vertical_align_top"
-                        : align === "center"
-                          ? "vertical_align_center"
-                          : "vertical_align_bottom"}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Reversed toggle (multi-col only) */}
-            {colCount > 1 && (
-              <div className="flex items-center justify-between">
-                <label className="text-xs font-medium text-muted-foreground">Reversed</label>
+        <div className="space-y-3">
+          {/* Column count tabs */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-muted-foreground">Columns</label>
+            <div className="flex gap-1">
+              {([1, 2, 3] as const).map((count) => (
                 <button
-                  onClick={() =>
-                    updateGroupLayoutOptions(section.id, activeGroup.id, {
-                      reversed: !activeGroup.layout.reversed,
-                    })
-                  }
+                  key={count}
+                  onClick={() => handleColCountSwitch(count)}
                   className={cn(
-                    "rounded-lg border px-3 py-1 text-[10px] font-medium transition-colors",
-                    activeGroup.layout.reversed
+                    "flex-1 rounded-lg border py-1.5 text-[11px] font-medium transition-colors",
+                    colCount === count
                       ? "border-primary bg-primary/10 text-primary"
                       : "border-border bg-muted/20 text-muted-foreground hover:border-primary/30",
                   )}
                 >
-                  {activeGroup.layout.reversed ? "On" : "Off"}
+                  {count}
                 </button>
-              </div>
-            )}
+              ))}
+            </div>
           </div>
-        )}
+
+          {/* Distribution thumbnails */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-muted-foreground">Distribution</label>
+            <div className="grid grid-cols-3 gap-2">
+              {distributions.map((layout) => (
+                <button
+                  key={layout.id}
+                  onClick={() => handleDistributionClick(layout)}
+                  className={cn(
+                    "flex flex-col items-center rounded-xl border p-2.5 transition-colors",
+                    layout.spans.join("-") === activeSpansKey
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border bg-muted/20 text-muted-foreground hover:border-primary/30",
+                  )}
+                >
+                  <ColumnDistributionThumbnail spans={layout.spans} />
+                  <span className="mt-1.5 text-center text-[9px] font-medium leading-tight">
+                    {layout.spans.join(" x ")}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Alignment */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-muted-foreground">Alignment</label>
+            <div className="flex gap-1">
+              {(["top", "center", "bottom"] as const).map((align) => (
+                <button
+                  key={align}
+                  onClick={() =>
+                    updateGroupLayoutOptions(section.id, activeGroup.id, { alignment: align })
+                  }
+                  title={align.charAt(0).toUpperCase() + align.slice(1)}
+                  className={cn(
+                    "flex flex-1 items-center justify-center rounded-lg border py-1.5 transition-colors",
+                    activeGroup.layout.alignment === align
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border bg-muted/20 text-muted-foreground hover:border-primary/30",
+                  )}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
+                    {align === "top"
+                      ? "vertical_align_top"
+                      : align === "center"
+                        ? "vertical_align_center"
+                        : "vertical_align_bottom"}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Reversed toggle (multi-col only) */}
+          {colCount > 1 && (
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-medium text-muted-foreground">Reversed</label>
+              <button
+                onClick={() =>
+                  updateGroupLayoutOptions(section.id, activeGroup.id, {
+                    reversed: !activeGroup.layout.reversed,
+                  })
+                }
+                className={cn(
+                  "rounded-lg border px-3 py-1 text-[10px] font-medium transition-colors",
+                  activeGroup.layout.reversed
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border bg-muted/20 text-muted-foreground hover:border-primary/30",
+                )}
+              >
+                {activeGroup.layout.reversed ? "On" : "Off"}
+              </button>
+            </div>
+          )}
+        </div>
       </SettingsCollapsibleSection>
 
       <SettingsCollapsibleSection
@@ -365,7 +339,7 @@ export function GroupModeSettings({
             </div>
           </div>
 
-          {/* Corners — only when surface is active */}
+          {/* Corners - only when surface is active */}
           {activeGroup.style?.surface && activeGroup.style.surface !== "none" && (
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground">Corners</label>
@@ -440,50 +414,6 @@ function ColumnDistributionThumbnail({ spans }: { spans: number[] }) {
   );
 }
 
-function NavbarLayoutThumbnail({
-  layout,
-}: {
-  layout: { spans: number[]; slots: string[] };
-}) {
-  const total = layout.spans.reduce((sum, n) => sum + n, 0);
-
-  return (
-    <div className="flex h-8 w-full items-center gap-0.5 rounded-md border border-current/25 bg-current/10 p-1">
-      {layout.slots.map((slot, i) => {
-        const part = layout.spans[i] ?? total / Math.max(1, layout.slots.length);
-        return (
-          <div
-            key={slot}
-            className="flex h-full min-w-0 items-center justify-center rounded-sm bg-current/15 px-1"
-            style={{ width: `${(part / total) * 100}%` }}
-          >
-            {slot === "brand" && (
-              <div className="flex items-center gap-1">
-                <div className="size-2 rounded-sm bg-current opacity-85" />
-                <div className="h-1.5 w-5 rounded bg-current opacity-75" />
-              </div>
-            )}
-            {slot === "links" && (
-              <div className="flex items-center gap-0.5">
-                <div className="h-1 w-2 rounded bg-current opacity-70" />
-                <div className="h-1 w-2 rounded bg-current opacity-70" />
-                <div className="h-1 w-2 rounded bg-current opacity-70" />
-                <div className="h-1 w-2 rounded bg-current opacity-70" />
-              </div>
-            )}
-            {slot === "actions" && (
-              <div className="h-3 w-7 rounded-full border border-current/45 bg-current/35" />
-            )}
-            {slot !== "brand" && slot !== "links" && slot !== "actions" && (
-              <div className="h-1.5 w-5 rounded bg-current opacity-60" />
-            )}
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
 function getBlockPreviewText(props: Record<string, unknown>): string {
   if (typeof props.text === "string") return props.text.slice(0, 40);
   if (typeof props.icon === "string") return props.icon;
@@ -491,3 +421,5 @@ function getBlockPreviewText(props: Record<string, unknown>): string {
   if (Array.isArray(props.items)) return `${props.items.length} items`;
   return "";
 }
+
+

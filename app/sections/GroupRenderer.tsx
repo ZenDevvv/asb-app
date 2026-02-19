@@ -35,9 +35,8 @@ function groupBlocksBySlot(blocks: Block[] | undefined): Record<string, Block[]>
 	return groups;
 }
 
-function getLayoutGridClasses(layout: LayoutTemplate, sectionType: Section["type"]): string {
-	const isNavbarLayout = sectionType === "navbar" || layout.id.startsWith("nav-");
-	const base = isNavbarLayout ? "grid w-full gap-4" : "grid w-full gap-8";
+function getLayoutGridClasses(layout: LayoutTemplate): string {
+	const base = "grid w-full gap-8";
 	const alignment =
 		layout.alignment === "center"
 			? "items-center"
@@ -122,7 +121,7 @@ export function GroupRenderer({
 		lastY: number;
 	} | null>(null);
 	const isDraggingAbsoluteBlock = draggingAbsoluteBlockId !== null;
-	const gridClasses = getLayoutGridClasses(layout, section.type);
+	const gridClasses = getLayoutGridClasses(layout);
 	const containerStyle = getGroupContainerStyle(group, globalStyle.themeMode);
 	const slotGap = GAP_MAP[group.style?.gap ?? ""] ?? "0px";
 

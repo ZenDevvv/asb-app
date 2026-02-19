@@ -5,12 +5,26 @@ export const SECTION_REGISTRY: Record<SectionType, SectionRegistryEntry> = {
     label: "Navigation",
     icon: "menu",
     description: "Top navigation bar with logo and links",
-    allowedLayouts: ["nav-brand-links", "nav-brand-cta", "nav-brand-links-cta"],
-    defaultLayoutId: "nav-brand-links-cta",
+    allowedLayouts: [
+      "1col",
+      "1col-left",
+      "2col-1-5",
+      "2col-2-4",
+      "2col-3-3",
+      "2col-4-2",
+      "2col-5-1",
+      "3col-1-1-4",
+      "3col-1-2-3",
+      "3col-1-4-1",
+      "3col-2-2-2",
+      "3col-3-2-1",
+      "3col-4-1-1",
+    ],
+    defaultLayoutId: "3col-1-4-1",
     defaultBlocks: [
       {
         type: "heading",
-        slot: "brand",
+        slot: "col-1",
         order: 0,
         props: { text: "Astra Studio" },
         style: {
@@ -21,7 +35,7 @@ export const SECTION_REGISTRY: Record<SectionType, SectionRegistryEntry> = {
       },
       {
         type: "list",
-        slot: "links",
+        slot: "col-2",
         order: 0,
         props: {
           items: [
@@ -39,7 +53,7 @@ export const SECTION_REGISTRY: Record<SectionType, SectionRegistryEntry> = {
       },
       {
         type: "button",
-        slot: "actions",
+        slot: "col-3",
         order: 0,
         props: { text: "Start Free", url: "#" },
         style: { fontSize: "sm", textAlign: "right" },

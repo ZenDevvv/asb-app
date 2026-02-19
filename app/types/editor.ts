@@ -45,7 +45,7 @@ export interface LayoutTemplate {
   spans: number[];                       // Column widths summing to 6, e.g. [6], [3,3], [4,2], [1,4,1]
   alignment: "top" | "center" | "bottom";
   reversed: boolean;                     // Reverses column visual order (rtl trick)
-  slots: string[];                       // ["main"] (1-col) | ["col-1","col-2",...] (multi) | semantic for navbar
+  slots: string[];                       // ["main"] (1-col) | ["col-1","col-2",...] (multi)
 }
 
 export type SectionType =

@@ -451,9 +451,6 @@ function formatSlotLabel(slot: string): string {
 	if (slot === "main") return "Main";
 	if (slot === "left") return "Left";
 	if (slot === "right") return "Right";
-	if (slot === "brand") return "Brand";
-	if (slot === "links") return "Links";
-	if (slot === "actions") return "Actions";
 	const colMatch = /^col-(\d+)$/.exec(slot);
 	if (colMatch) return `Col ${colMatch[1]}`;
 	return slot.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());

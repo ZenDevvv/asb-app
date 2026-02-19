@@ -1,7 +1,7 @@
 import type { LayoutTemplate } from "~/types/editor";
 
 export const LAYOUT_TEMPLATES: LayoutTemplate[] = [
-  // ─── 1 Column ─────────────────────────────────────────────────────────────
+  // 1 Column
   {
     id: "1col",
     label: "Centered",
@@ -19,33 +19,7 @@ export const LAYOUT_TEMPLATES: LayoutTemplate[] = [
     slots: ["main"],
   },
 
-  // ─── Navbar-specific layouts (semantic slots) ──────────────────────────────
-  {
-    id: "nav-brand-links",
-    label: "Brand + Links",
-    spans: [2, 4],
-    alignment: "center",
-    reversed: false,
-    slots: ["brand", "links"],
-  },
-  {
-    id: "nav-brand-cta",
-    label: "Brand + CTA",
-    spans: [4, 2],
-    alignment: "center",
-    reversed: false,
-    slots: ["brand", "actions"],
-  },
-  {
-    id: "nav-brand-links-cta",
-    label: "Brand + Links + CTA",
-    spans: [2, 3, 1],
-    alignment: "center",
-    reversed: false,
-    slots: ["brand", "links", "actions"],
-  },
-
-  // ─── 2 Columns ────────────────────────────────────────────────────────────
+  // 2 Columns
   {
     id: "2col-1-5",
     label: "Sidebar Left",
@@ -87,7 +61,7 @@ export const LAYOUT_TEMPLATES: LayoutTemplate[] = [
     slots: ["col-1", "col-2"],
   },
 
-  // ─── 3 Columns ────────────────────────────────────────────────────────────
+  // 3 Columns
   {
     id: "3col-1-1-4",
     label: "Wide Right",
@@ -145,3 +119,4 @@ export function getLayoutById(id: string): LayoutTemplate | undefined {
 export function getLayoutsByIds(ids: string[]): LayoutTemplate[] {
   return LAYOUT_TEMPLATES.filter((l) => ids.includes(l.id));
 }
+

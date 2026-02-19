@@ -233,14 +233,11 @@ export function SectionRenderer({
 		style: getRenderSectionStyle(section, globalStyle),
 	};
 	const orderedGroups = renderSection.groups.slice().sort((a, b) => a.order - b.order);
-	const hasNavbarLayout =
-		renderSection.type === "navbar" ||
-		orderedGroups.some((group) => group.layout.id.startsWith("nav-"));
 	const bgStyle = getSectionBackground(renderSection.style, globalStyle.themeMode);
 
 	return (
 		<section style={bgStyle}>
-			<div className={hasNavbarLayout ? "mx-auto max-w-7xl px-6" : "mx-auto max-w-6xl px-6"}>
+			<div className="mx-auto max-w-6xl px-6">
 				<div className="space-y-8">
 					{orderedGroups.map((group) => (
 						<GroupRenderer
