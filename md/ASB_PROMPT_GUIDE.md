@@ -609,13 +609,13 @@ Rules for block components:
   text: string;
   url: string;
   variant: “solid” | “outline” | “ghost” | “link”;  // default: “solid”
-  iconLeft?: string;   // Material Symbol name â€” empty string = no icon
-  iconRight?: string;  // Material Symbol name â€” empty string = no icon
+  iconLeft?: string;   // Material Symbol name, set via icon-picker modal â€” empty string = no icon
+  iconRight?: string;  // Material Symbol name, set via icon-picker modal â€” empty string = no icon
 }
 // variant drives className/style branching in ButtonBlock.tsx
 // all 4 variants inherit accentColor from sectionStyle (or globalStyle.primaryColor)
 // globalStyle.borderRadius applies to solid, outline, ghost â€” NOT link
-// iconLeft/iconRight render as <span class=”material-symbols-outlined”> inside the <a>
+// iconLeft/iconRight use "icon-picker" control in editableProps; render as <span class="material-symbols-outlined"> inside the <a>
 // icon size tracks block.style.fontSize: sm=16, base=18, lg=20, xl=22px
 ```
 
@@ -741,7 +741,10 @@ type ControlType =
   | "slider"          // Continuous slider (Radix Slider) for padding, spacing, etc.
   | "background"      // Composite: type selector + color/gradient/image controls
   | "repeater"        // Add/remove/reorder list items with sub-fields
-  | "icon-picker"     // Searchable Material Symbols grid
+  | "icon-picker"     // Searchable Material Symbols modal — implemented via IconPickerControl.tsx
+                      //   10 categories (~130 icons), search, category browse, remove option
+                      //   Consecutive icon-picker fields in editableProps auto-render side-by-side
+                      //   (grid grid-cols-2) via groupEditableFields() in BlockSettings.tsx
   | "toggle"          // Radix Switch (boolean)
   | "select"          // Native <select> dropdown (implemented in FieldRenderer — used by button variant)
   | "size-picker"     // Segmented control for size choices (sm/md/lg/xl)
@@ -951,6 +954,7 @@ app/
 â”‚   â”‚   â”œâ”€â”€ BackgroundControl.tsx  # Composite: type + color/gradient/image + padding
 â”‚   â”‚   â”œâ”€â”€ ImageControl.tsx
 â”‚   â”‚   â”œâ”€â”€ RepeaterControl.tsx
+â”‚   â”‚   â”œâ”€â”€ IconPickerControl.tsx      # Reusable icon picker modal (searchable Material Symbols grid)
 â”‚   â”‚   â”œâ”€â”€ SizePickerControl.tsx
 â”‚   â”‚   â”œâ”€â”€ AlignPickerControl.tsx
 â”‚   â”‚   â”œâ”€â”€ FieldRenderer.tsx      # Control type switch
@@ -1403,7 +1407,7 @@ This contract ensures AI output can be validated and loaded directly into the ed
 
 ---
 
-*Document Version: 3.21 — Button variants (solid/outline/ghost/link) + icon slots (iconLeft/iconRight) added to button block*
+*Document Version: 3.22 — IconPickerControl.tsx added; iconLeft/iconRight use icon-picker control type; groupEditableFields() auto side-by-side layout*
 *Last Updated: February 19, 2026*
 *Keep this document updated as architecture decisions change.*
 *For colors and theming, always reference the separate Style Guide file.*

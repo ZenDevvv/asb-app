@@ -244,7 +244,7 @@ export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
     defaultProps: { icon: "star", label: "" },
     defaultStyle: { fontSize: "xl", textAlign: "left" },
     editableProps: [
-      { key: "icon", label: "Icon Name", type: "short-text" },
+      { key: "icon", label: "Icon", type: "icon-picker" },
       { key: "label", label: "Label", type: "short-text" },
     ],
     editableStyles: [
