@@ -15,13 +15,50 @@ const TEXT_ALIGN_MAP: Record<string, string> = {
   right: "text-right",
 };
 
+const OPACITY_MAP: Record<string, number> = {
+  subtle: 0.1,
+  medium: 0.18,
+  strong: 0.28,
+};
+
+function hexToRgba(hex: string, alpha: number): string {
+  let h = hex.replace("#", "");
+  if (h.length === 3) h = h.split("").map((c) => c + c).join("");
+  const match = h.match(/.{2}/g);
+  if (!match || match.length < 3) return `rgba(99, 102, 241, ${alpha})`;
+  const [r, g, b] = match.map((x) => parseInt(x, 16));
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
 export function IconBlock({ block, sectionStyle, globalStyle }: BlockComponentProps) {
-  const { icon, label } = block.props as { icon: string; label?: string };
+  const { icon, label, displayStyle = "plain", bgOpacity = "medium" } = block.props as {
+    icon: string;
+    label?: string;
+    displayStyle?: string;
+    bgOpacity?: string;
+  };
   const s = block.style;
 
   const iconSize = SIZE_MAP[s.fontSize || "xl"] || 48;
   const color = s.textColor || sectionStyle.accentColor || globalStyle.primaryColor || "#00e5a0";
   const alignClass = TEXT_ALIGN_MAP[s.textAlign || "left"] || "";
+  const isPlain = displayStyle === "plain";
+
+  const accentColor = sectionStyle.accentColor || globalStyle.primaryColor;
+  const alpha = OPACITY_MAP[bgOpacity] ?? 0.18;
+  const padding = Math.round(iconSize * 0.4);
+
+  const borderRadiusMap: Record<string, string | number> = {
+    circle: "50%",
+    square: 6,
+    "rounded-square": Math.round(iconSize * 0.22),
+  };
+
+  const iconEl = (
+    <span className="material-symbols-outlined" style={{ fontSize: iconSize, color }}>
+      {icon || "star"}
+    </span>
+  );
 
   return (
     <div
@@ -31,17 +68,24 @@ export function IconBlock({ block, sectionStyle, globalStyle }: BlockComponentPr
         marginBottom: s.marginBottom ?? 0,
       }}
     >
-      <span
-        className="material-symbols-outlined"
-        style={{ fontSize: iconSize, color }}
-      >
-        {icon || "star"}
-      </span>
-      {label && (
-        <p
-          className="mt-1 text-sm"
-          style={{ color: sectionStyle.textColor || "#ffffff" }}
+      {isPlain ? (
+        iconEl
+      ) : (
+        <div
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding,
+            backgroundColor: hexToRgba(accentColor, alpha),
+            borderRadius: borderRadiusMap[displayStyle] ?? 6,
+          }}
         >
+          {iconEl}
+        </div>
+      )}
+      {label && (
+        <p className="mt-1 text-sm" style={{ color: sectionStyle.textColor || "#ffffff" }}>
           {label}
         </p>
       )}

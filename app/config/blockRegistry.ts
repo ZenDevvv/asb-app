@@ -250,11 +250,32 @@ export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
     component: IconBlock,
     label: "Icon",
     icon: "emoji_symbols",
-    defaultProps: { icon: "star", label: "" },
+    defaultProps: { icon: "star", label: "", displayStyle: "plain", bgOpacity: "medium" },
     defaultStyle: { fontSize: "xl", textAlign: "left" },
     editableProps: [
       { key: "icon", label: "Icon", type: "icon-picker" },
       { key: "label", label: "Label", type: "short-text" },
+      {
+        key: "displayStyle",
+        label: "Display",
+        type: "select",
+        options: [
+          { label: "Plain", value: "plain" },
+          { label: "Circle", value: "circle" },
+          { label: "Square", value: "square" },
+          { label: "Rounded", value: "rounded-square" },
+        ],
+      },
+      {
+        key: "bgOpacity",
+        label: "Intensity",
+        type: "select",
+        options: [
+          { label: "Subtle", value: "subtle" },
+          { label: "Medium", value: "medium" },
+          { label: "Strong", value: "strong" },
+        ],
+      },
     ],
     editableStyles: [
       {
