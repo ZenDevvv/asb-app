@@ -313,7 +313,7 @@ type BlockType =
   | "image"          // Single image with alt text
   | "icon"           // Material Symbol icon with optional label
   | "spacer"         // Vertical space (height slider)
-  | "badge"          // Small label/tag (e.g., "NEW", "v2.0")
+  | "badge"          // Small label/tag — variant (subtle/filled/outline/pill-dot) + text
   | "divider"        // Horizontal line
   | "list"           // Bulleted or numbered list of text items
   | "quote"          // Blockquote with attribution
@@ -637,6 +637,23 @@ Rules for block components:
 //   implemented via background-clip:text + color:transparent on the heading element
 // text-wrap:balance (text-balance Tailwind class) is applied to ALL headings unconditionally
 // textStyle uses "select" control type in editableProps (options: Default / Gradient)
+```
+
+**Badge block props (implemented):**
+```typescript
+// badge block.props shape
+{
+  text: string;
+  variant?: "subtle" | "filled" | "outline" | "pill-dot";  // default: "subtle"
+}
+// "subtle"   → tinted accent background (accentColor + "18" alpha) + accent text — original style
+// "filled"   → solid accent background + white text (#ffffff)
+// "outline"  → transparent bg, 1px solid accent border + accent text
+// "pill-dot" → tinted accent background (same as subtle) + accent text + small filled dot prefix
+//              dot is a size-1.5 rounded-full span before the text, colored with accentColor
+//              always renders with rounded-full regardless of globalStyle.borderRadius
+// subtle/filled/outline respect globalStyle.borderRadius (never "rounded-none" — falls back to "rounded-md")
+// variant uses "select" control type in editableProps
 ```
 
 **Icon block props (implemented):**
@@ -1464,7 +1481,7 @@ This contract ensures AI output can be validated and loaded directly into the ed
 
 ---
 
-*Document Version: 3.24 — SectionStyle.backgroundEffect (none/noise/dots/grid); CSS multiple-background-layer implementation in SectionRenderer; Overlay Effect 4-button toggle added to BackgroundControl*
+*Document Version: 3.25 — badge variant prop (subtle/filled/outline/pill-dot); pill-dot always rounded-full; variant "select" control in blockRegistry*
 *Last Updated: February 19, 2026*
 *Keep this document updated as architecture decisions change.*
 *For colors and theming, always reference the separate Style Guide file.*

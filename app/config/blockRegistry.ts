@@ -321,10 +321,21 @@ export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
     component: BadgeBlock,
     label: "Badge",
     icon: "label",
-    defaultProps: { text: "NEW" },
+    defaultProps: { text: "NEW", variant: "subtle" },
     defaultStyle: { fontSize: "base", textAlign: "left" },
     editableProps: [
       { key: "text", label: "Text", type: "short-text" },
+      {
+        key: "variant",
+        label: "Style",
+        type: "select",
+        options: [
+          { label: "Subtle", value: "subtle" },
+          { label: "Filled", value: "filled" },
+          { label: "Outline", value: "outline" },
+          { label: "Pill Dot", value: "pill-dot" },
+        ],
+      },
     ],
     editableStyles: [
       {
