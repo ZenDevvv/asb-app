@@ -239,9 +239,7 @@ export function SectionRenderer({
 	const bgStyle = getSectionBackground(renderSection.style, globalStyle.themeMode);
 
 	return (
-		<section
-			className={hasNavbarLayout ? "border-b border-border/60" : undefined}
-			style={bgStyle}>
+		<section style={bgStyle}>
 			<div className={hasNavbarLayout ? "mx-auto max-w-7xl px-6" : "mx-auto max-w-6xl px-6"}>
 				<div className="space-y-8">
 					{orderedGroups.map((group) => (

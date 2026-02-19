@@ -122,7 +122,6 @@ export function GroupRenderer({
 		lastY: number;
 	} | null>(null);
 	const isDraggingAbsoluteBlock = draggingAbsoluteBlockId !== null;
-	const isNavbar = section.type === "navbar" || layout.id.startsWith("nav-");
 	const gridClasses = getLayoutGridClasses(layout, section.type);
 	const containerStyle = getGroupContainerStyle(group, globalStyle.themeMode);
 	const slotGap = GAP_MAP[group.style?.gap ?? ""] ?? "0px";
@@ -360,9 +359,6 @@ export function GroupRenderer({
 				})}
 			</div>
 
-			{isEditing && isNavbar && (
-				<div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-border/60" />
-			)}
 		</div>
 	);
 }
