@@ -195,7 +195,9 @@ The right sidebar changes based on what is selected:
 **When a BLOCK is selected** (click a specific block on the canvas):
 1. **Block Content** - auto-generated controls based on block type (text input, image upload, etc.)
 2. **Block Style** - constrained style options for that block (size, alignment, spacing).
-3. **Position** - choose `flow` or `absolute`. Absolute blocks are positioned relative to the selected group and can be moved on the canvas by dragging.
+3. **Position** - collapsible panel with:
+   - **Column** — slot/column picker (shown only when the group layout has multiple slots and the block is in flow mode). Allows moving the block to a different column after it was added. Calls `moveBlockToSlot` store action.
+   - **Flow / Absolute** toggle — choose positioning mode. Absolute blocks are positioned relative to the selected group and can be moved on the canvas by dragging.
 4. **Back to Group** - button to go back to group-level settings.
 **When NOTHING is selected** (click empty canvas area):
 - **Global Page Settings** â€” website theme mode (dark/light), font family, primary color, corner style.
@@ -1481,7 +1483,7 @@ This contract ensures AI output can be validated and loaded directly into the ed
 
 ---
 
-*Document Version: 3.25 — badge variant prop (subtle/filled/outline/pill-dot); pill-dot always rounded-full; variant "select" control in blockRegistry*
+*Document Version: 3.26 — Block Position panel now includes a Column slot picker for multi-slot layouts (flow blocks only); `moveBlockToSlot` action added to EditorActions and store*
 *Last Updated: February 19, 2026*
 *Keep this document updated as architecture decisions change.*
 *For colors and theming, always reference the separate Style Guide file.*

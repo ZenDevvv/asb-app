@@ -37,6 +37,12 @@ interface BlockSettingsProps {
 export function BlockSettings({ sectionId, groupId, block, onBack, onDelete }: BlockSettingsProps) {
 	const updateBlockProp = useEditorStore((s) => s.updateBlockProp);
 	const updateBlockStyle = useEditorStore((s) => s.updateBlockStyle);
+	const moveBlockToSlot = useEditorStore((s) => s.moveBlockToSlot);
+	const groupSlots = useEditorStore((s) => {
+		const section = s.sections.find((sec) => sec.id === sectionId);
+		const group = section?.groups.find((g) => g.id === groupId);
+		return group?.layout.slots ?? [];
+	});
 
 	const blockEntry = BLOCK_REGISTRY[block.type];
 	if (!blockEntry) return null;
@@ -277,6 +283,28 @@ export function BlockSettings({ sectionId, groupId, block, onBack, onDelete }: B
 				{/* Position */}
 				<CollapsiblePanel title="Position" defaultOpen={false}>
 					<div className="space-y-3">
+						{/* Column selector — only for flow blocks in multi-slot layouts */}
+						{!isAbsolute && groupSlots.length > 1 && (
+							<div className="space-y-1.5">
+								<label className="text-xs font-medium text-muted-foreground">Column</label>
+								<div className={cn("grid gap-1", groupSlots.length === 2 ? "grid-cols-2" : "grid-cols-3")}>
+									{groupSlots.map((slot) => (
+										<button
+											key={slot}
+											onClick={() => moveBlockToSlot(sectionId, groupId, block.id, slot)}
+											className={cn(
+												"rounded-lg border py-1.5 text-[10px] font-medium transition-colors",
+												block.slot === slot
+													? "border-primary bg-primary/10 text-primary"
+													: "border-border text-muted-foreground hover:border-primary/30",
+											)}
+										>
+											{formatSlotLabel(slot)}
+										</button>
+									))}
+								</div>
+							</div>
+						)}
 						<div className="grid grid-cols-2 gap-1">
 							<button
 								onClick={() =>
@@ -415,6 +443,20 @@ export function BlockSettings({ sectionId, groupId, block, onBack, onDelete }: B
 			</div>
 		</div>
 	);
+}
+
+// ─── Helpers ─────────────────────────────────────────────────────────────
+
+function formatSlotLabel(slot: string): string {
+	if (slot === "main") return "Main";
+	if (slot === "left") return "Left";
+	if (slot === "right") return "Right";
+	if (slot === "brand") return "Brand";
+	if (slot === "links") return "Links";
+	if (slot === "actions") return "Actions";
+	const colMatch = /^col-(\d+)$/.exec(slot);
+	if (colMatch) return `Col ${colMatch[1]}`;
+	return slot.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 // ─── Collapsible Panel ───────────────────────────────────────────────────

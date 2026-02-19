@@ -959,6 +959,39 @@ export const useEditorStore = create<EditorState & EditorActions>()(
       });
     },
 
+    moveBlockToSlot: (sectionId: string, groupId: string, blockId: string, slot: string) => {
+      set((state) => {
+        const section = findSection(state, sectionId);
+        if (!section) return;
+        const group = findGroup(section, groupId);
+        if (!group) return;
+
+        const block = findBlock(group, blockId);
+        if (!block || block.slot === slot) return;
+        if (isAbsoluteBlock(block)) return;
+
+        state.history.push(JSON.parse(JSON.stringify(state.sections)));
+        state.future = [];
+
+        const blocksInTargetSlot = group.blocks.filter(
+          (b) => !isAbsoluteBlock(b) && b.slot === slot,
+        );
+        const maxOrder =
+          blocksInTargetSlot.length > 0
+            ? Math.max(...blocksInTargetSlot.map((b) => b.order))
+            : -1;
+
+        block.slot = slot;
+        block.order = maxOrder + 1;
+
+        normalizeBlocksBySlotOrder(group.blocks, group.layout.slots, {
+          keepUnknownSlots: section.type === "navbar",
+        });
+
+        state.isDirty = true;
+      });
+    },
+
     updateBlockProp: (
       sectionId: string,
       groupId: string,

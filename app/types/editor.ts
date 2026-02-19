@@ -251,6 +251,7 @@ export interface EditorActions {
   ) => void;
   removeBlock: (sectionId: string, groupId: string, blockId: string) => void;
   reorderBlocks: (sectionId: string, groupId: string, fromIndex: number, toIndex: number) => void;
+  moveBlockToSlot: (sectionId: string, groupId: string, blockId: string, slot: string) => void;
   updateBlockProp: (
     sectionId: string,
     groupId: string,
