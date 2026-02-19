@@ -389,6 +389,9 @@ interface GroupStyle {
   paddingBottom?: number;         // Group inner bottom spacing (px)
   maxWidth?: "content" | "wide" | "full";
   verticalAlign?: "top" | "center" | "bottom";
+  surface?: "none" | "card" | "glass" | "bordered";  // Visual surface applied to the group container
+  borderRadius?: "none" | "sm" | "md" | "lg";         // Corner radius when surface is active (default "md")
+  gap?: "sm" | "md" | "lg" | "xl";                    // Spacing between blocks within each slot
 }
 
 interface Section {
@@ -619,6 +622,42 @@ Rules for block components:
 // icon size tracks block.style.fontSize: sm=16, base=18, lg=20, xl=22px
 ```
 
+**Heading block props (implemented):**
+```typescript
+// heading block.props shape
+{
+  text: string;
+  textStyle?: "default" | "gradient";  // default: "default"
+}
+// "default" renders heading with inherited text color (sectionStyle.textColor or block.style.textColor)
+// "gradient" renders text with CSS gradient: linear-gradient(135deg, accentColor, white/dark)
+//   gradient endpoint: white (#ffffff) in dark mode, near-black (#111111) in light mode
+//   accentColor comes from sectionStyle.accentColor or globalStyle.primaryColor
+//   implemented via background-clip:text + color:transparent on the heading element
+// text-wrap:balance (text-balance Tailwind class) is applied to ALL headings unconditionally
+// textStyle uses "select" control type in editableProps (options: Default / Gradient)
+```
+
+**Icon block props (implemented):**
+```typescript
+// icon block.props shape
+{
+  icon: string;          // Material Symbol name (e.g., "star", "bolt", "rocket_launch")
+  label?: string;        // Optional text label below the icon
+  displayStyle?: "plain" | "circle" | "square" | "rounded-square";  // default: "plain"
+  bgOpacity?: "subtle" | "medium" | "strong";  // default: "medium" — only when displayStyle != "plain"
+}
+// "plain" renders just the icon (and label if set) with no container background
+// "circle" / "square" / "rounded-square" wrap the icon in an inline-flex div with:
+//   - tinted background using accentColor via hexToRgba() helper in IconBlock.tsx
+//   - bgOpacity maps to alpha: subtle=0.10, medium=0.18, strong=0.28
+//   - border-radius: circle=50%, square=6px, rounded-square=~22% of icon size
+//   - inner padding ~40% of icon size; container sized to keep square aspect ratio
+// displayStyle uses "select" control; bgOpacity uses "select" control (NOT slider)
+//   Reason: FieldRenderer only supports slider control type in editableStyles, not editableProps
+// icon pixel size driven by block.style.fontSize: sm->24px, base->32px, xl->48px, 2xl->64px
+```
+
 ### Section Renderer
 
 The section renderer is responsible for:
@@ -705,7 +744,15 @@ When a group is selected:
 
 - **Layout** panel applies only to that group
 - **Blocks** panel lists only blocks owned by that group
-- **Group Style** panel controls group-local spacing (top/bottom padding)
+- **Group Style** panel controls group-local visual properties:
+  - **Top/Bottom Padding** — continuous slider, adds spacing inside the group container
+  - **Surface** — 4 options: None / Card / Glass / Bordered
+    - Card: subtle fill (white/black alpha depending on themeMode) + thin border
+    - Glass: frosted glass effect (backdrop-filter: blur + semi-transparent fill + border)
+    - Bordered: border only, no fill
+    - When surface is active, 24px inner padding is auto-added on all sides
+  - **Corners** — shown only when surface is not "none": None / SM / MD / LG (border-radius: 0/8/12/16px)
+  - **Block Gap** — spacing between blocks within each slot: None / S / M / L (0/4/12/24px)
 ### Right Sidebar — Block Mode
 
 When a specific block is selected (click a block on the canvas):
@@ -1407,7 +1454,7 @@ This contract ensures AI output can be validated and loaded directly into the ed
 
 ---
 
-*Document Version: 3.22 — IconPickerControl.tsx added; iconLeft/iconRight use icon-picker control type; groupEditableFields() auto side-by-side layout*
+*Document Version: 3.23 — heading textStyle prop (default/gradient); icon displayStyle (plain/circle/square/rounded-square) + bgOpacity (subtle/medium/strong); GroupStyle.surface/borderRadius/gap; Group Style panel expanded with Surface/Corners/Block Gap controls*
 *Last Updated: February 19, 2026*
 *Keep this document updated as architecture decisions change.*
 *For colors and theming, always reference the separate Style Guide file.*
