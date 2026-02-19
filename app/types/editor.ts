@@ -75,6 +75,9 @@ export interface GroupStyle {
   paddingBottom?: number;
   maxWidth?: "content" | "wide" | "full";
   verticalAlign?: "top" | "center" | "bottom";
+  surface?: "none" | "card" | "glass" | "bordered";
+  borderRadius?: "none" | "sm" | "md" | "lg";
+  gap?: "sm" | "md" | "lg" | "xl";
 }
 
 export interface LayoutSlotMemoryEntry {

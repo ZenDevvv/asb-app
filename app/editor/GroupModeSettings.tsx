@@ -4,7 +4,7 @@ import { BLOCK_REGISTRY } from "~/config/blockRegistry";
 import { AddBlockModal } from "./AddBlockModal";
 import { SettingsCollapsibleSection } from "./SettingsCollapsibleSection";
 import { cn } from "~/lib/utils";
-import type { Group, LayoutTemplate, Section } from "~/types/editor";
+import type { Group, GroupStyle, LayoutTemplate, Section } from "~/types/editor";
 
 interface GroupModeSettingsProps {
   section: Section;
@@ -199,6 +199,82 @@ export function GroupModeSettings({
               }
               className="w-full accent-primary"
             />
+          </div>
+
+          {/* Surface */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-muted-foreground">Surface</label>
+            <div className="grid grid-cols-4 gap-1">
+              {(["none", "card", "glass", "bordered"] as const).map((val) => (
+                <button
+                  key={val}
+                  onClick={() => updateGroupStyle(section.id, activeGroup.id, { surface: val })}
+                  className={cn(
+                    "rounded-lg border px-1.5 py-1.5 text-[10px] font-medium capitalize transition-colors",
+                    (activeGroup.style?.surface ?? "none") === val
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border bg-muted/20 text-muted-foreground hover:border-primary/30",
+                  )}
+                >
+                  {val === "none" ? "None" : val.charAt(0).toUpperCase() + val.slice(1)}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Corners — only when surface is active */}
+          {activeGroup.style?.surface && activeGroup.style.surface !== "none" && (
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">Corners</label>
+              <div className="grid grid-cols-4 gap-1">
+                {(["none", "sm", "md", "lg"] as NonNullable<GroupStyle["borderRadius"]>[]).map(
+                  (val) => (
+                    <button
+                      key={val}
+                      onClick={() =>
+                        updateGroupStyle(section.id, activeGroup.id, { borderRadius: val })
+                      }
+                      className={cn(
+                        "rounded-lg border px-1.5 py-1.5 text-[10px] font-medium uppercase transition-colors",
+                        (activeGroup.style?.borderRadius ?? "md") === val
+                          ? "border-primary bg-primary/10 text-primary"
+                          : "border-border bg-muted/20 text-muted-foreground hover:border-primary/30",
+                      )}
+                    >
+                      {val}
+                    </button>
+                  ),
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Block Gap */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-muted-foreground">Block Gap</label>
+            <div className="grid grid-cols-4 gap-1">
+              {(
+                [
+                  { label: "None", value: undefined },
+                  { label: "S", value: "sm" },
+                  { label: "M", value: "md" },
+                  { label: "L", value: "lg" },
+                ] as { label: string; value: GroupStyle["gap"] | undefined }[]
+              ).map(({ label, value }) => (
+                <button
+                  key={label}
+                  onClick={() => updateGroupStyle(section.id, activeGroup.id, { gap: value })}
+                  className={cn(
+                    "rounded-lg border px-1.5 py-1.5 text-[10px] font-medium transition-colors",
+                    (activeGroup.style?.gap ?? undefined) === value
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border bg-muted/20 text-muted-foreground hover:border-primary/30",
+                  )}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </SettingsCollapsibleSection>

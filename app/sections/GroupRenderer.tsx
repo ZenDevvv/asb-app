@@ -78,11 +78,40 @@ function getLayoutGridClasses(layout: LayoutTemplate, sectionType: Section["type
 	return `${base} grid-cols-1`;
 }
 
-function getGroupPadding(group: Group): React.CSSProperties {
-	return {
-		paddingTop: group.style?.paddingTop ?? 0,
-		paddingBottom: group.style?.paddingBottom ?? 0,
+const SURFACE_BORDER_RADIUS_MAP: Record<string, number> = { none: 0, sm: 8, md: 12, lg: 16 };
+const GAP_MAP: Record<string, string> = { sm: "4px", md: "12px", lg: "24px", xl: "40px" };
+
+function getGroupContainerStyle(group: Group, themeMode: string): React.CSSProperties {
+	const surface = group.style?.surface ?? "none";
+	const isActive = surface !== "none";
+	const isDark = themeMode !== "light";
+	const innerPadding = isActive ? 24 : 0;
+	const borderRadius = isActive
+		? (SURFACE_BORDER_RADIUS_MAP[group.style?.borderRadius ?? "md"] ?? 12)
+		: 4;
+
+	const style: React.CSSProperties = {
+		paddingTop: (group.style?.paddingTop ?? 0) + innerPadding,
+		paddingBottom: (group.style?.paddingBottom ?? 0) + innerPadding,
+		borderRadius,
+		...(isActive ? { paddingLeft: innerPadding, paddingRight: innerPadding } : {}),
 	};
+
+	if (!isActive) return style;
+
+	if (surface === "card") {
+		style.backgroundColor = isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.04)";
+		style.border = `1px solid ${isDark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.08)"}`;
+	} else if (surface === "glass") {
+		style.backgroundColor = isDark ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.65)";
+		style.backdropFilter = "blur(12px)";
+		(style as Record<string, unknown>).WebkitBackdropFilter = "blur(12px)";
+		style.border = `1px solid ${isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.10)"}`;
+	} else if (surface === "bordered") {
+		style.border = `1px solid ${isDark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.12)"}`;
+	}
+
+	return style;
 }
 
 export function GroupRenderer({
@@ -126,7 +155,8 @@ export function GroupRenderer({
 	const isDraggingAbsoluteBlock = draggingAbsoluteBlockId !== null;
 	const isNavbar = section.type === "navbar" || layout.id.startsWith("nav-");
 	const gridClasses = getLayoutGridClasses(layout, section.type);
-	const groupPadding = getGroupPadding(group);
+	const containerStyle = getGroupContainerStyle(group, globalStyle.themeMode);
+	const slotGap = GAP_MAP[group.style?.gap ?? ""] ?? "0px";
 
 	useEffect(() => {
 		if (!isEditing || !onUpdateBlockStyle) return;
@@ -209,10 +239,10 @@ export function GroupRenderer({
 
 	return (
 		<div
-			className={`relative rounded-md transition-colors ${isEditing ? "cursor-pointer" : ""} ${
+			className={`relative transition-colors ${isEditing ? "cursor-pointer" : ""} ${
 				isGroupSelected ? "ring-1 ring-primary/60 ring-offset-1 ring-offset-transparent" : ""
 			}`}
-			style={groupPadding}
+			style={containerStyle}
 			onClick={(e) => {
 				if (isEditing && onGroupClick) {
 					e.stopPropagation();
@@ -232,7 +262,7 @@ export function GroupRenderer({
 						direction: layout.direction === "row-reverse" ? "rtl" : "ltr",
 					}}>
 					{layout.slots.map((slotName) => (
-						<div key={slotName} className="flex flex-col" style={{ direction: "ltr" }}>
+						<div key={slotName} className="flex flex-col" style={{ direction: "ltr", gap: slotGap }}>
 							{blocksBySlot[slotName]?.map((block) => {
 								const isBlockSelected = block.id === selectedBlockId;
 
