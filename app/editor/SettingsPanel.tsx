@@ -13,6 +13,7 @@ export function SettingsPanel() {
   const sections = useEditorStore((s) => s.sections);
   const removeSection = useEditorStore((s) => s.removeSection);
   const duplicateSection = useEditorStore((s) => s.duplicateSection);
+  const duplicateGroup = useEditorStore((s) => s.duplicateGroup);
   const removeBlock = useEditorStore((s) => s.removeBlock);
   const selectSection = useEditorStore((s) => s.selectSection);
   const selectGroup = useEditorStore((s) => s.selectGroup);
@@ -76,7 +77,11 @@ export function SettingsPanel() {
             </button>
           )}
           <button
-            onClick={() => duplicateSection(section.id)}
+            onClick={() =>
+              isGroupMode && activeGroup
+                ? duplicateGroup(section.id, activeGroup.id)
+                : duplicateSection(section.id)
+            }
             className="flex size-7 items-center justify-center rounded-lg text-muted-foreground hover:bg-sidebar-accent hover:text-foreground"
             title="Duplicate"
           >
