@@ -20,10 +20,14 @@ const EFFECT_TYPES = [
   { id: "noise" as const, icon: "grain", label: "Noise" },
   { id: "dots" as const, icon: "scatter_plot", label: "Dots" },
   { id: "grid" as const, icon: "grid_4x4", label: "Grid" },
+  { id: "dim" as const, icon: "brightness_low", label: "Dim" },
 ];
+
+const DEFAULT_EFFECT_INTENSITY = 40;
 
 export function BackgroundControl({ style, onChange, globalStyle }: BackgroundControlProps) {
   const bgType = style.backgroundType || "solid";
+  const effectIntensity = style.backgroundEffectIntensity ?? DEFAULT_EFFECT_INTENSITY;
   const primaryColor = globalStyle?.primaryColor || "#00e5a0";
   const darkBg = globalStyle?.themeMode === "light" ? "#f5f5f5" : "#0a0f0d";
 
@@ -123,6 +127,15 @@ export function BackgroundControl({ style, onChange, globalStyle }: BackgroundCo
           })}
         </div>
       </div>
+
+      <SliderControl
+        label="Effect Intensity"
+        value={effectIntensity}
+        onChange={(v) => onChange({ backgroundEffectIntensity: v })}
+        min={0}
+        max={100}
+        step={1}
+      />
 
       <SliderControl
         label="Padding (Y-Axis)"

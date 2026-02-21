@@ -67,7 +67,8 @@ export interface SectionStyle {
   gradientTo?: string;
   gradientDirection?: string;
   paddingY?: number;
-  backgroundEffect?: "none" | "noise" | "dots" | "grid";
+  backgroundEffect?: "none" | "noise" | "dots" | "grid" | "dim";
+  backgroundEffectIntensity?: number; // 0-100; controls strength for noise/dots/grid/dim overlays
   fullHeight?: boolean;         // When true, section has min-height: 100vh (fills screen)
 }
 

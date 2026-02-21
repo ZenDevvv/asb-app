@@ -158,16 +158,30 @@ interface EffectPattern {
 	position?: string;
 }
 
+const DEFAULT_EFFECT_INTENSITY = 40;
+
+function clampPercent(value: unknown, fallback = DEFAULT_EFFECT_INTENSITY): number {
+	if (typeof value !== "number" || !Number.isFinite(value)) return fallback;
+	return Math.max(0, Math.min(100, value));
+}
+
+function toAlpha(value: number): string {
+	return value.toFixed(3).replace(/0+$/, "").replace(/\.$/, "");
+}
+
 function getEffectPattern(
 	effect: SectionStyle["backgroundEffect"],
 	themeMode: GlobalStyle["themeMode"],
+	intensityValue: SectionStyle["backgroundEffectIntensity"],
 ): EffectPattern | null {
 	if (!effect || effect === "none") return null;
 
 	const isLight = themeMode === "light";
+	const intensity = clampPercent(intensityValue) / 100;
 
 	if (effect === "dots") {
-		const color = isLight ? "rgba(0,0,0,0.10)" : "rgba(255,255,255,0.12)";
+		const alpha = isLight ? 0.2 * intensity : 0.24 * intensity;
+		const color = isLight ? `rgba(0,0,0,${toAlpha(alpha)})` : `rgba(255,255,255,${toAlpha(alpha)})`;
 		return {
 			image: `radial-gradient(circle, ${color} 1px, transparent 1px)`,
 			size: "24px 24px",
@@ -175,7 +189,8 @@ function getEffectPattern(
 	}
 
 	if (effect === "grid") {
-		const color = isLight ? "rgba(0,0,0,0.07)" : "rgba(255,255,255,0.07)";
+		const alpha = isLight ? 0.14 * intensity : 0.16 * intensity;
+		const color = isLight ? `rgba(0,0,0,${toAlpha(alpha)})` : `rgba(255,255,255,${toAlpha(alpha)})`;
 		return {
 			image: [
 				`linear-gradient(${color} 1px, transparent 1px)`,
@@ -186,11 +201,20 @@ function getEffectPattern(
 	}
 
 	if (effect === "noise") {
-		const opacity = isLight ? "0.04" : "0.06";
+		const maxOpacity = isLight ? 0.08 : 0.12;
+		const opacity = toAlpha(maxOpacity * intensity);
 		const svg = `%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='${opacity}'/%3E%3C/svg%3E`;
 		return {
 			image: `url("data:image/svg+xml,${svg}")`,
 			size: "200px 200px",
+		};
+	}
+
+	if (effect === "dim") {
+		const alpha = toAlpha(0.7 * intensity);
+		return {
+			image: `linear-gradient(rgba(0,0,0,${alpha}), rgba(0,0,0,${alpha}))`,
+			size: "auto",
 		};
 	}
 
@@ -202,7 +226,7 @@ function getSectionBackground(
 	themeMode: GlobalStyle["themeMode"],
 ): React.CSSProperties {
 	const s = sectionStyle;
-	const effect = getEffectPattern(s.backgroundEffect, themeMode);
+	const effect = getEffectPattern(s.backgroundEffect, themeMode, s.backgroundEffectIntensity);
 	const style: React.CSSProperties = {
 		paddingTop: s.paddingY ?? 80,
 		paddingBottom: s.paddingY ?? 80,
