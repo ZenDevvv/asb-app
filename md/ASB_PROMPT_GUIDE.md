@@ -198,13 +198,13 @@ The right sidebar changes based on what is selected:
 
 **When a BLOCK is selected** (click a specific block on the canvas):
 1. **Block Content** - auto-generated controls based on block type (text input, image upload, etc.)
-2. **Block Style** - constrained style options for that block (size, alignment, spacing).
+2. **Block Style** - constrained style options for that block (size, alignment, spacing). `heading` and `text` blocks also expose a **Font Family** control that opens the same Typography Settings modal used in Global Settings; selecting a font applies a block-level override.
 3. **Position** - collapsible panel with:
    - **Column** — slot/column picker (shown only when the group layout has multiple slots and the block is in flow mode). Allows moving the block to a different column after it was added. Calls `moveBlockToSlot` / `moveBlockToSlotAtIndex` store actions.
    - **Flow / Absolute** toggle — choose positioning mode. Absolute blocks are positioned relative to the selected group and can be moved on the canvas by dragging.
 4. **Back to Group** - button to go back to group-level settings.
 **When NOTHING is selected** (click empty canvas area):
-- **Global Page Settings** - website theme mode (dark/light), font family (button opens a Typography Settings modal with search + preview cards + Apply Font action), primary color, color scheme, corner style.
+- **Global Page Settings** - website theme mode (dark/light), font family (button opens a Typography Settings modal with search + preview cards + Apply Font action), primary color, color scheme, corner style. This remains the default font source for all text unless a supported block-level override is set.
 
 ### Toolbar
 
@@ -346,6 +346,7 @@ interface Block {
 
 interface BlockStyle {
   // Text
+  fontFamily?: string;            // Optional block-level font override (currently used by heading/text blocks)
   fontSize?: "sm" | "base" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "5xl";
   fontWeight?: "normal" | "medium" | "semibold" | "bold";
   textAlign?: "left" | "center" | "right";
@@ -705,7 +706,7 @@ Styles cascade from global â†’ block (sections only control background, not
 ```
 GlobalStyle.primaryColor    -> default accent color for all blocks in "global" colorMode
 GlobalStyle.colorScheme     -> resolves palette tokens (currently monochromatic)
-GlobalStyle.fontFamily      â†’ applied to all text
+GlobalStyle.fontFamily      â†’ default font for all text
 GlobalStyle.borderRadius    â†’ applied to buttons, cards, images
 GlobalStyle.themeMode       â†’ light/dark website rendering; drives default textColor in "global" mode
                               (dark â†’ #ffffff, light â†’ #111111)
@@ -716,6 +717,7 @@ BlockStyle.colorMode        -> "global" (default): block derives text/accent fro
                                "custom": block uses its own textColor/accentColor
 BlockStyle.textColor        â†’ custom text color (only active when colorMode="custom")
 BlockStyle.accentColor      â†’ custom accent color (only active when colorMode="custom")
+BlockStyle.fontFamily       â†’ optional block-level font override (heading/text currently use this)
 BlockStyle.fontSize         â†’ block-level size choice
 BlockStyle.textAlign        â†’ block-level alignment
 ```
@@ -1452,9 +1454,9 @@ This contract ensures AI output can be validated and loaded directly into the ed
 | **Slot** | A named position within a layout template where blocks are placed ("main", "left", "right", "col-1", etc.). |
 | **Section Registry** | Central config mapping section types to allowed layouts, default groups/default blocks fallback, and constraints. |
 | **Block Registry** | Central config mapping block types to components, default props/styles, and editable fields. |
-| **Block Style** | Constrained visual options for a block (fontSize, fontWeight, textAlign, width, spacing, positioning mode, scale). Never raw CSS. |
+| **Block Style** | Constrained visual options for a block (fontFamily override, fontSize, fontWeight, textAlign, width, spacing, positioning mode, scale). Never raw CSS. |
 | **Section Style** | Design data for a section (backgroundColor/backgroundType/gradient fields, backgroundEffect, backgroundEffectIntensity, paddingY, fullHeight). |
-| **Global Style** | Page-wide design settings (themeMode, fontFamily, primaryColor, colorScheme, borderRadius). Inherited by sections/blocks where applicable, with themeMode driving website rendering in canvas/preview. |
+| **Global Style** | Page-wide design settings (themeMode, fontFamily, primaryColor, colorScheme, borderRadius). `fontFamily` is the default text font across the page and can be overridden by supported blocks. |
 | **Style Inheritance** | The cascade: Global â†’ Section â†’ Block. Each level can override the parent. |
 | **Canvas** | The center panel where sections and blocks are rendered WYSIWYG. |
 | **Left Sidebar / Sections List** | The left panel showing section tree navigation: reorderable sections plus focused-section groups with drag reorder. |
@@ -1474,6 +1476,7 @@ This contract ensures AI output can be validated and loaded directly into the ed
 
 ---
 
+*Document Version: 3.39 - Added block-level font overrides for `heading` and `text` blocks. Block Mode now includes a Font Family control that opens the same Typography Settings modal used in Global Settings. `GlobalStyle.fontFamily` remains the default font; `BlockStyle.fontFamily` can override it per supported block.*
 *Document Version: 3.38 - Added focused canvas drag for flow blocks inside groups: users can drag between columns and between blocks with a horizontal insertion line. Flow block drops now support precise slot/index placement (`moveBlockToSlotAtIndex`), and group columns stretch to full row height so empty column space remains a valid drop target.*
 *Document Version: 3.37 - Replaced native editor dropdowns with shadcn `Select` components. `GlobalSettingsPanel` font family selection now uses a button-triggered **Typography Settings** modal (search + preview cards + explicit Apply Font action) instead of an inline dropdown. `BackgroundControl` gradient direction uses shadcn `Select`.*
 *Document Version: 3.36 - Updated `SectionStyle.backgroundEffect` to remove `noise` and add `vignette`. `BackgroundControl` effect options are now None/Dots/Grid/Dim/Vignette. `SectionStyle.backgroundEffectIntensity` remains the shared 0-100 slider for all non-`none` effects (including `vignette`).*

@@ -16,6 +16,7 @@ export type BlockType =
 export type BlockCategory = "basic" | "media" | "layout" | "content";
 
 export interface BlockStyle {
+  fontFamily?: string;
   fontSize?: "sm" | "base" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "5xl";
   fontWeight?: "normal" | "medium" | "semibold" | "bold";
   textAlign?: "left" | "center" | "right";
