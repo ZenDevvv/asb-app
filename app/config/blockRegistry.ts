@@ -18,7 +18,13 @@ export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
     icon: "title",
     category: "basic",
     defaultProps: { text: "Heading text", textStyle: "default" },
-    defaultStyle: { fontSize: "4xl", fontWeight: "bold", fontStyle: "normal", textAlign: "left" },
+    defaultStyle: {
+      fontSize: "4xl",
+      fontWeight: "bold",
+      fontStyle: "normal",
+      letterSpacing: 0,
+      textAlign: "left",
+    },
     editableProps: [
       { key: "text", label: "Text", type: "short-text" },
       {
@@ -64,6 +70,14 @@ export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
         ],
       },
       {
+        key: "letterSpacing",
+        label: "Letter Spacing",
+        type: "slider",
+        min: 0,
+        max: 12,
+        step: 0.5,
+      },
+      {
         key: "textAlign",
         label: "Align",
         type: "align-picker",
@@ -84,7 +98,7 @@ export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
     icon: "notes",
     category: "basic",
     defaultProps: { text: "Body text goes here. Write something compelling for your visitors." },
-    defaultStyle: { fontSize: "base", fontStyle: "normal", textAlign: "left" },
+    defaultStyle: { fontSize: "base", fontStyle: "normal", letterSpacing: 0, textAlign: "left" },
     editableProps: [
       { key: "text", label: "Text", type: "long-text" },
     ],
@@ -108,6 +122,14 @@ export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
           { label: "Normal", value: "normal" },
           { label: "Italic", value: "italic" },
         ],
+      },
+      {
+        key: "letterSpacing",
+        label: "Letter Spacing",
+        type: "slider",
+        min: 0,
+        max: 12,
+        step: 0.5,
       },
       {
         key: "textAlign",

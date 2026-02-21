@@ -200,7 +200,7 @@ The right sidebar changes based on what is selected:
 
 **When a BLOCK is selected** (click a specific block on the canvas):
 1. **Block Content** - auto-generated controls based on block type (text input, image upload, etc.)
-2. **Block Style** - constrained style options for that block (size, alignment, spacing). `heading` and `text` blocks also expose a **Font Family** control that opens the same Typography Settings modal used in Global Settings; selecting a font applies a block-level override.
+2. **Block Style** - constrained style options for that block (size, alignment, spacing, letter spacing). `heading` and `text` blocks also expose a **Font Family** control that opens the same Typography Settings modal used in Global Settings; selecting a font applies a block-level override.
 3. **Position** - collapsible panel with:
    - **Column** — slot/column picker (shown only when the group layout has multiple slots and the block is in flow mode). Allows moving the block to a different column after it was added. Calls `moveBlockToSlot` / `moveBlockToSlotAtIndex` store actions.
    - **Flow / Absolute** toggle — choose positioning mode. Absolute blocks are positioned relative to the selected group and can be moved on the canvas by dragging.
@@ -353,6 +353,7 @@ interface BlockStyle {
   fontSize?: "sm" | "base" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "5xl";
   fontWeight?: "normal" | "medium" | "semibold" | "bold";
   fontStyle?: "normal" | "italic";
+  letterSpacing?: number;         // 0-12, slider (px, heading/text blocks)
   textAlign?: "left" | "center" | "right";
   textColor?: string;             // Custom text color (used when colorMode="custom")
   accentColor?: string;           // Custom accent/highlight color (used when colorMode="custom")
@@ -620,6 +621,7 @@ Rules for block components:
 //   implemented via background-clip:text + color:transparent on the heading element
 // text-wrap:balance (text-balance Tailwind class) is applied to ALL headings unconditionally
 // textStyle uses "select" control type in editableProps (options: Default / Gradient)
+// heading and text blocks support block.style.letterSpacing (0-12px slider in Block Mode)
 ```
 
 **Badge block props (implemented):**
@@ -726,6 +728,7 @@ BlockStyle.fontFamily       â†’ optional block-level font override (heading
 BlockStyle.fontSize         â†’ block-level size choice
 BlockStyle.fontWeight       â†’ block-level weight choice (where supported)
 BlockStyle.fontStyle        â†’ block-level style choice ("normal" or "italic" for heading/text)
+BlockStyle.letterSpacing    â†’ block-level letter spacing in px (heading/text only)
 BlockStyle.textAlign        â†’ block-level alignment
 ```
 
@@ -1217,7 +1220,7 @@ Task: Build the [BlockType]Block component.
 Requirements:
 - Follow the BlockComponentProps interface: { block, sectionStyle, globalStyle, isEditing, isSelected, onUpdateProp }
 - Render the block's content from block.props
-- Apply block.style (fontSize, fontWeight, fontStyle, textAlign, etc.) via Tailwind class maps
+- Apply block.style (fontSize, fontWeight, fontStyle, letterSpacing, textAlign, etc.) via Tailwind class maps
 - Inherit sectionStyle.textColor unless block.style.textColor is set
 - If inlineEditable, wrap text in InlineText (Tiptap) component
 - Support isEditing flag (disable links, show placeholder states)
@@ -1463,7 +1466,7 @@ This contract ensures AI output can be validated and loaded directly into the ed
 | **Slot** | A named position within a layout template where blocks are placed ("main", "left", "right", "col-1", etc.). |
 | **Section Registry** | Central config mapping section types to allowed layouts, default groups/default blocks fallback, and constraints. |
 | **Block Registry** | Central config mapping block types to components, default props/styles, and editable fields. |
-| **Block Style** | Constrained visual options for a block (fontFamily override, fontSize, fontWeight, fontStyle, textAlign, width, spacing, positioning mode, scale). Never raw CSS. |
+| **Block Style** | Constrained visual options for a block (fontFamily override, fontSize, fontWeight, fontStyle, letterSpacing, textAlign, width, spacing, positioning mode, scale). Never raw CSS. |
 | **Section Style** | Design data for a section (backgroundColor/backgroundType/gradient fields, backgroundEffect, backgroundEffectIntensity, paddingY, fullHeight). |
 | **Global Style** | Page-wide design settings (themeMode, fontFamily, primaryColor, colorScheme, borderRadius). `fontFamily` is the default text font across the page and can be overridden by supported blocks. |
 | **Style Inheritance** | The cascade: Global â†’ Section â†’ Block. Each level can override the parent. |
@@ -1485,6 +1488,7 @@ This contract ensures AI output can be validated and loaded directly into the ed
 
 ---
 
+*Document Version: 3.43 - Added `BlockStyle.letterSpacing` for `heading` and `text` blocks. Block Mode now includes a Letter Spacing slider (0-12px), and both `HeadingBlock.tsx` and `TextBlock.tsx` apply it via inline styles.*
 *Document Version: 3.42 - Added `BlockStyle.fontStyle` (`"normal" | "italic"`) and exposed a new Style control in Block Mode for `heading` and `text` blocks. `HeadingBlock.tsx` and `TextBlock.tsx` now apply block-level italic styling via `block.style.fontStyle`.*
 *Document Version: 3.41 - Added block-level duplicate action in `BlockSettings.tsx` (`content_copy` icon). Duplicate now creates a copy directly below the selected block in the same group (`duplicateBlock` store action), with flow blocks inserted at the next slot order and absolute blocks offset downward.*
 *Document Version: 3.40 - Expanded typography options with additional wedding-invitation-friendly families in the editor font picker and Google Fonts load list (`Alex Brush`, `Allura`, `Cinzel`, `Cormorant Garamond`, `EB Garamond`, `Great Vibes`, `Parisienne`, `Sacramento`).*

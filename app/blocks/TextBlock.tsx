@@ -34,6 +34,8 @@ export function TextBlock({ block, globalStyle }: BlockComponentProps) {
 			style={{
 				fontFamily: s.fontFamily || globalStyle.fontFamily,
 				fontStyle: s.fontStyle || "normal",
+				letterSpacing:
+					typeof s.letterSpacing === "number" ? `${s.letterSpacing}px` : undefined,
 				color: resolveTextColor(s, globalStyle),
 				opacity: (s.opacity ?? 100) / 100,
 				marginTop: s.marginTop ?? 0,
