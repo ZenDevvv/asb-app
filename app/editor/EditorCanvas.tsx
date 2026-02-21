@@ -54,7 +54,11 @@ export function EditorCanvas() {
 	}, [selectedSectionId]);
 
 	return (
-		<div className={cn("relative flex flex-1 flex-col bg-background overflow-hidden", canvasThemeClass)}>
+		<div
+			className={cn(
+				"relative flex flex-1 flex-col bg-background overflow-hidden",
+				canvasThemeClass,
+			)}>
 			<div
 				ref={canvasScrollRef}
 				className="flex-1 overflow-auto p-8 minimal-scrollbar"
@@ -84,7 +88,7 @@ export function EditorCanvas() {
 							</div>
 						)}
 
-						{sections.map((section) => {
+						{sections.map((section, sectionIndex) => {
 							if (!section.isVisible) return null;
 
 							const registry = SECTION_REGISTRY[section.type];
@@ -119,6 +123,7 @@ export function EditorCanvas() {
 
 									<SectionRenderer
 										section={section}
+										sectionIndex={sectionIndex}
 										globalStyle={globalStyle}
 										isEditing={true}
 										selectedGroupId={selectedGroupId}
@@ -130,7 +135,13 @@ export function EditorCanvas() {
 											selectBlock(section.id, groupId, blockId);
 										}}
 										onUpdateBlockProp={(groupId, blockId, key, value) => {
-											updateBlockProp(section.id, groupId, blockId, key, value);
+											updateBlockProp(
+												section.id,
+												groupId,
+												blockId,
+												key,
+												value,
+											);
 										}}
 										onUpdateBlockStyle={(groupId, blockId, style) => {
 											updateBlockStyle(section.id, groupId, blockId, style);

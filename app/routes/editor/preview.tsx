@@ -48,10 +48,11 @@ export default function EditorPreviewRoute() {
 						No sections available to preview.
 					</div>
 				) : (
-					visibleSections.map((section) => (
+					visibleSections.map((section, sectionIndex) => (
 						<SectionRenderer
 							key={section.id}
 							section={section}
+							sectionIndex={sectionIndex}
 							globalStyle={globalStyle}
 							isEditing={false}
 							selectedGroupId={null}

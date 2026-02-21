@@ -1,6 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { BlockRenderer } from "~/blocks/BlockRenderer";
-import type { Block, BlockStyle, GlobalStyle, Group, LayoutTemplate, Section } from "~/types/editor";
+import { hexToRgba } from "~/lib/colorSystem";
+import type {
+	Block,
+	BlockStyle,
+	GlobalStyle,
+	Group,
+	LayoutTemplate,
+	Section,
+} from "~/types/editor";
 
 interface GroupRendererProps {
 	section: Section;
@@ -49,7 +57,11 @@ function getLayoutGridClasses(layout: LayoutTemplate): string {
 const SURFACE_BORDER_RADIUS_MAP: Record<string, number> = { none: 0, sm: 8, md: 12, lg: 16 };
 const GAP_MAP: Record<string, string> = { sm: "4px", md: "12px", lg: "24px", xl: "40px" };
 
-function getGroupContainerStyle(group: Group, themeMode: string): React.CSSProperties {
+function getGroupContainerStyle(
+	group: Group,
+	themeMode: GlobalStyle["themeMode"],
+	accentColor: string,
+): React.CSSProperties {
 	const surface = group.style?.surface ?? "none";
 	const isActive = surface !== "none";
 	const isDark = themeMode !== "light";
@@ -68,15 +80,15 @@ function getGroupContainerStyle(group: Group, themeMode: string): React.CSSPrope
 	if (!isActive) return style;
 
 	if (surface === "card") {
-		style.backgroundColor = isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.04)";
-		style.border = `1px solid ${isDark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.08)"}`;
+		style.backgroundColor = hexToRgba(accentColor, isDark ? 0.12 : 0.11);
+		style.border = `1px solid ${hexToRgba(accentColor, isDark ? 0.3 : 0.24)}`;
 	} else if (surface === "glass") {
-		style.backgroundColor = isDark ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.65)";
+		style.backgroundColor = hexToRgba(accentColor, isDark ? 0.18 : 0.2);
 		style.backdropFilter = "blur(12px)";
 		(style as Record<string, unknown>).WebkitBackdropFilter = "blur(12px)";
-		style.border = `1px solid ${isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.10)"}`;
+		style.border = `1px solid ${hexToRgba(accentColor, isDark ? 0.34 : 0.26)}`;
 	} else if (surface === "bordered") {
-		style.border = `1px solid ${isDark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.12)"}`;
+		style.border = `1px solid ${hexToRgba(accentColor, isDark ? 0.36 : 0.28)}`;
 	}
 
 	return style;
@@ -122,7 +134,8 @@ export function GroupRenderer({
 	} | null>(null);
 	const isDraggingAbsoluteBlock = draggingAbsoluteBlockId !== null;
 	const gridClasses = getLayoutGridClasses(layout);
-	const containerStyle = getGroupContainerStyle(group, globalStyle.themeMode);
+	const sectionAccent = section.style.accentColor || globalStyle.primaryColor;
+	const containerStyle = getGroupContainerStyle(group, globalStyle.themeMode, sectionAccent);
 	const slotGap = GAP_MAP[group.style?.gap ?? ""] ?? "0px";
 
 	useEffect(() => {
@@ -207,7 +220,9 @@ export function GroupRenderer({
 	return (
 		<div
 			className={`relative transition-colors ${isEditing ? "cursor-pointer" : ""} ${
-				isGroupSelected ? "ring-1 ring-primary/60 ring-offset-1 ring-offset-transparent" : ""
+				isGroupSelected
+					? "ring-1 ring-primary/60 ring-offset-1 ring-offset-transparent"
+					: ""
 			}`}
 			style={containerStyle}
 			onClick={(e) => {
@@ -230,7 +245,10 @@ export function GroupRenderer({
 						direction: layout.reversed ? "rtl" : "ltr",
 					}}>
 					{layout.slots.map((slotName) => (
-						<div key={slotName} className="flex flex-col" style={{ direction: "ltr", gap: slotGap }}>
+						<div
+							key={slotName}
+							className="flex flex-col"
+							style={{ direction: "ltr", gap: slotGap }}>
 							{blocksBySlot[slotName]?.map((block) => {
 								const isBlockSelected = block.id === selectedBlockId;
 
@@ -258,14 +276,17 @@ export function GroupRenderer({
 											globalStyle={globalStyle}
 											isEditing={isEditing}
 											isSelected={isBlockSelected}
-											onUpdateProp={(key, value) => onUpdateBlockProp?.(block.id, key, value)}
+											onUpdateProp={(key, value) =>
+												onUpdateBlockProp?.(block.id, key, value)
+											}
 										/>
 									</div>
 								);
 							})}
 
 							{isEditing &&
-								(!blocksBySlot[slotName] || blocksBySlot[slotName].length === 0) && (
+								(!blocksBySlot[slotName] ||
+									blocksBySlot[slotName].length === 0) && (
 									<div className="flex min-h-[60px] items-center justify-center rounded-lg border border-dashed border-border/60 text-xs text-muted-foreground/70">
 										{slotName}
 									</div>
@@ -351,13 +372,14 @@ export function GroupRenderer({
 								globalStyle={globalStyle}
 								isEditing={isEditing}
 								isSelected={isBlockSelected}
-								onUpdateProp={(key, value) => onUpdateBlockProp?.(block.id, key, value)}
+								onUpdateProp={(key, value) =>
+									onUpdateBlockProp?.(block.id, key, value)
+								}
 							/>
 						</div>
 					);
 				})}
 			</div>
-
 		</div>
 	);
 }

@@ -61,6 +61,7 @@ export interface SectionStyle {
   backgroundColor?: string;
   textColor?: string;
   accentColor?: string;
+  colorMode?: "global" | "custom";
   backgroundImage?: string;
   backgroundType?: "solid" | "gradient" | "image";
   gradientFrom?: string;
@@ -117,6 +118,7 @@ export interface Section {
 export interface GlobalStyle {
   fontFamily: string;
   primaryColor: string;
+  colorScheme: "monochromatic";
   borderRadius: "none" | "sm" | "md" | "lg" | "full";
   themeMode: "dark" | "light";
 }

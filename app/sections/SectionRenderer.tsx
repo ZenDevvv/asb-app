@@ -1,8 +1,10 @@
 import { GroupRenderer } from "~/sections/GroupRenderer";
+import { resolveSectionColorScheme } from "~/lib/colorSystem";
 import type { BlockStyle, GlobalStyle, Section, SectionStyle } from "~/types/editor";
 
 interface SectionRendererProps {
 	section: Section;
+	sectionIndex: number;
 	globalStyle: GlobalStyle;
 	isEditing: boolean;
 	selectedGroupId: string | null;
@@ -22,10 +24,7 @@ interface RgbColor {
 function parseHexColor(value: string): RgbColor | null {
 	const trimmed = value.trim();
 	const expanded = trimmed.match(/^#([0-9a-fA-F]{3})$/)
-		? trimmed.replace(
-				/^#([0-9a-fA-F])([0-9a-fA-F])([0-9a-fA-F])$/,
-				"#$1$1$2$2$3$3",
-			)
+		? trimmed.replace(/^#([0-9a-fA-F])([0-9a-fA-F])([0-9a-fA-F])$/, "#$1$1$2$2$3$3")
 		: trimmed;
 	const match = expanded.match(/^#([0-9a-fA-F]{6})$/);
 	if (!match) return null;
@@ -62,16 +61,10 @@ function mixColor(source: RgbColor, target: RgbColor, amount: number): RgbColor 
 function getLuminance(color: RgbColor): number {
 	const toLinear = (channel: number) => {
 		const normalized = channel / 255;
-		return normalized <= 0.03928
-			? normalized / 12.92
-			: ((normalized + 0.055) / 1.055) ** 2.4;
+		return normalized <= 0.03928 ? normalized / 12.92 : ((normalized + 0.055) / 1.055) ** 2.4;
 	};
 
-	return (
-		0.2126 * toLinear(color.r) +
-		0.7152 * toLinear(color.g) +
-		0.0722 * toLinear(color.b)
-	);
+	return 0.2126 * toLinear(color.r) + 0.7152 * toLinear(color.g) + 0.0722 * toLinear(color.b);
 }
 
 function lightenForLightMode(color: string): string {
@@ -93,7 +86,8 @@ function darkenForLightMode(color: string): string {
 	const luminance = getLuminance(parsed);
 	if (luminance <= 0.33) return color;
 
-	const mixAmount = luminance > 0.9 ? 0.9 : luminance > 0.75 ? 0.8 : luminance > 0.6 ? 0.68 : 0.52;
+	const mixAmount =
+		luminance > 0.9 ? 0.9 : luminance > 0.75 ? 0.8 : luminance > 0.6 ? 0.68 : 0.52;
 	return rgbToHex(mixColor(parsed, { r: 16, g: 26, b: 22 }, mixAmount));
 }
 
@@ -105,8 +99,38 @@ function toneAccentForLightMode(color: string): string {
 	return rgbToHex(mixColor(parsed, { r: 12, g: 20, b: 16 }, 0.28));
 }
 
-function getRenderSectionStyle(section: Section, globalStyle: GlobalStyle): SectionStyle {
+function getRenderSectionStyle(
+	section: Section,
+	globalStyle: GlobalStyle,
+	sectionIndex: number,
+): SectionStyle {
 	const style: SectionStyle = { ...section.style };
+	const colorMode = style.colorMode ?? "global";
+
+	if (colorMode !== "custom") {
+		const scheme = resolveSectionColorScheme({
+			primaryColor: globalStyle.primaryColor,
+			themeMode: globalStyle.themeMode,
+			colorScheme: globalStyle.colorScheme,
+			sectionIndex,
+		});
+
+		style.colorMode = "global";
+		style.textColor = scheme.textColor;
+		style.accentColor = scheme.accentColor;
+
+		if (style.backgroundType === "gradient") {
+			style.gradientFrom = scheme.gradientFrom;
+			style.gradientTo = scheme.gradientTo;
+		} else if (style.backgroundType === "image") {
+			style.backgroundColor = scheme.imageOverlay;
+		} else {
+			style.backgroundColor = scheme.backgroundColor;
+		}
+
+		return style;
+	}
+
 	if (globalStyle.themeMode !== "light") return style;
 
 	style.textColor = darkenForLightMode(style.textColor || "#ffffff");
@@ -207,7 +231,8 @@ function getSectionBackground(
 			style.backgroundColor = s.backgroundColor;
 		}
 	} else {
-		style.backgroundColor = s.backgroundColor || (themeMode === "light" ? "#f3faf6" : "#0a0f0d");
+		style.backgroundColor =
+			s.backgroundColor || (themeMode === "light" ? "#f3faf6" : "#0a0f0d");
 		if (effect) {
 			style.backgroundImage = effect.image;
 			style.backgroundSize = effect.size;
@@ -219,6 +244,7 @@ function getSectionBackground(
 
 export function SectionRenderer({
 	section,
+	sectionIndex,
 	globalStyle,
 	isEditing,
 	selectedGroupId,
@@ -230,7 +256,7 @@ export function SectionRenderer({
 }: SectionRendererProps) {
 	const renderSection: Section = {
 		...section,
-		style: getRenderSectionStyle(section, globalStyle),
+		style: getRenderSectionStyle(section, globalStyle, sectionIndex),
 	};
 	const orderedGroups = renderSection.groups.slice().sort((a, b) => a.order - b.order);
 	const bgStyle = getSectionBackground(renderSection.style, globalStyle.themeMode);

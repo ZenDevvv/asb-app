@@ -200,7 +200,7 @@ The right sidebar changes based on what is selected:
    - **Flow / Absolute** toggle — choose positioning mode. Absolute blocks are positioned relative to the selected group and can be moved on the canvas by dragging.
 4. **Back to Group** - button to go back to group-level settings.
 **When NOTHING is selected** (click empty canvas area):
-- **Global Page Settings** â€” website theme mode (dark/light), font family, primary color, corner style.
+- **Global Page Settings** - website theme mode (dark/light), font family, primary color, color scheme, corner style.
 
 ### Toolbar
 
@@ -414,6 +414,7 @@ interface SectionStyle {
   backgroundColor?: string;       // Hex color
   textColor?: string;             // Hex color (inherited by blocks unless overridden)
   accentColor?: string;           // Hex color for buttons/highlights
+  colorMode?: "global" | "custom"; // "global" follows GlobalStyle color scheme, "custom" keeps manual section colors
   backgroundImage?: string;       // Cloudinary URL
   backgroundType?: "solid" | "gradient" | "image";
   gradientFrom?: string;          // Hex color (if gradient)
@@ -428,6 +429,7 @@ interface SectionStyle {
 interface GlobalStyle {
   fontFamily: string;             // Google Font name ("Inter", "Playfair Display")
   primaryColor: string;           // Default accent color for all sections
+  colorScheme: "monochromatic";   // Active global palette strategy (future: complementary, analogous, etc.)
   borderRadius: "none" | "sm" | "md" | "lg" | "full";  // Button/card corners
   themeMode: "dark" | "light";   // Applies website theme in editor canvas + preview
 }
@@ -683,14 +685,16 @@ Each section type is a **preset** — a combination of default group(s) + defaul
 Styles cascade from global â†’ section â†’ block:
 
 ```
-GlobalStyle.primaryColor    â†’ used as default accentColor for all sections
+GlobalStyle.primaryColor    -> base input for the active global color scheme
+GlobalStyle.colorScheme     -> resolves section/group/block palette tokens (currently monochromatic)
 GlobalStyle.fontFamily      â†’ applied to all text
 GlobalStyle.borderRadius    â†’ applied to buttons, cards, images
 GlobalStyle.themeMode       â†’ applies light/dark website rendering in canvas + preview (section surfaces + inherited text/accent)
 
-SectionStyle.textColor      â†’ inherited by all blocks in the section
-SectionStyle.accentColor    â†’ inherited by buttons, icons, links in the section
-SectionStyle.backgroundColor â†’ section background
+SectionStyle.colorMode      -> section color source switch ("global" uses GlobalStyle scheme, "custom" keeps manual overrides)
+SectionStyle.textColor      -> inherited by all blocks in the section (when colorMode="custom")
+SectionStyle.accentColor    -> inherited by buttons, icons, links in the section (when colorMode="custom")
+SectionStyle.backgroundColor -> section background (when colorMode="custom")
 
 BlockStyle.textColor        â†’ overrides section's textColor for this block only
 BlockStyle.fontSize         â†’ block-level size choice
@@ -707,6 +711,7 @@ When a section is selected (not a specific group/block):
 
 - Shows section-level actions (duplicate/delete)
 - Shows **Background** panel: section background + section color inheritance controls
+- Includes **Color Source** switch: `Global Palette` (default, follows `GlobalStyle.primaryColor` + `colorScheme`) or `Custom Colors` (section-local overrides)
 - Code organization: `SettingsPanel.tsx` routes to dedicated mode components (`SectionModeSettings`, `GroupModeSettings`, `BlockSettings`, `GlobalSettingsPanel`)
 - Group list and group reordering are handled in the LEFT sidebar section tree when a section is focused
 
@@ -858,11 +863,11 @@ Project:
       id, type,
       layout: { id, label, columns, distribution, alignment, direction, slots },
       blocks: [{ id, type, slot, order, props, style }],
-      style: { backgroundColor, textColor, accentColor, backgroundType, ... paddingY },
+      style: { backgroundColor, textColor, accentColor, colorMode, backgroundType, ... paddingY },
       isVisible
     }]
   }],
-  globalStyle: { themeMode, fontFamily, primaryColor, borderRadius },
+  globalStyle: { themeMode, fontFamily, primaryColor, colorScheme, borderRadius },
   seo: { title, description, ogImage },
   templateId (refâ†’Template), publishedUrl, publishedAt, publishedHtml,
   createdAt, updatedAt
@@ -1419,8 +1424,8 @@ This contract ensures AI output can be validated and loaded directly into the ed
 | **Section Registry** | Central config mapping section types to allowed layouts, default groups/default blocks fallback, and constraints. |
 | **Block Registry** | Central config mapping block types to components, default props/styles, and editable fields. |
 | **Block Style** | Constrained visual options for a block (fontSize, fontWeight, textAlign, width, spacing, positioning mode, scale). Never raw CSS. |
-| **Section Style** | Design data for a section (backgroundColor, backgroundType, paddingY, textColor, accentColor). |
-| **Global Style** | Page-wide design settings (themeMode, fontFamily, primaryColor, borderRadius). Inherited by sections/blocks where applicable, with themeMode driving website rendering in canvas/preview. |
+| **Section Style** | Design data for a section (backgroundColor, backgroundType, paddingY, textColor, accentColor, colorMode). |
+| **Global Style** | Page-wide design settings (themeMode, fontFamily, primaryColor, colorScheme, borderRadius). Inherited by sections/blocks where applicable, with themeMode driving website rendering in canvas/preview. |
 | **Style Inheritance** | The cascade: Global â†’ Section â†’ Block. Each level can override the parent. |
 | **Canvas** | The center panel where sections and blocks are rendered WYSIWYG. |
 | **Left Sidebar / Sections List** | The left panel showing section tree navigation: reorderable sections plus focused-section groups with drag reorder. |
@@ -1440,7 +1445,7 @@ This contract ensures AI output can be validated and loaded directly into the ed
 
 ---
 
-*Document Version: 3.29 — Navigation groups now use the same 6-unit layout system as all other groups (no dedicated `nav-*` templates). Group settings always use the unified [1][2][3] + distribution + alignment + reversed picker, navbar defaults now use standard `col-*` slots, and navbar-specific renderer/layout branches were removed. Legacy navbar semantic-slot/layout migration code was removed (no backward-compatibility path for old nav data).*
+*Document Version: 3.30 - Added global monochromatic color system plumbing (`globalStyle.colorScheme`) and section color-source mode (`section.style.colorMode`) so primary color changes in Global Settings propagate across section backgrounds, group surfaces, and block accents by default, with optional per-section custom color overrides.*
 *Last Updated: February 19, 2026*
 *Keep this document updated as architecture decisions change.*
 *For colors and theming, always reference the separate Style Guide file.*

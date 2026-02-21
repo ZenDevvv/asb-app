@@ -46,6 +46,7 @@ function clearBlockStyleHistoryWindows() {
 const DEFAULT_GLOBAL_STYLE: GlobalStyle = {
   fontFamily: "Inter",
   primaryColor: "#00e5a0",
+  colorScheme: "monochromatic",
   borderRadius: "md",
   themeMode: "dark",
 };
@@ -72,6 +73,7 @@ function normalizeIncomingGlobalStyle(styleLike: unknown): GlobalStyle {
   const rawStyle = styleLike as Partial<GlobalStyle>;
   const borderRadius = rawStyle.borderRadius;
   const themeMode = rawStyle.themeMode;
+  const colorScheme = rawStyle.colorScheme;
 
   return {
     fontFamily:
@@ -82,6 +84,8 @@ function normalizeIncomingGlobalStyle(styleLike: unknown): GlobalStyle {
       typeof rawStyle.primaryColor === "string" && rawStyle.primaryColor.trim().length > 0
         ? rawStyle.primaryColor
         : DEFAULT_GLOBAL_STYLE.primaryColor,
+    colorScheme:
+      colorScheme === "monochromatic" ? colorScheme : DEFAULT_GLOBAL_STYLE.colorScheme,
     borderRadius:
       borderRadius === "none" ||
       borderRadius === "sm" ||
@@ -370,6 +374,28 @@ function normalizeIncomingGroups(sectionType: SectionType, sectionLike: unknown)
   return buildDefaultGroups(sectionType);
 }
 
+function normalizeIncomingSectionStyle(
+  sectionType: SectionType,
+  styleLike: unknown,
+): SectionStyle {
+  const fallbackStyle: SectionStyle = {
+    ...SECTION_REGISTRY[sectionType].defaultStyle,
+    colorMode: "global",
+  };
+
+  if (!styleLike || typeof styleLike !== "object") {
+    return fallbackStyle;
+  }
+
+  const rawStyle = styleLike as SectionStyle;
+  const colorMode = rawStyle.colorMode === "custom" ? "custom" : "global";
+
+  return {
+    ...rawStyle,
+    colorMode,
+  };
+}
+
 function normalizeIncomingSections(sectionsLike: unknown): Section[] {
   if (!Array.isArray(sectionsLike)) return [];
 
@@ -387,9 +413,7 @@ function normalizeIncomingSections(sectionsLike: unknown): Section[] {
       id: typeof rawSection.id === "string" ? rawSection.id : nanoid(10),
       type: rawSection.type,
       groups,
-      style: rawSection.style && typeof rawSection.style === "object"
-        ? { ...rawSection.style }
-        : { ...SECTION_REGISTRY[rawSection.type].defaultStyle },
+      style: normalizeIncomingSectionStyle(rawSection.type, rawSection.style),
       isVisible: rawSection.isVisible !== false,
     });
   });
@@ -422,7 +446,10 @@ export const useEditorStore = create<EditorState & EditorActions>()(
         id: nanoid(10),
         type,
         groups: buildDefaultGroups(type),
-        style: { ...SECTION_REGISTRY[type].defaultStyle },
+        style: {
+          ...SECTION_REGISTRY[type].defaultStyle,
+          colorMode: "global",
+        },
         isVisible: true,
       };
 
