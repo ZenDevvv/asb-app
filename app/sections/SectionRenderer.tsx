@@ -13,6 +13,13 @@ interface SectionRendererProps {
 	onBlockClick?: (groupId: string, blockId: string) => void;
 	onUpdateBlockProp?: (groupId: string, blockId: string, key: string, value: unknown) => void;
 	onUpdateBlockStyle?: (groupId: string, blockId: string, style: Partial<BlockStyle>) => void;
+	onMoveBlockToSlot?: (groupId: string, blockId: string, slot: string) => void;
+	onMoveBlockToSlotAtIndex?: (
+		groupId: string,
+		blockId: string,
+		slot: string,
+		targetIndex: number,
+	) => void;
 }
 
 interface RgbColor {
@@ -181,7 +188,9 @@ function getEffectPattern(
 
 	if (effect === "dots") {
 		const alpha = isLight ? 0.2 * intensity : 0.24 * intensity;
-		const color = isLight ? `rgba(0,0,0,${toAlpha(alpha)})` : `rgba(255,255,255,${toAlpha(alpha)})`;
+		const color = isLight
+			? `rgba(0,0,0,${toAlpha(alpha)})`
+			: `rgba(255,255,255,${toAlpha(alpha)})`;
 		return {
 			image: `radial-gradient(circle, ${color} 1px, transparent 1px)`,
 			size: "24px 24px",
@@ -191,7 +200,9 @@ function getEffectPattern(
 
 	if (effect === "grid") {
 		const alpha = isLight ? 0.14 * intensity : 0.16 * intensity;
-		const color = isLight ? `rgba(0,0,0,${toAlpha(alpha)})` : `rgba(255,255,255,${toAlpha(alpha)})`;
+		const color = isLight
+			? `rgba(0,0,0,${toAlpha(alpha)})`
+			: `rgba(255,255,255,${toAlpha(alpha)})`;
 		return {
 			image: [
 				`linear-gradient(${color} 1px, transparent 1px)`,
@@ -282,6 +293,8 @@ export function SectionRenderer({
 	onBlockClick,
 	onUpdateBlockProp,
 	onUpdateBlockStyle,
+	onMoveBlockToSlot,
+	onMoveBlockToSlotAtIndex,
 }: SectionRendererProps) {
 	const renderSection: Section = {
 		...section,
@@ -292,8 +305,7 @@ export function SectionRenderer({
 
 	return (
 		<section
-			style={renderSection.style.fullHeight ? { ...bgStyle, minHeight: "100vh" } : bgStyle}
-		>
+			style={renderSection.style.fullHeight ? { ...bgStyle, minHeight: "100vh" } : bgStyle}>
 			<div className="mx-auto max-w-6xl px-6">
 				<div className="space-y-8">
 					{orderedGroups.map((group) => (
@@ -312,6 +324,12 @@ export function SectionRenderer({
 							}
 							onUpdateBlockStyle={(blockId, style) =>
 								onUpdateBlockStyle?.(group.id, blockId, style)
+							}
+							onMoveBlockToSlot={(blockId, slot) =>
+								onMoveBlockToSlot?.(group.id, blockId, slot)
+							}
+							onMoveBlockToSlotAtIndex={(blockId, slot, targetIndex) =>
+								onMoveBlockToSlotAtIndex?.(group.id, blockId, slot, targetIndex)
 							}
 						/>
 					))}

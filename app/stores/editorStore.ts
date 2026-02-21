@@ -937,29 +937,65 @@ export const useEditorStore = create<EditorState & EditorActions>()(
     },
 
     moveBlockToSlot: (sectionId: string, groupId: string, blockId: string, slot: string) => {
+      get().moveBlockToSlotAtIndex(sectionId, groupId, blockId, slot, Number.MAX_SAFE_INTEGER);
+    },
+
+    moveBlockToSlotAtIndex: (
+      sectionId: string,
+      groupId: string,
+      blockId: string,
+      slot: string,
+      targetIndex: number,
+    ) => {
       set((state) => {
         const section = findSection(state, sectionId);
         if (!section) return;
         const group = findGroup(section, groupId);
         if (!group) return;
 
+        const groupSlots = group.layout.slots;
+        if (groupSlots.length === 0) return;
+        const targetSlot = groupSlots.includes(slot) ? slot : groupSlots[0];
+
         const block = findBlock(group, blockId);
-        if (!block || block.slot === slot) return;
+        if (!block) return;
         if (isAbsoluteBlock(block)) return;
+
+        const sourceSlot = block.slot;
+        const sourceSlotBlocks = group.blocks
+          .filter((entry) => !isAbsoluteBlock(entry) && entry.slot === sourceSlot)
+          .sort((a, b) => a.order - b.order);
+        const sourceIndex = sourceSlotBlocks.findIndex((entry) => entry.id === blockId);
+        if (sourceIndex === -1) return;
+
+        const targetSlotBlocks = group.blocks
+          .filter(
+            (entry) => !isAbsoluteBlock(entry) && entry.slot === targetSlot && entry.id !== blockId,
+          )
+          .sort((a, b) => a.order - b.order);
+        const clampedTargetIndex = Math.max(
+          0,
+          Math.min(Math.round(targetIndex), targetSlotBlocks.length),
+        );
+
+        if (sourceSlot === targetSlot && clampedTargetIndex === sourceIndex) return;
 
         state.history.push(JSON.parse(JSON.stringify(state.sections)));
         state.future = [];
 
-        const blocksInTargetSlot = group.blocks.filter(
-          (b) => !isAbsoluteBlock(b) && b.slot === slot,
-        );
-        const maxOrder =
-          blocksInTargetSlot.length > 0
-            ? Math.max(...blocksInTargetSlot.map((b) => b.order))
-            : -1;
+        const reorderedTargetSlot = targetSlotBlocks.slice();
+        reorderedTargetSlot.splice(clampedTargetIndex, 0, block);
+        reorderedTargetSlot.forEach((entry, index) => {
+          entry.slot = targetSlot;
+          entry.order = index;
+        });
 
-        block.slot = slot;
-        block.order = maxOrder + 1;
+        if (sourceSlot !== targetSlot) {
+          const reorderedSourceSlot = sourceSlotBlocks.filter((entry) => entry.id !== blockId);
+          reorderedSourceSlot.forEach((entry, index) => {
+            entry.order = index;
+          });
+        }
 
         normalizeBlocksBySlotOrder(group.blocks, group.layout.slots);
 
