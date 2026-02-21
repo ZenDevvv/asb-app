@@ -202,7 +202,7 @@ The right sidebar changes based on what is selected:
    - **Flow / Absolute** toggle — choose positioning mode. Absolute blocks are positioned relative to the selected group and can be moved on the canvas by dragging.
 4. **Back to Group** - button to go back to group-level settings.
 **When NOTHING is selected** (click empty canvas area):
-- **Global Page Settings** - website theme mode (dark/light), font family, primary color, color scheme, corner style.
+- **Global Page Settings** - website theme mode (dark/light), font family (button opens a Typography Settings modal with search + preview cards + Apply Font action), primary color, color scheme, corner style.
 
 ### Toolbar
 
@@ -796,7 +796,7 @@ type ControlType =
                       //   Consecutive icon-picker fields in editableProps auto-render side-by-side
                       //   (grid grid-cols-2) via groupEditableFields() in BlockSettings.tsx
   | "toggle"          // Radix Switch (boolean)
-  | "select"          // Native <select> dropdown (implemented in FieldRenderer — used by button variant)
+  | "select"          // shadcn Select dropdown (implemented in FieldRenderer; used by block prop/style option fields)
   | "size-picker"     // Segmented control for size choices (sm/md/lg/xl)
   | "align-picker";   // Segmented control for alignment (left/center/right)
 ```
@@ -807,7 +807,7 @@ The Background section in the right sidebar is a **composite control** with:
 1. **Type selector** â€” icon buttons in a row: Solid Color | Gradient | Image (| Video post-MVP)
 2. **Type-specific controls**:
    - **Solid**: single color picker — defaults to `globalStyle.primaryColor` when `section.style.backgroundColor` is not set
-   - **Gradient**: two color pickers + direction dropdown — "From" defaults to `globalStyle.primaryColor`, "To" defaults to a neutral dark/light based on `themeMode`; users can change freely
+   - **Gradient**: two color pickers + direction selector (shadcn Select) — "From" defaults to `globalStyle.primaryColor`, "To" defaults to a neutral dark/light based on `themeMode`; users can change freely
    - **Image**: upload button + optional overlay color/opacity
 3. **Overlay Effect selector** â€” 5-button icon row: None | Dots | Grid | Dim | Vignette
    - Implemented via `SectionStyle.backgroundEffect`
@@ -1051,7 +1051,7 @@ app/
 â”‚   â”œâ”€â”€ SectionModeSettings.tsx  # RIGHT sidebar: section mode content
 â”‚   â”œâ”€â”€ GroupModeSettings.tsx    # RIGHT sidebar: group mode content
 â”‚   â”œâ”€â”€ BlockSettings.tsx        # RIGHT sidebar: block mode (content + style)
-â”‚   â”œâ”€â”€ GlobalSettingsPanel.tsx  # RIGHT sidebar: global page settings
+â”‚   â”œâ”€â”€ GlobalSettingsPanel.tsx  # RIGHT sidebar: global page settings + Typography Settings modal trigger
 â”‚   â”œâ”€â”€ SettingsCollapsibleSection.tsx # Shared settings collapsible UI
 â”‚   â”œâ”€â”€ AddSectionModal.tsx      # Section type picker dialog
 â”‚   â”œâ”€â”€ AddBlockModal.tsx        # Grouped block picker modal (within a section)
@@ -1469,6 +1469,7 @@ This contract ensures AI output can be validated and loaded directly into the ed
 
 ---
 
+*Document Version: 3.37 - Replaced native editor dropdowns with shadcn `Select` components. `GlobalSettingsPanel` font family selection now uses a button-triggered **Typography Settings** modal (search + preview cards + explicit Apply Font action) instead of an inline dropdown. `BackgroundControl` gradient direction uses shadcn `Select`.*
 *Document Version: 3.36 - Updated `SectionStyle.backgroundEffect` to remove `noise` and add `vignette`. `BackgroundControl` effect options are now None/Dots/Grid/Dim/Vignette. `SectionStyle.backgroundEffectIntensity` remains the shared 0-100 slider for all non-`none` effects (including `vignette`).*
 *Document Version: 3.35 - Redesigned `AddBlockModal` to a grouped picker UX. Added category rail + search + grouped block cards + footer confirmation (`Insert Block`). Block registry entries now include `category: BlockCategory` (`basic | media | layout | content`) used by the modal for grouping.*
 *Document Version: 3.34 - Added `dim` to `SectionStyle.backgroundEffect` and introduced `SectionStyle.backgroundEffectIntensity` (0-100) with `BackgroundControl` support.*
