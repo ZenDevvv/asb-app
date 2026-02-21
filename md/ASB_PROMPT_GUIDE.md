@@ -188,7 +188,9 @@ The right sidebar changes based on what is selected:
 1. **Section Actions** — duplicate/delete section.
 2. **Layout** — section layout options:
    - **Fill screen height** toggle — makes the section fill the full viewport height (`min-height: 100vh`). User-facing label: "Fill screen height" / sub-label: "Section takes up the full screen". Implemented as a Radix Switch. Stored as `SectionStyle.fullHeight`.
-3. **Background** — section background options (solid/gradient/image + padding slider).
+3. **Background** — section background options (solid/gradient/image + overlay effect + padding slider).
+   - In `colorMode: "global"`, section background picker defaults are derived from the active global palette (`primaryColor`, `themeMode`, `colorScheme`) plus section index.
+   - When a user changes solid/gradient colors via the picker, section style is promoted to `colorMode: "custom"` so the selected colors render immediately and persist as section overrides.
 4. **Group Management Location** — groups are listed and reordered from the LEFT sidebar section tree.
 
 **When a GROUP is selected** (click group container on the canvas or from the left sidebar section tree):
@@ -433,9 +435,10 @@ interface SectionStyle {
   backgroundEffect?: "none" | "dots" | "grid" | "dim" | "vignette";  // CSS overlay pattern layered via multiple backgrounds
   backgroundEffectIntensity?: number; // 0-100 strength for the selected backgroundEffect
   fullHeight?: boolean;           // When true, section renders with min-height: 100vh (fills screen)
+  colorMode?: "global" | "custom"; // "global" follows global palette tokens; "custom" uses section overrides
+  textColor?: string;             // Optional section token override (used when colorMode="custom")
+  accentColor?: string;           // Optional section token override (used when colorMode="custom")
 }
-// NOTE: textColor, accentColor, colorMode were REMOVED from SectionStyle.
-// Colors are now controlled at block level via BlockStyle.colorMode, BlockStyle.textColor, BlockStyle.accentColor.
 
 // â”€â”€â”€ Global Style â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 

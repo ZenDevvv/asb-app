@@ -1,4 +1,5 @@
 import type { SectionStyle, GlobalStyle } from "~/types/editor";
+import { resolveSectionColorScheme } from "~/lib/colorSystem";
 import { ColorControl } from "./ColorControl";
 import { SliderControl } from "./SliderControl";
 import {
@@ -14,6 +15,7 @@ interface BackgroundControlProps {
 	style: SectionStyle;
 	onChange: (style: Partial<SectionStyle>) => void;
 	globalStyle?: GlobalStyle;
+	sectionIndex?: number;
 }
 
 const BG_TYPES = [
@@ -32,11 +34,30 @@ const EFFECT_TYPES = [
 
 const DEFAULT_EFFECT_INTENSITY = 40;
 
-export function BackgroundControl({ style, onChange, globalStyle }: BackgroundControlProps) {
+export function BackgroundControl({
+	style,
+	onChange,
+	globalStyle,
+	sectionIndex = 0,
+}: BackgroundControlProps) {
 	const bgType = style.backgroundType || "solid";
 	const effectIntensity = style.backgroundEffectIntensity ?? DEFAULT_EFFECT_INTENSITY;
-	const primaryColor = globalStyle?.primaryColor || "#00e5a0";
-	const darkBg = globalStyle?.themeMode === "light" ? "#f5f5f5" : "#0a0f0d";
+	const scheme = resolveSectionColorScheme({
+		primaryColor: globalStyle?.primaryColor || "#00e5a0",
+		themeMode: globalStyle?.themeMode ?? "dark",
+		colorScheme: globalStyle?.colorScheme ?? "monochromatic",
+		sectionIndex,
+	});
+	const solidColorValue =
+		style.colorMode === "global"
+			? scheme.backgroundColor
+			: style.backgroundColor || scheme.backgroundColor;
+	const gradientFromValue =
+		style.colorMode === "global"
+			? scheme.gradientFrom
+			: style.gradientFrom || scheme.gradientFrom;
+	const gradientToValue =
+		style.colorMode === "global" ? scheme.gradientTo : style.gradientTo || scheme.gradientTo;
 
 	return (
 		<div className="space-y-4">
@@ -62,7 +83,7 @@ export function BackgroundControl({ style, onChange, globalStyle }: BackgroundCo
 			{bgType === "solid" && (
 				<ColorControl
 					label="Color"
-					value={style.backgroundColor || darkBg}
+					value={solidColorValue}
 					onChange={(v) => onChange({ backgroundColor: v })}
 				/>
 			)}
@@ -71,12 +92,12 @@ export function BackgroundControl({ style, onChange, globalStyle }: BackgroundCo
 				<div className="space-y-3">
 					<ColorControl
 						label="From"
-						value={style.gradientFrom || primaryColor}
+						value={gradientFromValue}
 						onChange={(v) => onChange({ gradientFrom: v })}
 					/>
 					<ColorControl
 						label="To"
-						value={style.gradientTo || darkBg}
+						value={gradientToValue}
 						onChange={(v) => onChange({ gradientTo: v })}
 					/>
 					<div className="space-y-1.5">
