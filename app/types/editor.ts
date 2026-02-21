@@ -19,6 +19,7 @@ export interface BlockStyle {
   fontFamily?: string;
   fontSize?: "sm" | "base" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "5xl";
   fontWeight?: "normal" | "medium" | "semibold" | "bold";
+  fontStyle?: "normal" | "italic";
   textAlign?: "left" | "center" | "right";
   textColor?: string;
   accentColor?: string;            // Custom accent/highlight color for this block

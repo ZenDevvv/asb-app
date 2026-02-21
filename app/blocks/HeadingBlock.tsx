@@ -44,6 +44,7 @@ export function HeadingBlock({ block, globalStyle }: BlockComponentProps) {
 
 	const inlineStyle: React.CSSProperties = {
 		fontFamily: s.fontFamily || globalStyle.fontFamily,
+		fontStyle: s.fontStyle || "normal",
 		...(isGradient
 			? {
 					background: `linear-gradient(135deg, ${accentColor}, ${gradientTo})`,

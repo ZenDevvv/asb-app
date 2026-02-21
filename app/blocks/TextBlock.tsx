@@ -33,6 +33,7 @@ export function TextBlock({ block, globalStyle }: BlockComponentProps) {
 			className={classes}
 			style={{
 				fontFamily: s.fontFamily || globalStyle.fontFamily,
+				fontStyle: s.fontStyle || "normal",
 				color: resolveTextColor(s, globalStyle),
 				opacity: (s.opacity ?? 100) / 100,
 				marginTop: s.marginTop ?? 0,

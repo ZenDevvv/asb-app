@@ -18,7 +18,7 @@ export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
     icon: "title",
     category: "basic",
     defaultProps: { text: "Heading text", textStyle: "default" },
-    defaultStyle: { fontSize: "4xl", fontWeight: "bold", textAlign: "left" },
+    defaultStyle: { fontSize: "4xl", fontWeight: "bold", fontStyle: "normal", textAlign: "left" },
     editableProps: [
       { key: "text", label: "Text", type: "short-text" },
       {
@@ -55,6 +55,15 @@ export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
         ],
       },
       {
+        key: "fontStyle",
+        label: "Style",
+        type: "size-picker",
+        options: [
+          { label: "Normal", value: "normal" },
+          { label: "Italic", value: "italic" },
+        ],
+      },
+      {
         key: "textAlign",
         label: "Align",
         type: "align-picker",
@@ -75,7 +84,7 @@ export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
     icon: "notes",
     category: "basic",
     defaultProps: { text: "Body text goes here. Write something compelling for your visitors." },
-    defaultStyle: { fontSize: "base", textAlign: "left" },
+    defaultStyle: { fontSize: "base", fontStyle: "normal", textAlign: "left" },
     editableProps: [
       { key: "text", label: "Text", type: "long-text" },
     ],
@@ -89,6 +98,15 @@ export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
           { label: "M", value: "base" },
           { label: "L", value: "lg" },
           { label: "XL", value: "xl" },
+        ],
+      },
+      {
+        key: "fontStyle",
+        label: "Style",
+        type: "size-picker",
+        options: [
+          { label: "Normal", value: "normal" },
+          { label: "Italic", value: "italic" },
         ],
       },
       {

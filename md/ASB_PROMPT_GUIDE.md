@@ -319,7 +319,7 @@ EDITOR DOES NOT HAVE (by design):
 // â”€â”€â”€ Block Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 type BlockType =
-  | "heading"        // H1-H4 text with size/weight options
+  | "heading"        // H1-H4 text with size/weight/style options
   | "text"           // Body/paragraph text
   | "button"         // CTA button — variant (solid/outline/ghost/link) + text + link + optional iconLeft/iconRight
   | "card"           // Surface card with title/body/button/image
@@ -352,6 +352,7 @@ interface BlockStyle {
   fontFamily?: string;            // Optional block-level font override (currently used by heading/text blocks)
   fontSize?: "sm" | "base" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "5xl";
   fontWeight?: "normal" | "medium" | "semibold" | "bold";
+  fontStyle?: "normal" | "italic";
   textAlign?: "left" | "center" | "right";
   textColor?: string;             // Custom text color (used when colorMode="custom")
   accentColor?: string;           // Custom accent/highlight color (used when colorMode="custom")
@@ -723,6 +724,8 @@ BlockStyle.textColor        â†’ custom text color (only active when colorMo
 BlockStyle.accentColor      â†’ custom accent color (only active when colorMode="custom")
 BlockStyle.fontFamily       â†’ optional block-level font override (heading/text currently use this)
 BlockStyle.fontSize         â†’ block-level size choice
+BlockStyle.fontWeight       â†’ block-level weight choice (where supported)
+BlockStyle.fontStyle        â†’ block-level style choice ("normal" or "italic" for heading/text)
 BlockStyle.textAlign        â†’ block-level alignment
 ```
 
@@ -783,6 +786,7 @@ When a specific block is selected (click a block on the canvas):
 â”‚  â–¼ Style                          â”‚  â† Auto-generated from block's editableStyles
 â”‚  Size:     [sm][base][lg][xl]    â”‚
 â”‚  Weight:   [normal][bold]        â”‚
+â”‚  Style:    [normal][italic]      â”‚
 â”‚  Align:    [â† ][â†”][â†’ ]          â”‚
 â”‚  Color:    [â— picker] (optional) â”‚
 â”‚  Spacing â†• [â”â”â”â—â”â”â”]            â”‚
@@ -1213,7 +1217,7 @@ Task: Build the [BlockType]Block component.
 Requirements:
 - Follow the BlockComponentProps interface: { block, sectionStyle, globalStyle, isEditing, isSelected, onUpdateProp }
 - Render the block's content from block.props
-- Apply block.style (fontSize, textAlign, fontWeight, etc.) via Tailwind class maps
+- Apply block.style (fontSize, fontWeight, fontStyle, textAlign, etc.) via Tailwind class maps
 - Inherit sectionStyle.textColor unless block.style.textColor is set
 - If inlineEditable, wrap text in InlineText (Tiptap) component
 - Support isEditing flag (disable links, show placeholder states)
@@ -1459,7 +1463,7 @@ This contract ensures AI output can be validated and loaded directly into the ed
 | **Slot** | A named position within a layout template where blocks are placed ("main", "left", "right", "col-1", etc.). |
 | **Section Registry** | Central config mapping section types to allowed layouts, default groups/default blocks fallback, and constraints. |
 | **Block Registry** | Central config mapping block types to components, default props/styles, and editable fields. |
-| **Block Style** | Constrained visual options for a block (fontFamily override, fontSize, fontWeight, textAlign, width, spacing, positioning mode, scale). Never raw CSS. |
+| **Block Style** | Constrained visual options for a block (fontFamily override, fontSize, fontWeight, fontStyle, textAlign, width, spacing, positioning mode, scale). Never raw CSS. |
 | **Section Style** | Design data for a section (backgroundColor/backgroundType/gradient fields, backgroundEffect, backgroundEffectIntensity, paddingY, fullHeight). |
 | **Global Style** | Page-wide design settings (themeMode, fontFamily, primaryColor, colorScheme, borderRadius). `fontFamily` is the default text font across the page and can be overridden by supported blocks. |
 | **Style Inheritance** | The cascade: Global â†’ Section â†’ Block. Each level can override the parent. |
@@ -1481,6 +1485,7 @@ This contract ensures AI output can be validated and loaded directly into the ed
 
 ---
 
+*Document Version: 3.42 - Added `BlockStyle.fontStyle` (`"normal" | "italic"`) and exposed a new Style control in Block Mode for `heading` and `text` blocks. `HeadingBlock.tsx` and `TextBlock.tsx` now apply block-level italic styling via `block.style.fontStyle`.*
 *Document Version: 3.41 - Added block-level duplicate action in `BlockSettings.tsx` (`content_copy` icon). Duplicate now creates a copy directly below the selected block in the same group (`duplicateBlock` store action), with flow blocks inserted at the next slot order and absolute blocks offset downward.*
 *Document Version: 3.40 - Expanded typography options with additional wedding-invitation-friendly families in the editor font picker and Google Fonts load list (`Alex Brush`, `Allura`, `Cinzel`, `Cormorant Garamond`, `EB Garamond`, `Great Vibes`, `Parisienne`, `Sacramento`).*
 *Document Version: 3.39 - Added block-level font overrides for `heading` and `text` blocks. Block Mode now includes a Font Family control that opens the same Typography Settings modal used in Global Settings. `GlobalStyle.fontFamily` remains the default font; `BlockStyle.fontFamily` can override it per supported block.*
