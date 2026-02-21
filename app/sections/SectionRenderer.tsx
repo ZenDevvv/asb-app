@@ -185,6 +185,7 @@ function getEffectPattern(
 		return {
 			image: `radial-gradient(circle, ${color} 1px, transparent 1px)`,
 			size: "24px 24px",
+			position: "left top",
 		};
 	}
 
@@ -197,16 +198,7 @@ function getEffectPattern(
 				`linear-gradient(90deg, ${color} 1px, transparent 1px)`,
 			].join(", "),
 			size: "40px 40px, 40px 40px",
-		};
-	}
-
-	if (effect === "noise") {
-		const maxOpacity = isLight ? 0.08 : 0.12;
-		const opacity = toAlpha(maxOpacity * intensity);
-		const svg = `%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='${opacity}'/%3E%3C/svg%3E`;
-		return {
-			image: `url("data:image/svg+xml,${svg}")`,
-			size: "200px 200px",
+			position: "left top, left top",
 		};
 	}
 
@@ -215,6 +207,17 @@ function getEffectPattern(
 		return {
 			image: `linear-gradient(rgba(0,0,0,${alpha}), rgba(0,0,0,${alpha}))`,
 			size: "auto",
+			position: "left top",
+		};
+	}
+
+	if (effect === "vignette") {
+		const edgeAlpha = toAlpha((isLight ? 0.42 : 0.58) * intensity);
+		const midAlpha = toAlpha((isLight ? 0.12 : 0.18) * intensity);
+		return {
+			image: `radial-gradient(ellipse at center, rgba(0,0,0,0) 36%, rgba(0,0,0,${midAlpha}) 72%, rgba(0,0,0,${edgeAlpha}) 100%)`,
+			size: "cover",
+			position: "center",
 		};
 	}
 
@@ -237,6 +240,7 @@ function getSectionBackground(
 		if (effect) {
 			style.backgroundImage = `${effect.image}, ${gradient}`;
 			style.backgroundSize = `${effect.size}, auto`;
+			style.backgroundPosition = `${effect.position || "left top"}, center`;
 		} else {
 			style.background = gradient;
 		}
@@ -245,7 +249,7 @@ function getSectionBackground(
 		if (effect) {
 			style.backgroundImage = `${effect.image}, ${imageLayer}`;
 			style.backgroundSize = `${effect.size}, cover`;
-			style.backgroundPosition = "left top, center";
+			style.backgroundPosition = `${effect.position || "left top"}, center`;
 		} else {
 			style.backgroundImage = imageLayer;
 			style.backgroundSize = "cover";
@@ -260,6 +264,7 @@ function getSectionBackground(
 		if (effect) {
 			style.backgroundImage = effect.image;
 			style.backgroundSize = effect.size;
+			style.backgroundPosition = effect.position || "left top";
 		}
 	}
 

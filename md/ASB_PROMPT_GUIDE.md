@@ -423,7 +423,7 @@ interface SectionStyle {
   gradientTo?: string;            // Hex color (if gradient)
   gradientDirection?: string;     // "to bottom" | "to right" | etc.
   paddingY?: number;              // Continuous value (px), controlled by slider
-  backgroundEffect?: "none" | "noise" | "dots" | "grid" | "dim";  // CSS overlay pattern layered via multiple backgrounds
+  backgroundEffect?: "none" | "dots" | "grid" | "dim" | "vignette";  // CSS overlay pattern layered via multiple backgrounds
   backgroundEffectIntensity?: number; // 0-100 strength for the selected backgroundEffect
   fullHeight?: boolean;           // When true, section renders with min-height: 100vh (fills screen)
 }
@@ -809,18 +809,18 @@ The Background section in the right sidebar is a **composite control** with:
    - **Solid**: single color picker — defaults to `globalStyle.primaryColor` when `section.style.backgroundColor` is not set
    - **Gradient**: two color pickers + direction dropdown — "From" defaults to `globalStyle.primaryColor`, "To" defaults to a neutral dark/light based on `themeMode`; users can change freely
    - **Image**: upload button + optional overlay color/opacity
-3. **Overlay Effect selector** â€” 5-button icon row: None | Noise | Dots | Grid | Dim
+3. **Overlay Effect selector** â€” 5-button icon row: None | Dots | Grid | Dim | Vignette
    - Implemented via `SectionStyle.backgroundEffect`
    - Rendered as CSS multiple background layers (no extra DOM elements, no z-index issues)
    - `none` â†' no overlay (default)
-   - `noise` â†' SVG feTurbulence fractal noise at low opacity (grainy texture)
    - `dots` â†' `radial-gradient` dot pattern, 24px grid
    - `grid` â†' 1px line grid via two `linear-gradient` layers, 40px grid
    - `dim` â†' uniform dark overlay via `linear-gradient`, useful for improving foreground contrast on bright/image backgrounds
+   - `vignette` â†' radial darkening toward edges via `radial-gradient`, useful for drawing focus toward centered content
    - Colors adapt to `globalStyle.themeMode`: light dots/lines use dark rgba, dark uses white rgba
    - Effect layers stack on top of the background via CSS background-image chaining (effect layer first, bg layer second)
 4. **Effect Intensity slider** â€” continuous Radix Slider (0-100) bound to `SectionStyle.backgroundEffectIntensity`
-   - Applied to all non-`none` effects (`noise`, `dots`, `grid`, `dim`) to control overlay strength
+   - Applied to all non-`none` effects (`dots`, `grid`, `dim`, `vignette`) to control overlay strength
 5. **Y-axis padding slider** â€” continuous Radix Slider from Small (e.g., 20px) to Large (e.g., 160px)
 
 
@@ -1469,8 +1469,9 @@ This contract ensures AI output can be validated and loaded directly into the ed
 
 ---
 
+*Document Version: 3.36 - Updated `SectionStyle.backgroundEffect` to remove `noise` and add `vignette`. `BackgroundControl` effect options are now None/Dots/Grid/Dim/Vignette. `SectionStyle.backgroundEffectIntensity` remains the shared 0-100 slider for all non-`none` effects (including `vignette`).*
 *Document Version: 3.35 - Redesigned `AddBlockModal` to a grouped picker UX. Added category rail + search + grouped block cards + footer confirmation (`Insert Block`). Block registry entries now include `category: BlockCategory` (`basic | media | layout | content`) used by the modal for grouping.*
-*Document Version: 3.34 - Added `dim` to `SectionStyle.backgroundEffect` and added `SectionStyle.backgroundEffectIntensity` (0-100). `BackgroundControl` now includes a 5-option effect selector (None/Noise/Dots/Grid/Dim) and an Effect Intensity slider applied to all non-`none` effects.*
+*Document Version: 3.34 - Added `dim` to `SectionStyle.backgroundEffect` and introduced `SectionStyle.backgroundEffectIntensity` (0-100) with `BackgroundControl` support.*
 *Document Version: 3.33 - Added `SectionStyle.fullHeight` boolean. When true, the section renders with `min-height: 100vh`. Exposed in the right sidebar under a new "Layout" collapsible panel (above Background) as a Radix Switch labeled "Fill screen height" with sub-label "Section takes up the full screen". `SectionModeSettings` now has `layout` and `background` panels.*
 *Document Version: 3.32 - Section background color pickers now use `globalStyle` as initial defaults. `BackgroundControl` accepts an optional `globalStyle` prop; solid color falls back to `globalStyle.primaryColor` (or theme-appropriate dark/light neutral), gradient "From" defaults to `globalStyle.primaryColor` and "To" to a neutral based on `themeMode`. `SectionModeSettings` reads `globalStyle` from store and passes it to `BackgroundControl`. Users can still set fully custom background colors — saved values always take precedence over these defaults.*
 *Document Version: 3.31 - Moved color settings from section level to block level. Removed `textColor`, `accentColor`, `colorMode` from `SectionStyle`. Added `textColor`, `accentColor`, `colorMode` to `BlockStyle`. Each block now has a dedicated Colors panel (Global Palette / Custom) in the right sidebar. Added `colorOptions: { hasText, hasAccent }` to `BlockRegistryEntry` to control which color pickers are shown per block type. Added `app/lib/blockColors.ts` with `resolveTextColor` and `resolveAccentColor` helpers used by all block components.*

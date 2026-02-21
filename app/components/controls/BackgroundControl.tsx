@@ -17,10 +17,10 @@ const BG_TYPES = [
 
 const EFFECT_TYPES = [
   { id: "none" as const, icon: "do_not_disturb_on", label: "None" },
-  { id: "noise" as const, icon: "grain", label: "Noise" },
   { id: "dots" as const, icon: "scatter_plot", label: "Dots" },
   { id: "grid" as const, icon: "grid_4x4", label: "Grid" },
   { id: "dim" as const, icon: "brightness_low", label: "Dim" },
+  { id: "vignette" as const, icon: "vignette", label: "Vignette" },
 ];
 
 const DEFAULT_EFFECT_INTENSITY = 40;
