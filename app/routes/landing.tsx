@@ -14,7 +14,7 @@ export default function LandingPage() {
 
 	useEffect(() => {
 		navigate("/editor");
-	}, [navigate]);
+	}, []);
 
 	return <div className="flex flex-col min-h-screen"></div>;
 }
