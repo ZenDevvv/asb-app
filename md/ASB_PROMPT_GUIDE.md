@@ -204,7 +204,7 @@ The right sidebar changes based on what is selected:
    - **Flow / Absolute** toggle — choose positioning mode. Absolute blocks are positioned relative to the selected group and can be moved on the canvas by dragging.
 4. **Back to Group** - button to go back to group-level settings.
 **When NOTHING is selected** (click empty canvas area):
-- **Global Page Settings** - website theme mode (dark/light), font family (button opens a Typography Settings modal with search + preview cards + Apply Font action), primary color, color scheme, corner style. This remains the default font source for all text unless a supported block-level override is set.
+- **Global Page Settings** - website theme mode (dark/light), font family (button opens a Typography Settings modal with search + preview cards + Apply Font action), primary color, color scheme, corner style. This remains the default font source for all text unless a supported block-level override is set. Typography options include sans, serif, and script families (for example: Inter, Playfair Display, Cormorant Garamond, EB Garamond, Cinzel, Great Vibes, Alex Brush, Allura, Parisienne, Sacramento).
 
 ### Toolbar
 
@@ -439,7 +439,7 @@ interface SectionStyle {
 // â”€â”€â”€ Global Style â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 interface GlobalStyle {
-  fontFamily: string;             // Google Font name ("Inter", "Playfair Display")
+  fontFamily: string;             // Google Font name (e.g. "Inter", "Playfair Display", "Great Vibes", "Cormorant Garamond")
   primaryColor: string;           // Default accent color for all sections
   colorScheme: "monochromatic";   // Active global palette strategy (future: complementary, analogous, etc.)
   borderRadius: "none" | "sm" | "md" | "lg" | "full";  // Button/card corners
@@ -1476,6 +1476,7 @@ This contract ensures AI output can be validated and loaded directly into the ed
 
 ---
 
+*Document Version: 3.40 - Expanded typography options with additional wedding-invitation-friendly families in the editor font picker and Google Fonts load list (`Alex Brush`, `Allura`, `Cinzel`, `Cormorant Garamond`, `EB Garamond`, `Great Vibes`, `Parisienne`, `Sacramento`).*
 *Document Version: 3.39 - Added block-level font overrides for `heading` and `text` blocks. Block Mode now includes a Font Family control that opens the same Typography Settings modal used in Global Settings. `GlobalStyle.fontFamily` remains the default font; `BlockStyle.fontFamily` can override it per supported block.*
 *Document Version: 3.38 - Added focused canvas drag for flow blocks inside groups: users can drag between columns and between blocks with a horizontal insertion line. Flow block drops now support precise slot/index placement (`moveBlockToSlotAtIndex`), and group columns stretch to full row height so empty column space remains a valid drop target.*
 *Document Version: 3.37 - Replaced native editor dropdowns with shadcn `Select` components. `GlobalSettingsPanel` font family selection now uses a button-triggered **Typography Settings** modal (search + preview cards + explicit Apply Font action) instead of an inline dropdown. `BackgroundControl` gradient direction uses shadcn `Select`.*

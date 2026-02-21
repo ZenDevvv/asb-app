@@ -11,14 +11,54 @@ export const FONT_FAMILY_OPTIONS: readonly FontFamilyOption[] = [
 		fontFamily: '"Inter", ui-sans-serif, system-ui, sans-serif',
 	},
 	{
+		value: "Alex Brush",
+		label: "Alex Brush",
+		fontFamily: '"Alex Brush", "Brush Script MT", "Segoe Script", cursive',
+	},
+	{
+		value: "Allura",
+		label: "Allura",
+		fontFamily: '"Allura", "Brush Script MT", "Segoe Script", cursive',
+	},
+	{
+		value: "Cinzel",
+		label: "Cinzel",
+		fontFamily: '"Cinzel", "Times New Roman", serif',
+	},
+	{
+		value: "Cormorant Garamond",
+		label: "Cormorant Garamond",
+		fontFamily: '"Cormorant Garamond", "Times New Roman", serif',
+	},
+	{
+		value: "EB Garamond",
+		label: "EB Garamond",
+		fontFamily: '"EB Garamond", "Times New Roman", serif',
+	},
+	{
+		value: "Great Vibes",
+		label: "Great Vibes",
+		fontFamily: '"Great Vibes", "Brush Script MT", "Segoe Script", cursive',
+	},
+	{
 		value: "Poppins",
 		label: "Poppins",
 		fontFamily: '"Poppins", ui-sans-serif, system-ui, sans-serif',
 	},
 	{
+		value: "Parisienne",
+		label: "Parisienne",
+		fontFamily: '"Parisienne", "Brush Script MT", "Segoe Script", cursive',
+	},
+	{
 		value: "Roboto",
 		label: "Roboto",
 		fontFamily: '"Roboto", ui-sans-serif, system-ui, sans-serif',
+	},
+	{
+		value: "Sacramento",
+		label: "Sacramento",
+		fontFamily: '"Sacramento", "Brush Script MT", "Segoe Script", cursive',
 	},
 	{
 		value: "Playfair Display",
