@@ -1,4 +1,4 @@
-import type { SectionStyle } from "~/types/editor";
+import type { SectionStyle, GlobalStyle } from "~/types/editor";
 import { ColorControl } from "./ColorControl";
 import { SliderControl } from "./SliderControl";
 import { cn } from "~/lib/utils";
@@ -6,6 +6,7 @@ import { cn } from "~/lib/utils";
 interface BackgroundControlProps {
   style: SectionStyle;
   onChange: (style: Partial<SectionStyle>) => void;
+  globalStyle?: GlobalStyle;
 }
 
 const BG_TYPES = [
@@ -21,8 +22,10 @@ const EFFECT_TYPES = [
   { id: "grid" as const, icon: "grid_4x4", label: "Grid" },
 ];
 
-export function BackgroundControl({ style, onChange }: BackgroundControlProps) {
+export function BackgroundControl({ style, onChange, globalStyle }: BackgroundControlProps) {
   const bgType = style.backgroundType || "solid";
+  const primaryColor = globalStyle?.primaryColor || "#00e5a0";
+  const darkBg = globalStyle?.themeMode === "light" ? "#f5f5f5" : "#0a0f0d";
 
   return (
     <div className="space-y-4">
@@ -49,7 +52,7 @@ export function BackgroundControl({ style, onChange }: BackgroundControlProps) {
       {bgType === "solid" && (
         <ColorControl
           label="Color"
-          value={style.backgroundColor || "#0a0f0d"}
+          value={style.backgroundColor || darkBg}
           onChange={(v) => onChange({ backgroundColor: v })}
         />
       )}
@@ -58,12 +61,12 @@ export function BackgroundControl({ style, onChange }: BackgroundControlProps) {
         <div className="space-y-3">
           <ColorControl
             label="From"
-            value={style.gradientFrom || "#0a0f0d"}
+            value={style.gradientFrom || primaryColor}
             onChange={(v) => onChange({ gradientFrom: v })}
           />
           <ColorControl
             label="To"
-            value={style.gradientTo || "#1a2f2a"}
+            value={style.gradientTo || darkBg}
             onChange={(v) => onChange({ gradientTo: v })}
           />
           <div className="space-y-1.5">

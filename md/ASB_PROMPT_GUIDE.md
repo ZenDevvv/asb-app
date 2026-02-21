@@ -795,8 +795,8 @@ type ControlType =
 The Background section in the right sidebar is a **composite control** with:
 1. **Type selector** â€” icon buttons in a row: Solid Color | Gradient | Image (| Video post-MVP)
 2. **Type-specific controls**:
-   - **Solid**: single color picker
-   - **Gradient**: two color pickers + direction dropdown
+   - **Solid**: single color picker — defaults to `globalStyle.primaryColor` when `section.style.backgroundColor` is not set
+   - **Gradient**: two color pickers + direction dropdown — "From" defaults to `globalStyle.primaryColor`, "To" defaults to a neutral dark/light based on `themeMode`; users can change freely
    - **Image**: upload button + optional overlay color/opacity
 3. **Overlay Effect selector** â€” 4-button icon row: None | Noise | Dots | Grid
    - Implemented via `SectionStyle.backgroundEffect`
@@ -1455,6 +1455,7 @@ This contract ensures AI output can be validated and loaded directly into the ed
 
 ---
 
+*Document Version: 3.32 - Section background color pickers now use `globalStyle` as initial defaults. `BackgroundControl` accepts an optional `globalStyle` prop; solid color falls back to `globalStyle.primaryColor` (or theme-appropriate dark/light neutral), gradient "From" defaults to `globalStyle.primaryColor` and "To" to a neutral based on `themeMode`. `SectionModeSettings` reads `globalStyle` from store and passes it to `BackgroundControl`. Users can still set fully custom background colors — saved values always take precedence over these defaults.*
 *Document Version: 3.31 - Moved color settings from section level to block level. Removed `textColor`, `accentColor`, `colorMode` from `SectionStyle`. Added `textColor`, `accentColor`, `colorMode` to `BlockStyle`. Each block now has a dedicated Colors panel (Global Palette / Custom) in the right sidebar. Added `colorOptions: { hasText, hasAccent }` to `BlockRegistryEntry` to control which color pickers are shown per block type. Added `app/lib/blockColors.ts` with `resolveTextColor` and `resolveAccentColor` helpers used by all block components.*
 *Last Updated: February 21, 2026*
 *Keep this document updated as architecture decisions change.*

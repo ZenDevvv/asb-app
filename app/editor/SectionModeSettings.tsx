@@ -10,6 +10,7 @@ interface SectionModeSettingsProps {
 
 export function SectionModeSettings({ section }: SectionModeSettingsProps) {
 	const updateSectionStyle = useEditorStore((s) => s.updateSectionStyle);
+	const globalStyle = useEditorStore((s) => s.globalStyle);
 
 	const [openSections, setOpenSections] = useState({
 		background: true,
@@ -29,7 +30,7 @@ export function SectionModeSettings({ section }: SectionModeSettingsProps) {
 				title="Background"
 				isOpen={openSections.background}
 				onToggle={() => togglePanel("background")}>
-				<BackgroundControl style={section.style} onChange={handleBackgroundChange} />
+				<BackgroundControl style={section.style} onChange={handleBackgroundChange} globalStyle={globalStyle} />
 			</SettingsCollapsibleSection>
 		</>
 	);
