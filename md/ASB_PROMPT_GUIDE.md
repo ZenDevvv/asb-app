@@ -191,7 +191,7 @@ The right sidebar changes based on what is selected:
 
 **When a GROUP is selected** (click group container on the canvas or from the left sidebar section tree):
 1. **Layout** — flexible picker for all groups (including navigation): segmented [1][2][3] column count tabs → distribution thumbnails (active matched by spans signature) → alignment buttons (top/center/bottom) → reversed On/Off toggle (multi-col only). Layout switching preserves flow block placement via per-layout slot memory; alignment and reversed are preserved across distribution changes within the same column count.
-2. **Blocks** — ordered list of blocks within the selected group. Clicking **+ Add Block** opens a modal of allowed block types; for multi-column layouts, users choose the target column/slot before inserting.
+2. **Blocks** — ordered list of blocks within the selected group. Clicking **+ Add Block** opens a grouped block picker modal (category rail + search + block cards). Users select a block card, then click **Insert Block**; for multi-column layouts, they can choose the target column/slot before inserting.
 3. **Group Style** — group-local spacing controls (top/bottom padding).
 
 **When a BLOCK is selected** (click a specific block on the canvas):
@@ -236,11 +236,12 @@ DRAG-AND-DROP:
 - Canvas updates in real-time as items are reordered
 
 BLOCK ADDING:
-- Clicking **+ Add Block** opens a block picker modal filtered by the section's `allowedBlockTypes` for the currently selected group
+- Clicking **+ Add Block** opens a grouped block picker modal filtered by the section's `allowedBlockTypes` for the currently selected group
+- The modal includes a category rail (**All / Basic / Media / Layout / Content**), grouped headings in the block grid, and a search input
 - If the selected group layout has multiple slots (e.g., `left/right`, `col-1/col-2/col-3`), the modal shows a **Column** selector
-- New blocks are inserted into the selected group/slot with `addBlock(sectionId, groupId, blockType, slot)`
+- Users select a block card first, then click **Insert Block**; insertion calls `addBlock(sectionId, groupId, blockType, slot, options)`
 - If no slot is provided, fallback behavior inserts into the first layout slot
-- The modal also supports **Add as absolute block**. Absolute blocks are created with group-relative coordinates in the selected group.
+- The modal supports **Add as absolute block**. Absolute blocks are created with group-relative coordinates in the selected group.
 
 LAYOUT SWITCHING:
 - Every layout change snapshots block slot/order for the current layout id
@@ -533,10 +534,13 @@ SECTION_REGISTRY[sectionType] = {
 Each block type defines its own controls and rendering:
 
 ```typescript
+type BlockCategory = "basic" | "media" | "layout" | "content";
+
 BLOCK_REGISTRY[blockType] = {
   component: React.ComponentType,          // Renders the block on canvas
   label: string,                           // "Heading", "Button", etc.
   icon: string,                            // Material Symbol name
+  category: BlockCategory,                 // Grouping for Add Block modal sections
   defaultProps: Record<string, any>,       // Default content
   defaultStyle: BlockStyle,                // Default visual style
   editableProps: EditableField[],          // What controls to show in sidebar
@@ -731,7 +735,10 @@ When a section is selected (not a specific group/block):
 
 Add Block modal behavior (in Group Mode):
 - Shows only block types allowed by the selected section type
+- Uses block categories from `BLOCK_REGISTRY[blockType].category` to group cards (Basic / Media / Layout / Content)
+- Includes a category rail + search input + grouped block sections
 - Uses selected group's `layout.slots` for the **Column** picker
+- Requires selecting a block card and clicking **Insert Block** to confirm insertion
 - Supports **Add as absolute block (group-relative)**
 
 ### Right Sidebar — Group Mode
@@ -1047,7 +1054,7 @@ app/
 â”‚   â”œâ”€â”€ GlobalSettingsPanel.tsx  # RIGHT sidebar: global page settings
 â”‚   â”œâ”€â”€ SettingsCollapsibleSection.tsx # Shared settings collapsible UI
 â”‚   â”œâ”€â”€ AddSectionModal.tsx      # Section type picker dialog
-â”‚   â”œâ”€â”€ AddBlockModal.tsx        # Block type picker (within a section)
+â”‚   â”œâ”€â”€ AddBlockModal.tsx        # Grouped block picker modal (within a section)
 â”‚   â”œâ”€â”€ sections-list/
 â”‚   â”‚   â”œâ”€â”€ SectionTreeItem.tsx  # Section node renderer for left tree
 â”‚   â”‚   â”œâ”€â”€ GroupTreeItem.tsx    # Group node renderer for left tree
@@ -1462,6 +1469,7 @@ This contract ensures AI output can be validated and loaded directly into the ed
 
 ---
 
+*Document Version: 3.35 - Redesigned `AddBlockModal` to a grouped picker UX. Added category rail + search + grouped block cards + footer confirmation (`Insert Block`). Block registry entries now include `category: BlockCategory` (`basic | media | layout | content`) used by the modal for grouping.*
 *Document Version: 3.34 - Added `dim` to `SectionStyle.backgroundEffect` and added `SectionStyle.backgroundEffectIntensity` (0-100). `BackgroundControl` now includes a 5-option effect selector (None/Noise/Dots/Grid/Dim) and an Effect Intensity slider applied to all non-`none` effects.*
 *Document Version: 3.33 - Added `SectionStyle.fullHeight` boolean. When true, the section renders with `min-height: 100vh`. Exposed in the right sidebar under a new "Layout" collapsible panel (above Background) as a Radix Switch labeled "Fill screen height" with sub-label "Section takes up the full screen". `SectionModeSettings` now has `layout` and `background` panels.*
 *Document Version: 3.32 - Section background color pickers now use `globalStyle` as initial defaults. `BackgroundControl` accepts an optional `globalStyle` prop; solid color falls back to `globalStyle.primaryColor` (or theme-appropriate dark/light neutral), gradient "From" defaults to `globalStyle.primaryColor` and "To" to a neutral based on `themeMode`. `SectionModeSettings` reads `globalStyle` from store and passes it to `BackgroundControl`. Users can still set fully custom background colors — saved values always take precedence over these defaults.*

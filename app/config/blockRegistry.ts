@@ -16,6 +16,7 @@ export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
     component: HeadingBlock,
     label: "Heading",
     icon: "title",
+    category: "basic",
     defaultProps: { text: "Heading text", textStyle: "default" },
     defaultStyle: { fontSize: "4xl", fontWeight: "bold", textAlign: "left" },
     editableProps: [
@@ -72,6 +73,7 @@ export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
     component: TextBlock,
     label: "Text",
     icon: "notes",
+    category: "basic",
     defaultProps: { text: "Body text goes here. Write something compelling for your visitors." },
     defaultStyle: { fontSize: "base", textAlign: "left" },
     editableProps: [
@@ -109,6 +111,7 @@ export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
     component: ButtonBlock,
     label: "Button",
     icon: "smart_button",
+    category: "basic",
     defaultProps: {
       text: "Get Started",
       url: "#",
@@ -164,6 +167,7 @@ export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
     component: CardBlock,
     label: "Card",
     icon: "style",
+    category: "content",
     defaultProps: {
       title: "Feature spotlight",
       text: "Highlight a key feature, proof point, or value proposition in a compact card.",
@@ -224,6 +228,7 @@ export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
     component: ImageBlock,
     label: "Image",
     icon: "image",
+    category: "media",
     defaultProps: { src: "", alt: "" },
     defaultStyle: { width: "full" },
     editableProps: [
@@ -252,6 +257,7 @@ export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
     component: IconBlock,
     label: "Icon",
     icon: "emoji_symbols",
+    category: "media",
     defaultProps: { icon: "star", label: "", displayStyle: "plain", bgOpacity: "medium" },
     defaultStyle: { fontSize: "xl", textAlign: "left" },
     editableProps: [
@@ -310,6 +316,7 @@ export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
     component: SpacerBlock,
     label: "Spacer",
     icon: "height",
+    category: "layout",
     defaultProps: {},
     defaultStyle: { height: 32 },
     editableProps: [],
@@ -324,6 +331,7 @@ export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
     component: BadgeBlock,
     label: "Badge",
     icon: "label",
+    category: "basic",
     defaultProps: { text: "NEW", variant: "subtle" },
     defaultStyle: { fontSize: "base", textAlign: "left" },
     editableProps: [
@@ -370,6 +378,7 @@ export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
     component: DividerBlock,
     label: "Divider",
     icon: "horizontal_rule",
+    category: "layout",
     defaultProps: {},
     defaultStyle: { marginTop: 16, marginBottom: 16 },
     editableProps: [],
@@ -385,6 +394,7 @@ export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
     component: ListBlock,
     label: "List",
     icon: "format_list_bulleted",
+    category: "basic",
     defaultProps: {
       items: [
         { text: "First item" },
@@ -438,6 +448,7 @@ export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
     component: QuoteBlock,
     label: "Quote",
     icon: "format_quote",
+    category: "content",
     defaultProps: {
       text: "This is an inspiring quote that captures attention.",
       attribution: "Author Name",

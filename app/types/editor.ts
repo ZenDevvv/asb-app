@@ -13,6 +13,8 @@ export type BlockType =
   | "list"
   | "quote";
 
+export type BlockCategory = "basic" | "media" | "layout" | "content";
+
 export interface BlockStyle {
   fontSize?: "sm" | "base" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "5xl";
   fontWeight?: "normal" | "medium" | "semibold" | "bold";
@@ -171,6 +173,7 @@ export interface BlockRegistryEntry {
   component: ComponentType<BlockComponentProps>;
   label: string;
   icon: string;
+  category: BlockCategory;
   defaultProps: Record<string, unknown>;
   defaultStyle: BlockStyle;
   editableProps: EditableField[];
