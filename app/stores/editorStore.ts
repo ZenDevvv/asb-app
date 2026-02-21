@@ -886,6 +886,55 @@ export const useEditorStore = create<EditorState & EditorActions>()(
       });
     },
 
+    duplicateBlock: (sectionId: string, groupId: string, blockId: string) => {
+      set((state) => {
+        const section = findSection(state, sectionId);
+        if (!section) return;
+        const group = findGroup(section, groupId);
+        if (!group) return;
+
+        const sourceBlock = findBlock(group, blockId);
+        if (!sourceBlock) return;
+
+        const sourceIsAbsolute = isAbsoluteBlock(sourceBlock);
+        const peerBlocks = group.blocks
+          .filter((entry) =>
+            sourceIsAbsolute
+              ? isAbsoluteBlock(entry)
+              : !isAbsoluteBlock(entry) && entry.slot === sourceBlock.slot
+          )
+          .sort((a, b) => a.order - b.order);
+        const sourceIndex = peerBlocks.findIndex((entry) => entry.id === blockId);
+        if (sourceIndex === -1) return;
+
+        state.history.push(JSON.parse(JSON.stringify(state.sections)));
+        state.future = [];
+
+        const clone: Block = {
+          ...JSON.parse(JSON.stringify(sourceBlock)),
+          id: nanoid(10),
+        };
+
+        if (sourceIsAbsolute) {
+          clone.style.positionY = (sourceBlock.style.positionY ?? 0) + 24;
+        }
+
+        const reorderedPeers = peerBlocks.slice();
+        reorderedPeers.splice(sourceIndex + 1, 0, clone);
+        reorderedPeers.forEach((entry, index) => {
+          entry.order = index;
+        });
+
+        group.blocks.push(clone);
+        normalizeBlocksBySlotOrder(group.blocks, group.layout.slots);
+
+        state.selectedSectionId = sectionId;
+        state.selectedGroupId = groupId;
+        state.selectedBlockId = clone.id;
+        state.isDirty = true;
+      });
+    },
+
     removeBlock: (sectionId: string, groupId: string, blockId: string) => {
       set((state) => {
         const section = findSection(state, sectionId);

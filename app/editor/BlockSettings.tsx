@@ -31,10 +31,18 @@ interface BlockSettingsProps {
 	groupId: string;
 	block: Block;
 	onBack: () => void;
+	onDuplicate: () => void;
 	onDelete: () => void;
 }
 
-export function BlockSettings({ sectionId, groupId, block, onBack, onDelete }: BlockSettingsProps) {
+export function BlockSettings({
+	sectionId,
+	groupId,
+	block,
+	onBack,
+	onDuplicate,
+	onDelete,
+}: BlockSettingsProps) {
 	const updateBlockProp = useEditorStore((s) => s.updateBlockProp);
 	const updateBlockStyle = useEditorStore((s) => s.updateBlockStyle);
 	const moveBlockToSlot = useEditorStore((s) => s.moveBlockToSlot);
@@ -84,14 +92,24 @@ export function BlockSettings({ sectionId, groupId, block, onBack, onDelete }: B
 							</div>
 						</div>
 					</div>
-					<button
-						onClick={onDelete}
-						className="flex size-7 items-center justify-center rounded-lg text-muted-foreground hover:bg-destructive/20 hover:text-destructive"
-						title="Delete Block">
-						<span className="material-symbols-outlined" style={{ fontSize: 16 }}>
-							delete
-						</span>
-					</button>
+					<div className="flex items-center gap-1">
+						<button
+							onClick={onDuplicate}
+							className="flex size-7 items-center justify-center rounded-lg text-muted-foreground hover:bg-sidebar-accent hover:text-foreground"
+							title="Duplicate Block">
+							<span className="material-symbols-outlined" style={{ fontSize: 16 }}>
+								content_copy
+							</span>
+						</button>
+						<button
+							onClick={onDelete}
+							className="flex size-7 items-center justify-center rounded-lg text-muted-foreground hover:bg-destructive/20 hover:text-destructive"
+							title="Delete Block">
+							<span className="material-symbols-outlined" style={{ fontSize: 16 }}>
+								delete
+							</span>
+						</button>
+					</div>
 				</div>
 
 				{/* Scrollable content */}

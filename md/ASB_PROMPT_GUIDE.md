@@ -202,7 +202,8 @@ The right sidebar changes based on what is selected:
 3. **Position** - collapsible panel with:
    - **Column** — slot/column picker (shown only when the group layout has multiple slots and the block is in flow mode). Allows moving the block to a different column after it was added. Calls `moveBlockToSlot` / `moveBlockToSlotAtIndex` store actions.
    - **Flow / Absolute** toggle — choose positioning mode. Absolute blocks are positioned relative to the selected group and can be moved on the canvas by dragging.
-4. **Back to Group** - button to go back to group-level settings.
+4. **Block Actions** - header icons for duplicate/delete. Duplicate uses `duplicateBlock(sectionId, groupId, blockId)` and inserts a copy directly below the selected block (flow: same slot, next order; absolute: offset downward).
+5. **Back to Group** - button to go back to group-level settings.
 **When NOTHING is selected** (click empty canvas area):
 - **Global Page Settings** - website theme mode (dark/light), font family (button opens a Typography Settings modal with search + preview cards + Apply Font action), primary color, color scheme, corner style. This remains the default font source for all text unless a supported block-level override is set. Typography options include sans, serif, and script families (for example: Inter, Playfair Display, Cormorant Garamond, EB Garamond, Cinzel, Great Vibes, Alex Brush, Allura, Parisienne, Sacramento).
 
@@ -766,6 +767,7 @@ When a group is selected:
 ### Right Sidebar — Block Mode
 
 When a specific block is selected (click a block on the canvas):
+- Header includes block actions: **Duplicate** (`content_copy`) and **Delete** (`delete`).
 
 ```
 â”Œâ”€ RIGHT SIDEBAR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
@@ -1476,6 +1478,7 @@ This contract ensures AI output can be validated and loaded directly into the ed
 
 ---
 
+*Document Version: 3.41 - Added block-level duplicate action in `BlockSettings.tsx` (`content_copy` icon). Duplicate now creates a copy directly below the selected block in the same group (`duplicateBlock` store action), with flow blocks inserted at the next slot order and absolute blocks offset downward.*
 *Document Version: 3.40 - Expanded typography options with additional wedding-invitation-friendly families in the editor font picker and Google Fonts load list (`Alex Brush`, `Allura`, `Cinzel`, `Cormorant Garamond`, `EB Garamond`, `Great Vibes`, `Parisienne`, `Sacramento`).*
 *Document Version: 3.39 - Added block-level font overrides for `heading` and `text` blocks. Block Mode now includes a Font Family control that opens the same Typography Settings modal used in Global Settings. `GlobalStyle.fontFamily` remains the default font; `BlockStyle.fontFamily` can override it per supported block.*
 *Document Version: 3.38 - Added focused canvas drag for flow blocks inside groups: users can drag between columns and between blocks with a horizontal insertion line. Flow block drops now support precise slot/index placement (`moveBlockToSlotAtIndex`), and group columns stretch to full row height so empty column space remains a valid drop target.*
