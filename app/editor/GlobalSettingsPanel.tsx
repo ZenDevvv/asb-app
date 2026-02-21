@@ -1,5 +1,12 @@
 import { useEditorStore } from "~/stores/editorStore";
 import { ColorControl } from "~/components/controls/ColorControl";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "~/components/ui/select";
 import { cn } from "~/lib/utils";
 
 export function GlobalSettingsPanel() {
@@ -47,17 +54,21 @@ export function GlobalSettingsPanel() {
 
 				<div className="space-y-1.5">
 					<label className="text-xs font-medium text-muted-foreground">Font Family</label>
-					<select
+					<Select
 						value={globalStyle.fontFamily}
-						onChange={(e) => updateGlobalStyle({ fontFamily: e.target.value })}
-						className="w-full rounded-xl border border-border bg-input/50 px-3 py-2 text-sm text-foreground">
-						<option value="Inter">Inter</option>
-						<option value="Poppins">Poppins</option>
-						<option value="Roboto">Roboto</option>
-						<option value="Playfair Display">Playfair Display</option>
-						<option value="Montserrat">Montserrat</option>
-						<option value="Open Sans">Open Sans</option>
-					</select>
+						onValueChange={(value) => updateGlobalStyle({ fontFamily: value })}>
+						<SelectTrigger className="w-full rounded-xl border-border bg-input/50 text-sm text-foreground">
+							<SelectValue />
+						</SelectTrigger>
+						<SelectContent>
+							<SelectItem value="Inter">Inter</SelectItem>
+							<SelectItem value="Poppins">Poppins</SelectItem>
+							<SelectItem value="Roboto">Roboto</SelectItem>
+							<SelectItem value="Playfair Display">Playfair Display</SelectItem>
+							<SelectItem value="Montserrat">Montserrat</SelectItem>
+							<SelectItem value="Open Sans">Open Sans</SelectItem>
+						</SelectContent>
+					</Select>
 				</div>
 
 				<ColorControl
@@ -70,16 +81,20 @@ export function GlobalSettingsPanel() {
 					<label className="text-xs font-medium text-muted-foreground">
 						Color Scheme
 					</label>
-					<select
+					<Select
 						value={globalStyle.colorScheme}
-						onChange={(e) =>
+						onValueChange={(value) =>
 							updateGlobalStyle({
-								colorScheme: e.target.value as typeof globalStyle.colorScheme,
+								colorScheme: value as typeof globalStyle.colorScheme,
 							})
-						}
-						className="w-full rounded-xl border border-border bg-input/50 px-3 py-2 text-sm text-foreground">
-						<option value="monochromatic">Monochromatic</option>
-					</select>
+						}>
+						<SelectTrigger className="w-full rounded-xl border-border bg-input/50 text-sm text-foreground">
+							<SelectValue />
+						</SelectTrigger>
+						<SelectContent>
+							<SelectItem value="monochromatic">Monochromatic</SelectItem>
+						</SelectContent>
+					</Select>
 					<p className="text-[11px] text-muted-foreground">
 						Future schemes (complementary, analogous) can be added here.
 					</p>
