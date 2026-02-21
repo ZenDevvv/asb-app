@@ -173,7 +173,9 @@ The editor has a **LEFT sidebar (sections list) + CENTER canvas + RIGHT sidebar 
 - Dark background with the page rendered in a centered, scrollable container
 - Selected section has a **floating label badge** (e.g., "â­ Hero Section") at the top
 - Sections are rendered as they will appear when published (WYSIWYG)
-- Click a **block** on canvas â†’ selects that block (right sidebar switches to block settings)
+- Click a **block** on canvas -> selects that block (right sidebar switches to block settings)
+- Focused **flow** blocks can be dragged on the canvas across columns and between blocks; hover shows a horizontal insertion line at the exact drop position
+- Group columns stretch to the full group row height so empty column space remains a valid drop zone while dragging
 - Click **text blocks** on canvas â†’ **inline edit via Tiptap**
 - **Zoom controls** at the bottom center: `[ - 100% + ]`
 - Supports **device preview toggle** from toolbar (desktop/mobile width)
@@ -198,7 +200,7 @@ The right sidebar changes based on what is selected:
 1. **Block Content** - auto-generated controls based on block type (text input, image upload, etc.)
 2. **Block Style** - constrained style options for that block (size, alignment, spacing).
 3. **Position** - collapsible panel with:
-   - **Column** — slot/column picker (shown only when the group layout has multiple slots and the block is in flow mode). Allows moving the block to a different column after it was added. Calls `moveBlockToSlot` store action.
+   - **Column** — slot/column picker (shown only when the group layout has multiple slots and the block is in flow mode). Allows moving the block to a different column after it was added. Calls `moveBlockToSlot` / `moveBlockToSlotAtIndex` store actions.
    - **Flow / Absolute** toggle — choose positioning mode. Absolute blocks are positioned relative to the selected group and can be moved on the canvas by dragging.
 4. **Back to Group** - button to go back to group-level settings.
 **When NOTHING is selected** (click empty canvas area):
@@ -228,7 +230,10 @@ DRAG-AND-DROP:
 - Sections are reordered by dragging in the LEFT SIDEBAR list (not on the canvas)
 - Groups are reordered by dragging in the LEFT SIDEBAR section tree (focused section only)
 - Blocks within the selected group can be reordered in the RIGHT SIDEBAR block list
-- Both use @dnd-kit/sortable with vertical list strategy
+- Focused flow blocks can also be dragged directly on the CANVAS across columns and between blocks
+- Canvas flow dragging shows a horizontal insertion line and commits precise slot/index placement on drop
+- During canvas flow dragging, columns stretch to full group-row height so open space below blocks is a valid drop target
+- Sections/groups/sidebar-list reordering uses @dnd-kit/sortable with vertical list strategy
 - Drag handle (â˜° grip icon) on each row
 - Tree drag collision targets are scoped by item type (section drags resolve only against sections, group drags only against groups) for reliable drop placement
 - Active draggable rows are excluded from collision targets to avoid self-over detection and drop no-ops
@@ -1297,7 +1302,7 @@ These decisions are final. Don't revisit or suggest alternatives:
 | Selection model | Three levels: section-level, group-level, and block-level | Section for section style/actions, group for layout/blocks, block for content/style |
 | Editor theme | Dark theme | Premium feel; matches reference design. Tokens in Style Guide file |
 | Section reordering | Drag in the LEFT sidebar list (not on the canvas) | Cleaner UX; canvas stays WYSIWYG without drag handles cluttering |
-| Block reordering | Drag in the RIGHT sidebar block list (within selected group) | Mirrors section/group organization and keeps ordering local |
+| Block reordering | Drag in the RIGHT sidebar block list plus focused canvas drag (within selected group) | Sidebar keeps ordering explicit; canvas drag adds spatial placement with insertion-line feedback and cross-column drop |
 | Page model | Vertical stack of sections, each with layout + blocks | Composable yet structured |
 | Text editing | Inline on canvas (Tiptap) for text/heading blocks | More intuitive than editing in sidebar |
 | Style inheritance | Global â†’ Section â†’ Block (cascade with overrides) | Consistent theming with per-block flexibility |
@@ -1325,7 +1330,7 @@ These decisions are final. Don't revisit or suggest alternatives:
 - Template gallery (8-12 templates as section+block presets)
 - Block-based editor with 7 section types and 11 block types
 - Three-panel editor: left sections list, center canvas, right settings
-- Drag-to-reorder sections (left sidebar) and blocks (right sidebar)
+- Drag-to-reorder sections (left sidebar), groups (left sidebar tree), and blocks (right sidebar + focused canvas drag)
 - Layout templates (1-col, 2-col, 3-col) with visual picker
 - Block-level editing: content controls + constrained style options
 - Inline text editing on canvas (Tiptap) for heading and text blocks
@@ -1469,6 +1474,7 @@ This contract ensures AI output can be validated and loaded directly into the ed
 
 ---
 
+*Document Version: 3.38 - Added focused canvas drag for flow blocks inside groups: users can drag between columns and between blocks with a horizontal insertion line. Flow block drops now support precise slot/index placement (`moveBlockToSlotAtIndex`), and group columns stretch to full row height so empty column space remains a valid drop target.*
 *Document Version: 3.37 - Replaced native editor dropdowns with shadcn `Select` components. `GlobalSettingsPanel` font family selection now uses a button-triggered **Typography Settings** modal (search + preview cards + explicit Apply Font action) instead of an inline dropdown. `BackgroundControl` gradient direction uses shadcn `Select`.*
 *Document Version: 3.36 - Updated `SectionStyle.backgroundEffect` to remove `noise` and add `vignette`. `BackgroundControl` effect options are now None/Dots/Grid/Dim/Vignette. `SectionStyle.backgroundEffectIntensity` remains the shared 0-100 slider for all non-`none` effects (including `vignette`).*
 *Document Version: 3.35 - Redesigned `AddBlockModal` to a grouped picker UX. Added category rail + search + grouped block cards + footer confirmation (`Insert Block`). Block registry entries now include `category: BlockCategory` (`basic | media | layout | content`) used by the modal for grouping.*
