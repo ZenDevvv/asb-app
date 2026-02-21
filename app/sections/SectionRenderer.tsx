@@ -262,7 +262,9 @@ export function SectionRenderer({
 	const bgStyle = getSectionBackground(renderSection.style, globalStyle.themeMode);
 
 	return (
-		<section style={bgStyle}>
+		<section
+			style={renderSection.style.fullHeight ? { ...bgStyle, minHeight: "100vh" } : bgStyle}
+		>
 			<div className="mx-auto max-w-6xl px-6">
 				<div className="space-y-8">
 					{orderedGroups.map((group) => (

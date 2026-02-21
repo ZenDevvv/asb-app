@@ -184,8 +184,10 @@ The right sidebar changes based on what is selected:
 
 **When a SECTION is selected** (click section in left sidebar or section background on canvas):
 1. **Section Actions** — duplicate/delete section.
-2. **Background** — section background options (solid/gradient/image + padding slider).
-3. **Group Management Location** — groups are listed and reordered from the LEFT sidebar section tree.
+2. **Layout** — section layout options:
+   - **Fill screen height** toggle — makes the section fill the full viewport height (`min-height: 100vh`). User-facing label: "Fill screen height" / sub-label: "Section takes up the full screen". Implemented as a Radix Switch. Stored as `SectionStyle.fullHeight`.
+3. **Background** — section background options (solid/gradient/image + padding slider).
+4. **Group Management Location** — groups are listed and reordered from the LEFT sidebar section tree.
 
 **When a GROUP is selected** (click group container on the canvas or from the left sidebar section tree):
 1. **Layout** — flexible picker for all groups (including navigation): segmented [1][2][3] column count tabs → distribution thumbnails (active matched by spans signature) → alignment buttons (top/center/bottom) → reversed On/Off toggle (multi-col only). Layout switching preserves flow block placement via per-layout slot memory; alignment and reversed are preserved across distribution changes within the same column count.
@@ -421,6 +423,7 @@ interface SectionStyle {
   gradientDirection?: string;     // "to bottom" | "to right" | etc.
   paddingY?: number;              // Continuous value (px), controlled by slider
   backgroundEffect?: "none" | "noise" | "dots" | "grid";  // CSS overlay pattern layered via multiple backgrounds
+  fullHeight?: boolean;           // When true, section renders with min-height: 100vh (fills screen)
 }
 // NOTE: textColor, accentColor, colorMode were REMOVED from SectionStyle.
 // Colors are now controlled at block level via BlockStyle.colorMode, BlockStyle.textColor, BlockStyle.accentColor.
@@ -1455,6 +1458,7 @@ This contract ensures AI output can be validated and loaded directly into the ed
 
 ---
 
+*Document Version: 3.33 - Added `SectionStyle.fullHeight` boolean. When true, the section renders with `min-height: 100vh`. Exposed in the right sidebar under a new "Layout" collapsible panel (above Background) as a Radix Switch labeled "Fill screen height" with sub-label "Section takes up the full screen". `SectionModeSettings` now has `layout` and `background` panels.*
 *Document Version: 3.32 - Section background color pickers now use `globalStyle` as initial defaults. `BackgroundControl` accepts an optional `globalStyle` prop; solid color falls back to `globalStyle.primaryColor` (or theme-appropriate dark/light neutral), gradient "From" defaults to `globalStyle.primaryColor` and "To" to a neutral based on `themeMode`. `SectionModeSettings` reads `globalStyle` from store and passes it to `BackgroundControl`. Users can still set fully custom background colors — saved values always take precedence over these defaults.*
 *Document Version: 3.31 - Moved color settings from section level to block level. Removed `textColor`, `accentColor`, `colorMode` from `SectionStyle`. Added `textColor`, `accentColor`, `colorMode` to `BlockStyle`. Each block now has a dedicated Colors panel (Global Palette / Custom) in the right sidebar. Added `colorOptions: { hasText, hasAccent }` to `BlockRegistryEntry` to control which color pickers are shown per block type. Added `app/lib/blockColors.ts` with `resolveTextColor` and `resolveAccentColor` helpers used by all block components.*
 *Last Updated: February 21, 2026*

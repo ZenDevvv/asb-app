@@ -68,6 +68,7 @@ export interface SectionStyle {
   gradientDirection?: string;
   paddingY?: number;
   backgroundEffect?: "none" | "noise" | "dots" | "grid";
+  fullHeight?: boolean;         // When true, section has min-height: 100vh (fills screen)
 }
 
 export interface GroupStyle {
