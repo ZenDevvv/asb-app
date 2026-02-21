@@ -12,5 +12,9 @@ export function meta({}: Route.MetaArgs) {
 export default function LandingPage() {
 	const navigate = useNavigate();
 
+	useEffect(() => {
+		navigate("/editor");
+	}, [navigate]);
+
 	return <div className="flex flex-col min-h-screen"></div>;
 }
