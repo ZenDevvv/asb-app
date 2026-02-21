@@ -21,6 +21,14 @@ interface GroupRendererProps {
 	onBlockClick?: (blockId: string) => void;
 	onUpdateBlockProp?: (blockId: string, key: string, value: unknown) => void;
 	onUpdateBlockStyle?: (blockId: string, style: Partial<BlockStyle>) => void;
+	onMoveBlockToSlot?: (blockId: string, slot: string) => void;
+	onMoveBlockToSlotAtIndex?: (blockId: string, slot: string, targetIndex: number) => void;
+}
+
+interface FlowDropTarget {
+	slot: string;
+	targetIndex: number;
+	lineTop: number;
 }
 
 function isAbsoluteBlock(block: Block): boolean {
@@ -44,14 +52,7 @@ function groupBlocksBySlot(blocks: Block[] | undefined): Record<string, Block[]>
 }
 
 function getLayoutGridClasses(layout: LayoutTemplate): string {
-	const base = "grid w-full gap-8";
-	const alignment =
-		layout.alignment === "center"
-			? "items-center"
-			: layout.alignment === "bottom"
-				? "items-end"
-				: "items-start";
-	return `${base} ${alignment}`;
+	return "grid w-full gap-8 items-stretch";
 }
 
 const SURFACE_BORDER_RADIUS_MAP: Record<string, number> = { none: 0, sm: 8, md: 12, lg: 16 };
@@ -105,6 +106,8 @@ export function GroupRenderer({
 	onBlockClick,
 	onUpdateBlockProp,
 	onUpdateBlockStyle,
+	onMoveBlockToSlot,
+	onMoveBlockToSlotAtIndex,
 }: GroupRendererProps) {
 	const layout = group.layout;
 	const blocksBySlot = useMemo(() => groupBlocksBySlot(group.blocks), [group.blocks]);
@@ -121,7 +124,11 @@ export function GroupRenderer({
 		[group.blocks],
 	);
 	const sectionContentRef = useRef<HTMLDivElement | null>(null);
+	const slotRefs = useRef<Record<string, HTMLDivElement | null>>({});
+	const flowBlockRefs = useRef<Record<string, HTMLDivElement | null>>({});
 	const [draggingAbsoluteBlockId, setDraggingAbsoluteBlockId] = useState<string | null>(null);
+	const [draggingFlowBlockId, setDraggingFlowBlockId] = useState<string | null>(null);
+	const [flowDropTarget, setFlowDropTarget] = useState<FlowDropTarget | null>(null);
 	const [absoluteMinWidthByBlockId, setAbsoluteMinWidthByBlockId] = useState<
 		Record<string, number>
 	>({});
@@ -132,36 +139,157 @@ export function GroupRenderer({
 		lastX: number;
 		lastY: number;
 	} | null>(null);
+	const flowDragStateRef = useRef<{
+		blockId: string;
+		sourceSlot: string;
+		startX: number;
+		startY: number;
+		isDragging: boolean;
+	} | null>(null);
 	const isDraggingAbsoluteBlock = draggingAbsoluteBlockId !== null;
+	const isDraggingFlowBlock = draggingFlowBlockId !== null;
+	const isDraggingBlock = isDraggingAbsoluteBlock || isDraggingFlowBlock;
 	const gridClasses = getLayoutGridClasses(layout);
-	const containerStyle = getGroupContainerStyle(group, globalStyle.themeMode, globalStyle.primaryColor);
+	const slotContentAlignmentClass =
+		layout.alignment === "center"
+			? "justify-center"
+			: layout.alignment === "bottom"
+				? "justify-end"
+				: "justify-start";
+	const containerStyle = getGroupContainerStyle(
+		group,
+		globalStyle.themeMode,
+		globalStyle.primaryColor,
+	);
 	const slotGap = GAP_MAP[group.style?.gap ?? ""] ?? "0px";
+	const getSlotFromPointer = (clientX: number, clientY: number): string | null => {
+		for (const slotName of layout.slots) {
+			const slotElement = slotRefs.current[slotName];
+			if (!slotElement) continue;
+			const rect = slotElement.getBoundingClientRect();
+			const isWithinSlot =
+				clientX >= rect.left &&
+				clientX <= rect.right &&
+				clientY >= rect.top &&
+				clientY <= rect.bottom;
+			if (isWithinSlot) return slotName;
+		}
+		return null;
+	};
+	const getFlowDropTarget = (
+		slotName: string,
+		clientY: number,
+		draggedBlockId: string,
+	): FlowDropTarget => {
+		const slotElement = slotRefs.current[slotName];
+		if (!slotElement) {
+			return { slot: slotName, targetIndex: 0, lineTop: 0 };
+		}
+		const slotRect = slotElement.getBoundingClientRect();
+		const blocksInSlot = (blocksBySlot[slotName] ?? []).filter(
+			(entry) => entry.id !== draggedBlockId,
+		);
+		if (blocksInSlot.length === 0) {
+			return {
+				slot: slotName,
+				targetIndex: 0,
+				lineTop: Math.max(16, Math.round(slotRect.height / 2)),
+			};
+		}
+
+		const measuredBlocks = blocksInSlot
+			.map((entry) => ({
+				entry,
+				rect: flowBlockRefs.current[entry.id]?.getBoundingClientRect() ?? null,
+			}))
+			.filter((item): item is { entry: Block; rect: DOMRect } => item.rect !== null);
+
+		if (measuredBlocks.length === 0) {
+			return {
+				slot: slotName,
+				targetIndex: 0,
+				lineTop: Math.max(16, Math.round(slotRect.height / 2)),
+			};
+		}
+
+		for (let index = 0; index < measuredBlocks.length; index += 1) {
+			const blockRect = measuredBlocks[index].rect;
+			const blockMidpoint = blockRect.top + blockRect.height / 2;
+			if (clientY < blockMidpoint) {
+				return {
+					slot: slotName,
+					targetIndex: index,
+					lineTop: Math.round(blockRect.top - slotRect.top),
+				};
+			}
+		}
+
+		const lastBlockRect = measuredBlocks[measuredBlocks.length - 1].rect;
+		return {
+			slot: slotName,
+			targetIndex: measuredBlocks.length,
+			lineTop: Math.round(lastBlockRect.bottom - slotRect.top),
+		};
+	};
 
 	useEffect(() => {
-		if (!isEditing || !onUpdateBlockStyle) return;
+		if (!isEditing) return;
 
 		const handlePointerMove = (event: PointerEvent) => {
-			const dragState = dragStateRef.current;
 			const container = sectionContentRef.current;
-			if (!dragState || !container) return;
+			if (!container) return;
 
-			const rect = container.getBoundingClientRect();
-			const positionX = Math.round(event.clientX - rect.left - dragState.offsetX);
-			const positionY = Math.round(event.clientY - rect.top - dragState.offsetY);
-			if (positionX === dragState.lastX && positionY === dragState.lastY) return;
-			dragState.lastX = positionX;
-			dragState.lastY = positionY;
+			const dragState = dragStateRef.current;
+			if (dragState) {
+				const rect = container.getBoundingClientRect();
+				const positionX = Math.round(event.clientX - rect.left - dragState.offsetX);
+				const positionY = Math.round(event.clientY - rect.top - dragState.offsetY);
+				if (positionX !== dragState.lastX || positionY !== dragState.lastY) {
+					dragState.lastX = positionX;
+					dragState.lastY = positionY;
 
-			onUpdateBlockStyle(dragState.blockId, {
-				positionX,
-				positionY,
+					onUpdateBlockStyle?.(dragState.blockId, {
+						positionX,
+						positionY,
+					});
+				}
+			}
+
+			const flowDragState = flowDragStateRef.current;
+			if (!flowDragState) return;
+
+			if (!flowDragState.isDragging) {
+				const deltaX = event.clientX - flowDragState.startX;
+				const deltaY = event.clientY - flowDragState.startY;
+				if (Math.hypot(deltaX, deltaY) < 6) return;
+				flowDragState.isDragging = true;
+				setDraggingFlowBlockId(flowDragState.blockId);
+			}
+
+			const hoveredSlot = getSlotFromPointer(event.clientX, event.clientY);
+			const targetSlot = hoveredSlot ?? flowDragState.sourceSlot;
+			const nextDropTarget = getFlowDropTarget(
+				targetSlot,
+				event.clientY,
+				flowDragState.blockId,
+			);
+			setFlowDropTarget((current) => {
+				if (
+					current &&
+					current.slot === nextDropTarget.slot &&
+					current.targetIndex === nextDropTarget.targetIndex &&
+					current.lineTop === nextDropTarget.lineTop
+				) {
+					return current;
+				}
+				return nextDropTarget;
 			});
 		};
 
 		const commitFinalDragPosition = (event: PointerEvent) => {
 			const dragState = dragStateRef.current;
 			const container = sectionContentRef.current;
-			if (!dragState || !container) return;
+			if (!dragState || !container || !onUpdateBlockStyle) return;
 
 			const rect = container.getBoundingClientRect();
 			const positionX = Math.round(event.clientX - rect.left - dragState.offsetX);
@@ -174,15 +302,43 @@ export function GroupRenderer({
 			});
 		};
 
-		const handlePointerUp = (event: PointerEvent) => {
-			commitFinalDragPosition(event);
+		const commitFlowBlockDrop = (event: PointerEvent) => {
+			const flowDragState = flowDragStateRef.current;
+			if (!flowDragState || !flowDragState.isDragging) return;
+			if (!onMoveBlockToSlotAtIndex && !onMoveBlockToSlot) return;
+
+			const dropSlot =
+				getSlotFromPointer(event.clientX, event.clientY) ?? flowDragState.sourceSlot;
+			const dropTarget = getFlowDropTarget(dropSlot, event.clientY, flowDragState.blockId);
+			if (onMoveBlockToSlotAtIndex) {
+				onMoveBlockToSlotAtIndex(
+					flowDragState.blockId,
+					dropTarget.slot,
+					dropTarget.targetIndex,
+				);
+				return;
+			}
+			if (dropTarget.slot !== flowDragState.sourceSlot && onMoveBlockToSlot) {
+				onMoveBlockToSlot(flowDragState.blockId, dropTarget.slot);
+			}
+		};
+
+		const clearDragState = () => {
 			dragStateRef.current = null;
 			setDraggingAbsoluteBlockId(null);
+			flowDragStateRef.current = null;
+			setDraggingFlowBlockId(null);
+			setFlowDropTarget(null);
+		};
+
+		const handlePointerUp = (event: PointerEvent) => {
+			commitFinalDragPosition(event);
+			commitFlowBlockDrop(event);
+			clearDragState();
 		};
 
 		const handlePointerCancel = () => {
-			dragStateRef.current = null;
-			setDraggingAbsoluteBlockId(null);
+			clearDragState();
 		};
 
 		window.addEventListener("pointermove", handlePointerMove);
@@ -194,10 +350,17 @@ export function GroupRenderer({
 			window.removeEventListener("pointerup", handlePointerUp);
 			window.removeEventListener("pointercancel", handlePointerCancel);
 		};
-	}, [isEditing, onUpdateBlockStyle]);
+	}, [
+		blocksBySlot,
+		isEditing,
+		layout.slots,
+		onMoveBlockToSlot,
+		onMoveBlockToSlotAtIndex,
+		onUpdateBlockStyle,
+	]);
 
 	useEffect(() => {
-		if (!isDraggingAbsoluteBlock) return;
+		if (!isDraggingBlock) return;
 
 		const originalUserSelect = document.body.style.userSelect;
 		const originalWebkitUserSelect =
@@ -214,7 +377,7 @@ export function GroupRenderer({
 				document.body.style.removeProperty("-webkit-user-select");
 			}
 		};
-	}, [isDraggingAbsoluteBlock]);
+	}, [isDraggingBlock]);
 
 	return (
 		<div
@@ -238,60 +401,123 @@ export function GroupRenderer({
 
 			<div ref={sectionContentRef} className="relative">
 				<div
-					className={`${gridClasses} ${isDraggingAbsoluteBlock ? "pointer-events-none" : ""}`}
+					className={`${gridClasses} ${isDraggingBlock ? "pointer-events-none" : ""}`}
 					style={{
 						gridTemplateColumns: layout.spans.map((s) => `${s}fr`).join(" "),
 						direction: layout.reversed ? "rtl" : "ltr",
 					}}>
-					{layout.slots.map((slotName) => (
-						<div
-							key={slotName}
-							className="flex flex-col"
-							style={{ direction: "ltr", gap: slotGap }}>
-							{blocksBySlot[slotName]?.map((block) => {
-								const isBlockSelected = block.id === selectedBlockId;
+					{layout.slots.map((slotName) => {
+						const isActiveFlowDropSlot =
+							isDraggingFlowBlock && flowDropTarget?.slot === slotName;
 
-								return (
-									<div
-										key={block.id}
-										className={`relative transition-all ${
-											isEditing ? "cursor-pointer" : ""
-										} ${
-											isBlockSelected
-												? "ring-2 ring-primary/60 ring-offset-1 ring-offset-transparent rounded-md"
-												: isEditing && !isDraggingAbsoluteBlock
-													? "hover:ring-1 hover:ring-primary/20 rounded-md"
+						return (
+							<div
+								key={slotName}
+								ref={(element) => {
+									slotRefs.current[slotName] = element;
+								}}
+								className={`relative flex min-h-full flex-col rounded-md transition-colors ${slotContentAlignmentClass} ${
+									isActiveFlowDropSlot
+										? "bg-primary/10 ring-2 ring-primary/50"
+										: ""
+								}`}
+								style={{ direction: "ltr", gap: slotGap }}>
+								{blocksBySlot[slotName]?.map((block) => {
+									const isBlockSelected = block.id === selectedBlockId;
+									const canDragSelectedFlowBlock =
+										isEditing &&
+										isBlockSelected &&
+										Boolean(onMoveBlockToSlotAtIndex || onMoveBlockToSlot);
+
+									return (
+										<div
+											key={block.id}
+											ref={(element) => {
+												flowBlockRefs.current[block.id] = element;
+											}}
+											className={`relative rounded-md transition-all ${
+												canDragSelectedFlowBlock
+													? "cursor-grab active:cursor-grabbing touch-none"
+													: isEditing
+														? "cursor-pointer"
+														: ""
+											} ${
+												isDraggingFlowBlock &&
+												draggingFlowBlockId !== block.id
+													? "pointer-events-none"
 													: ""
-										}`}
-										onClick={(e) => {
-											if (isEditing && onBlockClick) {
-												e.stopPropagation();
-												onBlockClick(block.id);
-											}
-										}}>
-										<BlockRenderer
-											block={block}
-											sectionStyle={section.style}
-											globalStyle={globalStyle}
-											isEditing={isEditing}
-											isSelected={isBlockSelected}
-											onUpdateProp={(key, value) =>
-												onUpdateBlockProp?.(block.id, key, value)
-											}
-										/>
-									</div>
-								);
-							})}
+											} ${
+												isDraggingFlowBlock &&
+												draggingFlowBlockId === block.id
+													? "opacity-70"
+													: ""
+											} ${
+												isBlockSelected
+													? "ring-2 ring-primary/60 ring-offset-1 ring-offset-transparent"
+													: isEditing && !isDraggingBlock
+														? "hover:ring-1 hover:ring-primary/20"
+														: ""
+											}`}
+											onPointerDown={(event) => {
+												if (!canDragSelectedFlowBlock) return;
+												if (
+													event.pointerType === "mouse" &&
+													event.button !== 0
+												)
+													return;
+												event.preventDefault();
+												event.stopPropagation();
+												const nextDropTarget = getFlowDropTarget(
+													block.slot,
+													event.clientY,
+													block.id,
+												);
+												flowDragStateRef.current = {
+													blockId: block.id,
+													sourceSlot: block.slot,
+													startX: event.clientX,
+													startY: event.clientY,
+													isDragging: false,
+												};
+												setFlowDropTarget(nextDropTarget);
+											}}
+											onClick={(e) => {
+												if (isEditing && onBlockClick) {
+													e.stopPropagation();
+													onBlockClick(block.id);
+												}
+											}}>
+											<BlockRenderer
+												block={block}
+												sectionStyle={section.style}
+												globalStyle={globalStyle}
+												isEditing={isEditing}
+												isSelected={isBlockSelected}
+												onUpdateProp={(key, value) =>
+													onUpdateBlockProp?.(block.id, key, value)
+												}
+											/>
+										</div>
+									);
+								})}
 
-							{isEditing &&
-								(!blocksBySlot[slotName] ||
-									blocksBySlot[slotName].length === 0) && (
-									<div className="flex min-h-[60px] items-center justify-center rounded-lg border border-dashed border-border/60 text-xs text-muted-foreground/70">
-										{slotName}
+								{isEditing &&
+									(!blocksBySlot[slotName] ||
+										blocksBySlot[slotName].length === 0) && (
+										<div className="flex min-h-[60px] items-center justify-center rounded-lg border border-dashed border-border/60 text-xs text-muted-foreground/70">
+											{slotName}
+										</div>
+									)}
+								{isDraggingFlowBlock && flowDropTarget?.slot === slotName && (
+									<div
+										className="pointer-events-none absolute left-2 right-2 z-[3]"
+										style={{ top: `${flowDropTarget.lineTop}px` }}>
+										<div className="h-[2px] rounded-full bg-primary shadow-[0_0_0_1px_rgba(255,255,255,0.35)]" />
 									</div>
 								)}
-						</div>
-					))}
+							</div>
+						);
+					})}
 				</div>
 
 				{absoluteBlocks.map((block) => {
@@ -307,13 +533,14 @@ export function GroupRenderer({
 							className={`absolute transition-all ${
 								isEditing ? "cursor-grab active:cursor-grabbing touch-none" : ""
 							} ${
-								isDraggingAbsoluteBlock && draggingAbsoluteBlockId !== block.id
+								(isDraggingAbsoluteBlock && draggingAbsoluteBlockId !== block.id) ||
+								isDraggingFlowBlock
 									? "pointer-events-none"
 									: ""
 							} ${
 								isBlockSelected
 									? "ring-2 ring-primary/60 ring-offset-1 ring-offset-transparent rounded-md"
-									: isEditing && !isDraggingAbsoluteBlock
+									: isEditing && !isDraggingBlock
 										? "hover:ring-1 hover:ring-primary/20 rounded-md"
 										: ""
 							}`}

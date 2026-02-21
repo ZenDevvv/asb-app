@@ -14,6 +14,8 @@ export function EditorCanvas() {
 	const selectBlock = useEditorStore((s) => s.selectBlock);
 	const updateBlockProp = useEditorStore((s) => s.updateBlockProp);
 	const updateBlockStyle = useEditorStore((s) => s.updateBlockStyle);
+	const moveBlockToSlot = useEditorStore((s) => s.moveBlockToSlot);
+	const moveBlockToSlotAtIndex = useEditorStore((s) => s.moveBlockToSlotAtIndex);
 	const globalStyle = useEditorStore((s) => s.globalStyle);
 	const device = useEditorStore((s) => s.device);
 	const zoom = useEditorStore((s) => s.zoom);
@@ -145,6 +147,23 @@ export function EditorCanvas() {
 										}}
 										onUpdateBlockStyle={(groupId, blockId, style) => {
 											updateBlockStyle(section.id, groupId, blockId, style);
+										}}
+										onMoveBlockToSlot={(groupId, blockId, slot) => {
+											moveBlockToSlot(section.id, groupId, blockId, slot);
+										}}
+										onMoveBlockToSlotAtIndex={(
+											groupId,
+											blockId,
+											slot,
+											targetIndex,
+										) => {
+											moveBlockToSlotAtIndex(
+												section.id,
+												groupId,
+												blockId,
+												slot,
+												targetIndex,
+											);
 										}}
 									/>
 								</div>
