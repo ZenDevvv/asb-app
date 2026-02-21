@@ -1,4 +1,5 @@
 import type { BlockComponentProps } from "~/types/editor";
+import { resolveTextColor } from "~/lib/blockColors";
 
 const FONT_SIZE_MAP: Record<string, string> = {
   sm: "text-sm",
@@ -17,7 +18,7 @@ const TEXT_ALIGN_MAP: Record<string, string> = {
   right: "text-right",
 };
 
-export function TextBlock({ block, sectionStyle }: BlockComponentProps) {
+export function TextBlock({ block, globalStyle }: BlockComponentProps) {
   const { text } = block.props as { text: string };
   const s = block.style;
 
@@ -31,7 +32,7 @@ export function TextBlock({ block, sectionStyle }: BlockComponentProps) {
     <p
       className={classes}
       style={{
-        color: s.textColor || sectionStyle.textColor || "#ffffff",
+        color: resolveTextColor(s, globalStyle),
         opacity: (s.opacity ?? 100) / 100,
         marginTop: s.marginTop ?? 0,
         marginBottom: s.marginBottom ?? 0,

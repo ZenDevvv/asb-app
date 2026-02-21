@@ -1,8 +1,9 @@
 import type { BlockComponentProps } from "~/types/editor";
+import { resolveTextColor } from "~/lib/blockColors";
 
-export function DividerBlock({ block, sectionStyle }: BlockComponentProps) {
+export function DividerBlock({ block, globalStyle }: BlockComponentProps) {
   const s = block.style;
-  const color = s.textColor || sectionStyle.textColor || "#ffffff";
+  const color = resolveTextColor(s, globalStyle);
 
   return (
     <hr

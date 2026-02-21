@@ -134,8 +134,7 @@ export function GroupRenderer({
 	} | null>(null);
 	const isDraggingAbsoluteBlock = draggingAbsoluteBlockId !== null;
 	const gridClasses = getLayoutGridClasses(layout);
-	const sectionAccent = section.style.accentColor || globalStyle.primaryColor;
-	const containerStyle = getGroupContainerStyle(group, globalStyle.themeMode, sectionAccent);
+	const containerStyle = getGroupContainerStyle(group, globalStyle.themeMode, globalStyle.primaryColor);
 	const slotGap = GAP_MAP[group.style?.gap ?? ""] ?? "0px";
 
 	useEffect(() => {

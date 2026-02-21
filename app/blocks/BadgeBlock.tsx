@@ -1,4 +1,5 @@
 import type { BlockComponentProps } from "~/types/editor";
+import { resolveAccentColor } from "~/lib/blockColors";
 
 const FONT_SIZE_MAP: Record<string, string> = {
   sm: "text-[10px] px-2 py-0.5",
@@ -20,14 +21,14 @@ const RADIUS_MAP: Record<string, string> = {
   full: "rounded-full",
 };
 
-export function BadgeBlock({ block, sectionStyle, globalStyle }: BlockComponentProps) {
+export function BadgeBlock({ block, globalStyle }: BlockComponentProps) {
   const { text, variant = "subtle" } = block.props as {
     text: string;
     variant?: "subtle" | "filled" | "outline" | "pill-dot";
   };
   const s = block.style;
 
-  const accentColor = sectionStyle.accentColor || globalStyle.primaryColor || "#00e5a0";
+  const accentColor = resolveAccentColor(s, globalStyle);
   const sizeClass = FONT_SIZE_MAP[s.fontSize || "base"] ?? FONT_SIZE_MAP.base;
   const alignClass = TEXT_ALIGN_MAP[s.textAlign || "left"] ?? "";
 

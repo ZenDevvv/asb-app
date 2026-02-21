@@ -18,6 +18,8 @@ export interface BlockStyle {
   fontWeight?: "normal" | "medium" | "semibold" | "bold";
   textAlign?: "left" | "center" | "right";
   textColor?: string;
+  accentColor?: string;            // Custom accent/highlight color for this block
+  colorMode?: "global" | "custom"; // "global" follows GlobalStyle; "custom" uses textColor/accentColor above
   marginTop?: number;
   marginBottom?: number;
   width?: "auto" | "sm" | "md" | "lg" | "full";
@@ -59,9 +61,6 @@ export type SectionType =
 
 export interface SectionStyle {
   backgroundColor?: string;
-  textColor?: string;
-  accentColor?: string;
-  colorMode?: "global" | "custom";
   backgroundImage?: string;
   backgroundType?: "solid" | "gradient" | "image";
   gradientFrom?: string;
@@ -175,6 +174,7 @@ export interface BlockRegistryEntry {
   editableProps: EditableField[];
   editableStyles: EditableStyleField[];
   inlineEditable: boolean;
+  colorOptions?: { hasText: boolean; hasAccent: boolean };
 }
 
 export interface SectionGroupSeed {

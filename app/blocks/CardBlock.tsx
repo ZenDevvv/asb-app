@@ -1,4 +1,5 @@
 import type { BlockComponentProps } from "~/types/editor";
+import { resolveTextColor, resolveAccentColor } from "~/lib/blockColors";
 
 const WIDTH_MAP: Record<string, string> = {
   auto: "w-auto",
@@ -52,7 +53,6 @@ const RADIUS_MAP: Record<string, string> = {
 
 export function CardBlock({
   block,
-  sectionStyle,
   globalStyle,
   isEditing,
 }: BlockComponentProps) {
@@ -73,8 +73,8 @@ export function CardBlock({
   };
 
   const s = block.style;
-  const accentColor = sectionStyle.accentColor || globalStyle.primaryColor || "#00e5a0";
-  const contentColor = s.textColor || sectionStyle.textColor || "#ffffff";
+  const accentColor = resolveAccentColor(s, globalStyle);
+  const contentColor = resolveTextColor(s, globalStyle);
   const widthClass = WIDTH_MAP[s.width || "full"] || "w-full";
   const textAlignClass = TEXT_ALIGN_MAP[s.textAlign || "left"] || "text-left";
   const justifyClass = JUSTIFY_MAP[s.textAlign || "left"] || "justify-start";

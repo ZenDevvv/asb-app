@@ -1,4 +1,5 @@
 import type { BlockComponentProps } from "~/types/editor";
+import { resolveTextColor, resolveAccentColor } from "~/lib/blockColors";
 
 const FONT_SIZE_MAP: Record<string, string> = {
   sm: "text-sm",
@@ -19,7 +20,7 @@ const TEXT_ALIGN_MAP: Record<string, string> = {
   right: "text-right",
 };
 
-export function ListBlock({ block, sectionStyle, globalStyle }: BlockComponentProps) {
+export function ListBlock({ block, globalStyle }: BlockComponentProps) {
   const { items, ordered, inline } = block.props as {
     items: { text: string; url?: string }[];
     ordered?: boolean;
@@ -27,8 +28,8 @@ export function ListBlock({ block, sectionStyle, globalStyle }: BlockComponentPr
   };
   const s = block.style;
 
-  const color = s.textColor || sectionStyle.textColor || "#ffffff";
-  const accentColor = sectionStyle.accentColor || globalStyle.primaryColor || "#00e5a0";
+  const color = resolveTextColor(s, globalStyle);
+  const accentColor = resolveAccentColor(s, globalStyle);
   const sizeClass = FONT_SIZE_MAP[s.fontSize || "base"] || "text-base";
   const inlineAlignClass = INLINE_ALIGN_MAP[s.textAlign || "left"] || "justify-start";
   const textAlignClass = TEXT_ALIGN_MAP[s.textAlign || "left"] || "text-left";

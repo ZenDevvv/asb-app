@@ -63,9 +63,9 @@ export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
           { label: "Right", value: "right" },
         ],
       },
-      { key: "textColor", label: "Color", type: "color" },
     ],
     inlineEditable: true,
+    colorOptions: { hasText: true, hasAccent: true },
   },
 
   text: {
@@ -99,10 +99,10 @@ export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
           { label: "Right", value: "right" },
         ],
       },
-      { key: "textColor", label: "Color", type: "color" },
       { key: "opacity", label: "Opacity", type: "slider", min: 0, max: 100, step: 5 },
     ],
     inlineEditable: true,
+    colorOptions: { hasText: true, hasAccent: false },
   },
 
   button: {
@@ -157,6 +157,7 @@ export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
       },
     ],
     inlineEditable: false,
+    colorOptions: { hasText: false, hasAccent: true },
   },
 
   card: {
@@ -213,10 +214,10 @@ export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
           { label: "Full", value: "full" },
         ],
       },
-      { key: "textColor", label: "Color", type: "color" },
       { key: "opacity", label: "Opacity", type: "slider", min: 0, max: 100, step: 5 },
     ],
     inlineEditable: false,
+    colorOptions: { hasText: true, hasAccent: true },
   },
 
   image: {
@@ -244,6 +245,7 @@ export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
       { key: "opacity", label: "Opacity", type: "slider", min: 0, max: 100, step: 5 },
     ],
     inlineEditable: false,
+    colorOptions: { hasText: false, hasAccent: false },
   },
 
   icon: {
@@ -289,7 +291,6 @@ export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
           { label: "XL", value: "2xl" },
         ],
       },
-      { key: "textColor", label: "Color", type: "color" },
       {
         key: "textAlign",
         label: "Align",
@@ -302,6 +303,7 @@ export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
       },
     ],
     inlineEditable: false,
+    colorOptions: { hasText: true, hasAccent: true },
   },
 
   spacer: {
@@ -315,6 +317,7 @@ export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
       { key: "height", label: "Height", type: "slider", min: 8, max: 128, step: 4 },
     ],
     inlineEditable: false,
+    colorOptions: { hasText: false, hasAccent: false },
   },
 
   badge: {
@@ -360,6 +363,7 @@ export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
       },
     ],
     inlineEditable: false,
+    colorOptions: { hasText: false, hasAccent: true },
   },
 
   divider: {
@@ -374,6 +378,7 @@ export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
       { key: "marginBottom", label: "Bottom Spacing", type: "slider", min: 0, max: 64, step: 4 },
     ],
     inlineEditable: false,
+    colorOptions: { hasText: true, hasAccent: false },
   },
 
   list: {
@@ -424,9 +429,9 @@ export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
           { label: "Right", value: "right" },
         ],
       },
-      { key: "textColor", label: "Color", type: "color" },
     ],
     inlineEditable: false,
+    colorOptions: { hasText: true, hasAccent: true },
   },
 
   quote: {
@@ -463,8 +468,8 @@ export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
           { label: "Right", value: "right" },
         ],
       },
-      { key: "textColor", label: "Color", type: "color" },
     ],
     inlineEditable: false,
+    colorOptions: { hasText: true, hasAccent: true },
   },
 };

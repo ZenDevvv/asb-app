@@ -1,4 +1,5 @@
 import type { BlockComponentProps } from "~/types/editor";
+import { resolveTextColor, resolveAccentColor } from "~/lib/blockColors";
 
 const SIZE_MAP: Record<string, number> = {
   sm: 24,
@@ -30,7 +31,7 @@ function hexToRgba(hex: string, alpha: number): string {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
-export function IconBlock({ block, sectionStyle, globalStyle }: BlockComponentProps) {
+export function IconBlock({ block, globalStyle }: BlockComponentProps) {
   const { icon, label, displayStyle = "plain", bgOpacity = "medium" } = block.props as {
     icon: string;
     label?: string;
@@ -40,11 +41,11 @@ export function IconBlock({ block, sectionStyle, globalStyle }: BlockComponentPr
   const s = block.style;
 
   const iconSize = SIZE_MAP[s.fontSize || "xl"] || 48;
-  const color = s.textColor || sectionStyle.accentColor || globalStyle.primaryColor || "#00e5a0";
+  const accentColor = resolveAccentColor(s, globalStyle);
+  const color = accentColor;
   const alignClass = TEXT_ALIGN_MAP[s.textAlign || "left"] || "";
   const isPlain = displayStyle === "plain";
 
-  const accentColor = sectionStyle.accentColor || globalStyle.primaryColor;
   const alpha = OPACITY_MAP[bgOpacity] ?? 0.18;
   const padding = Math.round(iconSize * 0.4);
 
@@ -85,7 +86,7 @@ export function IconBlock({ block, sectionStyle, globalStyle }: BlockComponentPr
         </div>
       )}
       {label && (
-        <p className="mt-1 text-sm" style={{ color: sectionStyle.textColor || "#ffffff" }}>
+        <p className="mt-1 text-sm" style={{ color: resolveTextColor(s, globalStyle) }}>
           {label}
         </p>
       )}

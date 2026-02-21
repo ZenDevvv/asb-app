@@ -1,4 +1,5 @@
 import type { BlockComponentProps } from "~/types/editor";
+import { resolveTextColor, resolveAccentColor } from "~/lib/blockColors";
 
 const FONT_SIZE_MAP: Record<string, string> = {
   sm: "text-sm",
@@ -14,15 +15,15 @@ const TEXT_ALIGN_MAP: Record<string, string> = {
   right: "text-right",
 };
 
-export function QuoteBlock({ block, sectionStyle, globalStyle }: BlockComponentProps) {
+export function QuoteBlock({ block, globalStyle }: BlockComponentProps) {
   const { text, attribution } = block.props as {
     text: string;
     attribution?: string;
   };
   const s = block.style;
 
-  const color = s.textColor || sectionStyle.textColor || "#ffffff";
-  const accentColor = sectionStyle.accentColor || globalStyle.primaryColor || "#00e5a0";
+  const color = resolveTextColor(s, globalStyle);
+  const accentColor = resolveAccentColor(s, globalStyle);
   const sizeClass = FONT_SIZE_MAP[s.fontSize || "lg"] || "text-lg";
   const alignClass = TEXT_ALIGN_MAP[s.textAlign || "left"] || "";
 

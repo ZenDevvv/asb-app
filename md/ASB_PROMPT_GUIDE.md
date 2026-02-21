@@ -341,7 +341,9 @@ interface BlockStyle {
   fontSize?: "sm" | "base" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "5xl";
   fontWeight?: "normal" | "medium" | "semibold" | "bold";
   textAlign?: "left" | "center" | "right";
-  textColor?: string;             // Hex override (inherits from section if empty)
+  textColor?: string;             // Custom text color (used when colorMode="custom")
+  accentColor?: string;           // Custom accent/highlight color (used when colorMode="custom")
+  colorMode?: "global" | "custom"; // "global" (default) follows GlobalStyle; "custom" uses textColor/accentColor above
 
   // Spacing
   marginTop?: number;             // 0-64, slider
@@ -412,9 +414,6 @@ type SectionType =
 
 interface SectionStyle {
   backgroundColor?: string;       // Hex color
-  textColor?: string;             // Hex color (inherited by blocks unless overridden)
-  accentColor?: string;           // Hex color for buttons/highlights
-  colorMode?: "global" | "custom"; // "global" follows GlobalStyle color scheme, "custom" keeps manual section colors
   backgroundImage?: string;       // Cloudinary URL
   backgroundType?: "solid" | "gradient" | "image";
   gradientFrom?: string;          // Hex color (if gradient)
@@ -423,6 +422,8 @@ interface SectionStyle {
   paddingY?: number;              // Continuous value (px), controlled by slider
   backgroundEffect?: "none" | "noise" | "dots" | "grid";  // CSS overlay pattern layered via multiple backgrounds
 }
+// NOTE: textColor, accentColor, colorMode were REMOVED from SectionStyle.
+// Colors are now controlled at block level via BlockStyle.colorMode, BlockStyle.textColor, BlockStyle.accentColor.
 
 // â”€â”€â”€ Global Style â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
@@ -535,9 +536,13 @@ BLOCK_REGISTRY[blockType] = {
   defaultProps: Record<string, any>,       // Default content
   defaultStyle: BlockStyle,                // Default visual style
   editableProps: EditableField[],          // What controls to show in sidebar
-  editableStyles: EditableStyleField[],    // What style controls to show
+  editableStyles: EditableStyleField[],    // What style controls to show (size, align, opacity — NOT textColor/accentColor)
   inlineEditable: boolean,                 // Can this block be edited inline on canvas?
+  colorOptions?: { hasText: boolean; hasAccent: boolean }; // Controls which pickers appear in the Colors panel
 }
+// colorOptions drives the dedicated Colors panel in BlockSettings.tsx.
+// hasText=true → shows Text Color picker; hasAccent=true → shows Accent Color picker.
+// textColor and accentColor are NO LONGER in editableStyles — they are handled by the Colors panel.
 ```
 
 ### Block Component Contract
@@ -682,24 +687,29 @@ Each section type is a **preset** — a combination of default group(s) + defaul
 
 ### Style Inheritance Chain
 
-Styles cascade from global â†’ section â†’ block:
+Styles cascade from global â†’ block (sections only control background, not text/accent colors):
 
 ```
-GlobalStyle.primaryColor    -> base input for the active global color scheme
-GlobalStyle.colorScheme     -> resolves section/group/block palette tokens (currently monochromatic)
+GlobalStyle.primaryColor    -> default accent color for all blocks in "global" colorMode
+GlobalStyle.colorScheme     -> resolves palette tokens (currently monochromatic)
 GlobalStyle.fontFamily      â†’ applied to all text
 GlobalStyle.borderRadius    â†’ applied to buttons, cards, images
-GlobalStyle.themeMode       â†’ applies light/dark website rendering in canvas + preview (section surfaces + inherited text/accent)
+GlobalStyle.themeMode       â†’ light/dark website rendering; drives default textColor in "global" mode
+                              (dark â†’ #ffffff, light â†’ #111111)
 
-SectionStyle.colorMode      -> section color source switch ("global" uses GlobalStyle scheme, "custom" keeps manual overrides)
-SectionStyle.textColor      -> inherited by all blocks in the section (when colorMode="custom")
-SectionStyle.accentColor    -> inherited by buttons, icons, links in the section (when colorMode="custom")
-SectionStyle.backgroundColor -> section background (when colorMode="custom")
+SectionStyle.backgroundColor -> section background (solid/gradient/image only — no text/accent on sections)
 
-BlockStyle.textColor        â†’ overrides section's textColor for this block only
+BlockStyle.colorMode        -> "global" (default): block derives text/accent from GlobalStyle
+                               "custom": block uses its own textColor/accentColor
+BlockStyle.textColor        â†’ custom text color (only active when colorMode="custom")
+BlockStyle.accentColor      â†’ custom accent color (only active when colorMode="custom")
 BlockStyle.fontSize         â†’ block-level size choice
 BlockStyle.textAlign        â†’ block-level alignment
 ```
+
+Color resolution (via `app/lib/blockColors.ts`):
+- `resolveTextColor(style, globalStyle)` â†’ returns custom textColor if colorMode="custom", else theme default
+- `resolveAccentColor(style, globalStyle)` â†’ returns custom accentColor if colorMode="custom", else globalStyle.primaryColor
 
 ---
 
@@ -710,8 +720,8 @@ BlockStyle.textAlign        â†’ block-level alignment
 When a section is selected (not a specific group/block):
 
 - Shows section-level actions (duplicate/delete)
-- Shows **Background** panel: section background + section color inheritance controls
-- Includes **Color Source** switch: `Global Palette` (default, follows `GlobalStyle.primaryColor` + `colorScheme`) or `Custom Colors` (section-local overrides)
+- Shows **Background** panel only: background type (solid/gradient/image), colors, effect, paddingY
+- **No text/accent color controls at section level** — colors are block-level only
 - Code organization: `SettingsPanel.tsx` routes to dedicated mode components (`SectionModeSettings`, `GroupModeSettings`, `BlockSettings`, `GlobalSettingsPanel`)
 - Group list and group reordering are handled in the LEFT sidebar section tree when a section is focused
 
@@ -1445,8 +1455,8 @@ This contract ensures AI output can be validated and loaded directly into the ed
 
 ---
 
-*Document Version: 3.30 - Added global monochromatic color system plumbing (`globalStyle.colorScheme`) and section color-source mode (`section.style.colorMode`) so primary color changes in Global Settings propagate across section backgrounds, group surfaces, and block accents by default, with optional per-section custom color overrides.*
-*Last Updated: February 19, 2026*
+*Document Version: 3.31 - Moved color settings from section level to block level. Removed `textColor`, `accentColor`, `colorMode` from `SectionStyle`. Added `textColor`, `accentColor`, `colorMode` to `BlockStyle`. Each block now has a dedicated Colors panel (Global Palette / Custom) in the right sidebar. Added `colorOptions: { hasText, hasAccent }` to `BlockRegistryEntry` to control which color pickers are shown per block type. Added `app/lib/blockColors.ts` with `resolveTextColor` and `resolveAccentColor` helpers used by all block components.*
+*Last Updated: February 21, 2026*
 *Keep this document updated as architecture decisions change.*
 *For colors and theming, always reference the separate Style Guide file.*
 

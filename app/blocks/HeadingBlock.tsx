@@ -1,4 +1,5 @@
 import type { BlockComponentProps } from "~/types/editor";
+import { resolveTextColor, resolveAccentColor } from "~/lib/blockColors";
 
 const FONT_SIZE_MAP: Record<string, string> = {
   sm: "text-sm",
@@ -24,13 +25,13 @@ const TEXT_ALIGN_MAP: Record<string, string> = {
   right: "text-right",
 };
 
-export function HeadingBlock({ block, sectionStyle, globalStyle }: BlockComponentProps) {
+export function HeadingBlock({ block, globalStyle }: BlockComponentProps) {
   const { text, textStyle = "default" } = block.props as { text: string; textStyle?: string };
   const s = block.style;
 
   const isGradient = textStyle === "gradient";
 
-  const accentColor = sectionStyle.accentColor || globalStyle.primaryColor;
+  const accentColor = resolveAccentColor(s, globalStyle);
   const gradientTo = globalStyle.themeMode === "dark" ? "#ffffff" : "#111111";
 
   const classes = [
@@ -50,7 +51,7 @@ export function HeadingBlock({ block, sectionStyle, globalStyle }: BlockComponen
           color: "transparent",
         }
       : {
-          color: s.textColor || sectionStyle.textColor || "#ffffff",
+          color: resolveTextColor(s, globalStyle),
         }),
     marginTop: s.marginTop ?? 0,
     marginBottom: s.marginBottom ?? 0,

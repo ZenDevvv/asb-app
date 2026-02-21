@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useEditorStore } from "~/stores/editorStore";
 import { BLOCK_REGISTRY } from "~/config/blockRegistry";
 import { FieldRenderer } from "~/components/controls/FieldRenderer";
+import { ColorControl } from "~/components/controls/ColorControl";
 import { cn } from "~/lib/utils";
 import type { Block, BlockStyle, EditableField } from "~/types/editor";
 
@@ -38,6 +39,7 @@ export function BlockSettings({ sectionId, groupId, block, onBack, onDelete }: B
 	const updateBlockProp = useEditorStore((s) => s.updateBlockProp);
 	const updateBlockStyle = useEditorStore((s) => s.updateBlockStyle);
 	const moveBlockToSlot = useEditorStore((s) => s.moveBlockToSlot);
+	const globalStyle = useEditorStore((s) => s.globalStyle);
 	const groupSlots = useEditorStore((s) => {
 		const section = s.sections.find((sec) => sec.id === sectionId);
 		const group = section?.groups.find((g) => g.id === groupId);
@@ -224,6 +226,77 @@ export function BlockSettings({ sectionId, groupId, block, onBack, onDelete }: B
 
 								return null;
 							})}
+						</div>
+					</CollapsiblePanel>
+				)}
+
+				{/* Colors */}
+				{blockEntry.colorOptions && (blockEntry.colorOptions.hasText || blockEntry.colorOptions.hasAccent) && (
+					<CollapsiblePanel title="Colors" defaultOpen={false}>
+						<div className="space-y-3">
+							{/* Color Source toggle */}
+							<div className="space-y-1.5">
+								<label className="text-xs font-medium text-muted-foreground">Color Source</label>
+								<div className="grid grid-cols-2 gap-1.5">
+									{(
+										[
+											{ value: "global", label: "Global Palette" },
+											{ value: "custom", label: "Custom" },
+										] as const
+									).map((option) => (
+										<button
+											key={option.value}
+											onClick={() =>
+												updateBlockStyle(sectionId, groupId, block.id, {
+													colorMode: option.value,
+												})
+											}
+											className={cn(
+												"rounded-lg border py-2 text-[11px] font-medium transition-colors",
+												(block.style.colorMode ?? "global") === option.value
+													? "border-primary bg-primary/10 text-primary"
+													: "border-border text-muted-foreground hover:border-primary/30",
+											)}>
+											{option.label}
+										</button>
+									))}
+								</div>
+								<p className="text-[11px] text-muted-foreground">
+									{(block.style.colorMode ?? "global") === "global"
+										? "Follows Global Settings primary color and theme."
+										: "This block uses custom colors."}
+								</p>
+							</div>
+
+							{/* Custom color pickers — only shown in custom mode */}
+							{block.style.colorMode === "custom" && (
+								<>
+									{blockEntry.colorOptions.hasText && (
+										<ColorControl
+											label="Text Color"
+											value={block.style.textColor || (globalStyle.themeMode === "dark" ? "#ffffff" : "#111111")}
+											onChange={(v) =>
+												updateBlockStyle(sectionId, groupId, block.id, {
+													textColor: v,
+													colorMode: "custom",
+												})
+											}
+										/>
+									)}
+									{blockEntry.colorOptions.hasAccent && (
+										<ColorControl
+											label="Accent Color"
+											value={block.style.accentColor || globalStyle.primaryColor || "#00e5a0"}
+											onChange={(v) =>
+												updateBlockStyle(sectionId, groupId, block.id, {
+													accentColor: v,
+													colorMode: "custom",
+												})
+											}
+										/>
+									)}
+								</>
+							)}
 						</div>
 					</CollapsiblePanel>
 				)}

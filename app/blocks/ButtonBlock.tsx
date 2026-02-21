@@ -1,4 +1,5 @@
 import type { BlockComponentProps } from "~/types/editor";
+import { resolveAccentColor } from "~/lib/blockColors";
 
 type ButtonVariant = "solid" | "outline" | "ghost" | "link";
 
@@ -68,7 +69,6 @@ function getVariantConfig(
 
 export function ButtonBlock({
   block,
-  sectionStyle,
   globalStyle,
   isEditing,
 }: BlockComponentProps) {
@@ -81,7 +81,7 @@ export function ButtonBlock({
   };
 
   const s = block.style;
-  const accentColor = sectionStyle.accentColor || globalStyle.primaryColor || "#00e5a0";
+  const accentColor = resolveAccentColor(s, globalStyle);
   const radius = RADIUS_MAP[globalStyle.borderRadius || "md"] || "rounded-lg";
   const sizeClass = FONT_SIZE_MAP[s.fontSize || "base"] || FONT_SIZE_MAP.base;
   const alignClass = TEXT_ALIGN_MAP[s.textAlign || "left"] || "justify-start";
