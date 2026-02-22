@@ -12,30 +12,6 @@ function parseDebugFlag(value: string | null): boolean {
 	);
 }
 
-function resolveImportedState(payload: unknown): {
-	sections: Section[] | undefined;
-	globalStyle: GlobalStyle | undefined;
-} {
-	if (!payload || typeof payload !== "object") {
-		return { sections: undefined, globalStyle: undefined };
-	}
-
-	const root = payload as {
-		sections?: unknown;
-		globalStyle?: unknown;
-		state?: { sections?: unknown; globalStyle?: unknown };
-	};
-	const source = root.state && typeof root.state === "object" ? root.state : root;
-
-	return {
-		sections: Array.isArray(source.sections) ? (source.sections as Section[]) : undefined,
-		globalStyle:
-			source.globalStyle && typeof source.globalStyle === "object"
-				? (source.globalStyle as GlobalStyle)
-				: undefined,
-	};
-}
-
 export function EditorDebugBackdoor() {
 	const [searchParams] = useSearchParams();
 	const importInputRef = useRef<HTMLInputElement | null>(null);
@@ -80,19 +56,23 @@ export function EditorDebugBackdoor() {
 
 		try {
 			const raw = await file.text();
-			const parsed = JSON.parse(raw) as unknown;
-			const { sections: importedSections, globalStyle: importedGlobalStyle } =
-				resolveImportedState(parsed);
+			const parsed = JSON.parse(raw) as {
+				state?: { sections?: unknown; globalStyle?: unknown };
+			};
+			const importedSections = parsed.state?.sections;
+			const importedGlobalStyle = parsed.state?.globalStyle;
 
-			if (!importedSections) {
-				throw new Error("Missing sections array in imported payload.");
+			if (!Array.isArray(importedSections) || !importedGlobalStyle) {
+				throw new Error("Invalid state payload shape.");
 			}
 
-			loadSections(importedSections, importedGlobalStyle);
+			loadSections(importedSections as Section[], importedGlobalStyle as GlobalStyle);
 			saveToLocalStorage();
 		} catch (error) {
 			console.error("Failed to import editor state file.", error);
-			window.alert("Import failed. Please choose a valid editor state JSON file.");
+			window.alert(
+				"Import failed. Use a valid editor state export with { state: { sections, globalStyle } }.",
+			);
 		} finally {
 			event.target.value = "";
 		}

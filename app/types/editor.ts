@@ -64,7 +64,8 @@ export type SectionType =
   | "cta"
   | "testimonials"
   | "faq"
-  | "footer";
+  | "footer"
+  | "custom";
 
 export interface SectionStyle {
   backgroundColor?: string;
@@ -117,14 +118,10 @@ export interface Group {
 export interface Section {
   id: string;
   type: SectionType;
+  label: string;
   groups: Group[];
   style: SectionStyle;
   isVisible: boolean;
-  // Legacy fields for one-way migration from old editor data.
-  layout?: LayoutTemplate;
-  blocks?: Block[];
-  layoutSlotMemory?: LayoutSlotMemory;
-  layoutSlotMemories?: Record<string, LayoutSlotMemory>;
 }
 
 export interface GlobalStyle {
@@ -230,6 +227,7 @@ export interface EditorState {
 export interface EditorActions {
   // Section CRUD
   addSection: (type: SectionType, index?: number) => void;
+  renameSection: (id: string, label: string) => void;
   removeSection: (id: string) => void;
   duplicateSection: (id: string) => void;
   reorderSections: (fromIndex: number, toIndex: number) => void;
@@ -312,5 +310,5 @@ export interface EditorActions {
   setLastSaved: (timestamp: string) => void;
 
   // Reset
-  loadSections: (sections: Section[], globalStyle?: GlobalStyle) => void;
+  loadSections: (sections: Section[], globalStyle: GlobalStyle) => void;
 }

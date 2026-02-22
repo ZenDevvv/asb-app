@@ -23,6 +23,7 @@ export function SettingsPanel() {
 	const orderedGroups = section ? section.groups.slice().sort((a, b) => a.order - b.order) : [];
 	const selectedGroup = orderedGroups.find((group) => group.id === selectedGroupId) || null;
 	const activeGroup = selectedGroup || orderedGroups[0] || null;
+	const sectionLabel = section ? section.label.trim() || registry?.label || section.type : "";
 
 	if (selectedBlockId && section) {
 		const owningGroup = section.groups.find((group) =>
@@ -58,7 +59,7 @@ export function SettingsPanel() {
 			<div className="flex items-center justify-between border-b border-sidebar-border px-4 py-3">
 				<div>
 					<div className="text-sm font-semibold text-sidebar-foreground">
-						{registry.label}
+						{sectionLabel}
 					</div>
 					<div className="text-[10px] uppercase tracking-widest text-primary">
 						{isGroupMode && activeGroup

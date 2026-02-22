@@ -65,41 +65,6 @@ const initialState: EditorState = {
   lastSaved: null,
 };
 
-function normalizeIncomingGlobalStyle(styleLike: unknown): GlobalStyle {
-  if (!styleLike || typeof styleLike !== "object") {
-    return { ...DEFAULT_GLOBAL_STYLE };
-  }
-
-  const rawStyle = styleLike as Partial<GlobalStyle>;
-  const borderRadius = rawStyle.borderRadius;
-  const themeMode = rawStyle.themeMode;
-  const colorScheme = rawStyle.colorScheme;
-
-  return {
-    fontFamily:
-      typeof rawStyle.fontFamily === "string" && rawStyle.fontFamily.trim().length > 0
-        ? rawStyle.fontFamily
-        : DEFAULT_GLOBAL_STYLE.fontFamily,
-    primaryColor:
-      typeof rawStyle.primaryColor === "string" && rawStyle.primaryColor.trim().length > 0
-        ? rawStyle.primaryColor
-        : DEFAULT_GLOBAL_STYLE.primaryColor,
-    colorScheme:
-      colorScheme === "monochromatic" ? colorScheme : DEFAULT_GLOBAL_STYLE.colorScheme,
-    borderRadius:
-      borderRadius === "none" ||
-      borderRadius === "sm" ||
-      borderRadius === "md" ||
-      borderRadius === "lg" ||
-      borderRadius === "full"
-        ? borderRadius
-        : DEFAULT_GLOBAL_STYLE.borderRadius,
-    themeMode: themeMode === "light" || themeMode === "dark"
-      ? themeMode
-      : DEFAULT_GLOBAL_STYLE.themeMode,
-  };
-}
-
 function isAbsoluteBlock(block: Block): boolean {
   return block.style.positionMode === "absolute";
 }
@@ -125,50 +90,6 @@ function getSafeLayout(layoutId?: string): LayoutTemplate {
     reversed: false,
     slots: ["main"],
   };
-}
-
-function resolveLayout(layoutLike: unknown, fallbackLayoutId?: string): LayoutTemplate {
-  if (layoutLike && typeof layoutLike === "object") {
-    const candidate = layoutLike as Partial<LayoutTemplate>;
-
-    if (typeof candidate.id === "string") {
-      const known = getLayoutById(candidate.id);
-      if (known) return { ...known };
-    }
-
-    const hasValidSpans =
-      Array.isArray(candidate.spans) &&
-      candidate.spans.length > 0 &&
-      candidate.spans.every((n) => typeof n === "number" && n > 0);
-    const hasValidAlignment =
-      candidate.alignment === "top" ||
-      candidate.alignment === "center" ||
-      candidate.alignment === "bottom";
-
-    if (
-      typeof candidate.id === "string" &&
-      typeof candidate.label === "string" &&
-      hasValidSpans &&
-      hasValidAlignment &&
-      typeof candidate.reversed === "boolean" &&
-      Array.isArray(candidate.slots)
-    ) {
-      return {
-        id: candidate.id,
-        label: candidate.label,
-        spans: [...(candidate.spans as number[])],
-        alignment: candidate.alignment as "top" | "center" | "bottom",
-        reversed: candidate.reversed,
-        slots: [...candidate.slots],
-      };
-    }
-  }
-
-  return getSafeLayout(fallbackLayoutId);
-}
-
-function isSectionType(value: unknown): value is SectionType {
-  return typeof value === "string" && Object.prototype.hasOwnProperty.call(SECTION_REGISTRY, value);
 }
 
 function mapSlotByIndex(sourceSlot: string, sourceSlots: string[], targetSlots: string[]): string {
@@ -278,149 +199,6 @@ function buildDefaultGroups(sectionType: SectionType): Group[] {
   return groups;
 }
 
-function normalizeIncomingBlocks(blocksLike: unknown, fallbackSlot: string): Block[] {
-  if (!Array.isArray(blocksLike)) return [];
-
-  const blocks: Block[] = [];
-
-  blocksLike.forEach((item, index) => {
-    if (!item || typeof item !== "object") return;
-    const raw = item as Partial<Block>;
-    if (typeof raw.type !== "string") return;
-    if (!Object.prototype.hasOwnProperty.call(BLOCK_REGISTRY, raw.type)) return;
-
-    blocks.push({
-      id: typeof raw.id === "string" ? raw.id : nanoid(10),
-      type: raw.type as BlockType,
-      slot: typeof raw.slot === "string" ? raw.slot : fallbackSlot,
-      order: typeof raw.order === "number" && Number.isFinite(raw.order) ? raw.order : index,
-      props: raw.props && typeof raw.props === "object" ? { ...raw.props } : {},
-      style: raw.style && typeof raw.style === "object" ? { ...raw.style } : {},
-    });
-  });
-
-  return blocks;
-}
-
-function normalizeIncomingGroups(sectionType: SectionType, sectionLike: unknown): Group[] {
-  const registry = SECTION_REGISTRY[sectionType];
-  if (!sectionLike || typeof sectionLike !== "object") {
-    return buildDefaultGroups(sectionType);
-  }
-
-  const rawSection = sectionLike as {
-    groups?: unknown;
-    layout?: unknown;
-    blocks?: unknown;
-  };
-
-  if (Array.isArray(rawSection.groups) && rawSection.groups.length > 0) {
-    const groups: Group[] = [];
-
-    rawSection.groups.forEach((groupLike, index) => {
-      if (!groupLike || typeof groupLike !== "object") return;
-      const rawGroup = groupLike as Partial<Group>;
-      const layout = resolveLayout(rawGroup.layout, registry.defaultLayoutId);
-      const blocks = normalizeIncomingBlocks(rawGroup.blocks, layout.slots[0] || "main");
-
-      const group: Group = {
-        id: typeof rawGroup.id === "string" ? rawGroup.id : nanoid(10),
-        label: typeof rawGroup.label === "string" ? rawGroup.label : `Group ${index + 1}`,
-        order: typeof rawGroup.order === "number" && Number.isFinite(rawGroup.order)
-          ? rawGroup.order
-          : index,
-        layout,
-        blocks,
-        style: rawGroup.style && typeof rawGroup.style === "object"
-          ? { ...rawGroup.style }
-          : {},
-        layoutSlotMemory: rawGroup.layoutSlotMemory,
-        layoutSlotMemories: rawGroup.layoutSlotMemories,
-      };
-
-      normalizeBlocksBySlotOrder(group.blocks, group.layout.slots);
-      groups.push(group);
-    });
-
-    if (groups.length > 0) {
-      groups.sort((a, b) => a.order - b.order);
-      groups.forEach((group, index) => {
-        group.order = index;
-      });
-      return groups;
-    }
-  }
-
-  const legacyLayout = resolveLayout(rawSection.layout, registry.defaultLayoutId);
-  const legacyBlocks = normalizeIncomingBlocks(rawSection.blocks, legacyLayout.slots[0] || "main");
-
-  if (legacyBlocks.length > 0 || rawSection.layout) {
-    const group: Group = {
-      id: nanoid(10),
-      label: "Main Group",
-      order: 0,
-      layout: legacyLayout,
-      blocks: legacyBlocks,
-      style: {},
-      layoutSlotMemory: (rawSection as { layoutSlotMemory?: LayoutSlotMemory }).layoutSlotMemory,
-      layoutSlotMemories: (rawSection as { layoutSlotMemories?: Record<string, LayoutSlotMemory> }).layoutSlotMemories,
-    };
-
-    normalizeBlocksBySlotOrder(group.blocks, group.layout.slots);
-
-    return [group];
-  }
-
-  return buildDefaultGroups(sectionType);
-}
-
-function normalizeIncomingSectionStyle(
-  sectionType: SectionType,
-  styleLike: unknown,
-): SectionStyle {
-  const fallbackStyle: SectionStyle = {
-    ...SECTION_REGISTRY[sectionType].defaultStyle,
-    colorMode: "global",
-  };
-
-  if (!styleLike || typeof styleLike !== "object") {
-    return fallbackStyle;
-  }
-
-  const rawStyle = styleLike as SectionStyle;
-  const colorMode = rawStyle.colorMode === "custom" ? "custom" : "global";
-
-  return {
-    ...rawStyle,
-    colorMode,
-  };
-}
-
-function normalizeIncomingSections(sectionsLike: unknown): Section[] {
-  if (!Array.isArray(sectionsLike)) return [];
-
-  const sections: Section[] = [];
-
-  sectionsLike.forEach((sectionLike) => {
-    if (!sectionLike || typeof sectionLike !== "object") return;
-    const rawSection = sectionLike as Partial<Section>;
-    if (!isSectionType(rawSection.type)) return;
-
-    const groups = normalizeIncomingGroups(rawSection.type, rawSection);
-    if (groups.length === 0) return;
-
-    sections.push({
-      id: typeof rawSection.id === "string" ? rawSection.id : nanoid(10),
-      type: rawSection.type,
-      groups,
-      style: normalizeIncomingSectionStyle(rawSection.type, rawSection.style),
-      isVisible: rawSection.isVisible !== false,
-    });
-  });
-
-  return sections;
-}
-
 function findSection(state: EditorState, sectionId: string): Section | undefined {
   return state.sections.find((section) => section.id === sectionId);
 }
@@ -445,6 +223,7 @@ export const useEditorStore = create<EditorState & EditorActions>()(
       const newSection: Section = {
         id: nanoid(10),
         type,
+        label: SECTION_REGISTRY[type].label,
         groups: buildDefaultGroups(type),
         style: {
           ...SECTION_REGISTRY[type].defaultStyle,
@@ -464,6 +243,16 @@ export const useEditorStore = create<EditorState & EditorActions>()(
         state.selectedSectionId = newSection.id;
         state.selectedGroupId = null;
         state.selectedBlockId = null;
+        state.isDirty = true;
+      });
+    },
+
+    renameSection: (id: string, label: string) => {
+      set((state) => {
+        const section = findSection(state, id);
+        if (!section) return;
+
+        section.label = label;
         state.isDirty = true;
       });
     },
@@ -1192,21 +981,20 @@ export const useEditorStore = create<EditorState & EditorActions>()(
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
         if (raw) {
-          const data = JSON.parse(raw);
-          const sections = data.sections || [];
+          const data = JSON.parse(raw) as {
+            sections?: unknown;
+            globalStyle?: unknown;
+          };
 
-          // Detect old variant-based format and discard it
-          const isOldFormat = sections.length > 0 && sections[0].variant !== undefined && !sections[0].blocks;
-          if (isOldFormat) {
-            localStorage.removeItem(STORAGE_KEY);
+          if (!Array.isArray(data.sections) || !data.globalStyle || typeof data.globalStyle !== "object") {
             return;
           }
 
-          const normalizedSections = normalizeIncomingSections(sections);
-
           set((state) => {
-            state.sections = normalizedSections;
-            state.globalStyle = normalizeIncomingGlobalStyle(data.globalStyle);
+            state.sections = data.sections as Section[];
+            state.globalStyle = data.globalStyle as GlobalStyle;
+            state.history = [];
+            state.future = [];
             state.selectedSectionId = null;
             state.selectedGroupId = null;
             state.selectedBlockId = null;
@@ -1226,13 +1014,11 @@ export const useEditorStore = create<EditorState & EditorActions>()(
 
     // ─── Reset ────────────────────────────────────────────────────
 
-    loadSections: (sections: Section[], globalStyle?: GlobalStyle) => {
+    loadSections: (sections: Section[], globalStyle: GlobalStyle) => {
       clearBlockStyleHistoryWindows();
       set((state) => {
-        state.sections = normalizeIncomingSections(sections);
-        if (globalStyle) {
-          state.globalStyle = normalizeIncomingGlobalStyle(globalStyle);
-        }
+        state.sections = sections;
+        state.globalStyle = globalStyle;
         state.history = [];
         state.future = [];
         state.selectedSectionId = null;

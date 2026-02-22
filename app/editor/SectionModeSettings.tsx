@@ -1,5 +1,6 @@
 import { useState } from "react";
 import * as Switch from "@radix-ui/react-switch";
+import { SECTION_REGISTRY } from "~/config/sectionRegistry";
 import { useEditorStore } from "~/stores/editorStore";
 import { BackgroundControl } from "~/components/controls/BackgroundControl";
 import { SettingsCollapsibleSection } from "./SettingsCollapsibleSection";
@@ -12,9 +13,11 @@ interface SectionModeSettingsProps {
 
 export function SectionModeSettings({ section }: SectionModeSettingsProps) {
 	const sections = useEditorStore((s) => s.sections);
+	const renameSection = useEditorStore((s) => s.renameSection);
 	const updateSectionStyle = useEditorStore((s) => s.updateSectionStyle);
 	const globalStyle = useEditorStore((s) => s.globalStyle);
 	const sectionIndex = sections.findIndex((entry) => entry.id === section.id);
+	const presetLabel = SECTION_REGISTRY[section.type]?.label || section.type;
 
 	const [openSections, setOpenSections] = useState({
 		layout: true,
@@ -33,6 +36,16 @@ export function SectionModeSettings({ section }: SectionModeSettingsProps) {
 
 	return (
 		<>
+			<div className="space-y-1.5 pb-2">
+				<label className="text-xs font-medium text-muted-foreground">Section Name</label>
+				<input
+					value={section.label}
+					onChange={(e) => renameSection(section.id, e.target.value)}
+					className="w-full rounded-xl border border-border bg-input/50 px-3 py-2 text-sm text-foreground"
+					placeholder="Section name"
+				/>
+				<p className="text-[11px] text-muted-foreground">Preset: {presetLabel}</p>
+			</div>
 			<SettingsCollapsibleSection
 				title="Layout"
 				isOpen={openSections.layout}

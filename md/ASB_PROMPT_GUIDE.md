@@ -32,7 +32,7 @@ COMPARABLE PRODUCTS: Carrd, Squarespace, early Wix â€” NOT Webflow or WordP
 CORE PHILOSOPHY:
 - Section-based editor with composable blocks â€” NOT freeform drag-and-drop
 - Sections define overall containers; groups define per-zone layout structure inside sections
-- Users pick a section type → manage groups → then edit/add/remove blocks within group slots
+- Users pick a section preset (or a blank section) → manage groups → then edit/add/remove blocks within group slots
 - Simple, friendly controls â€” NEVER expose CSS properties, layers, or code
 - Every page is a vertical stack of sections
 - Users edit content through a right sidebar and inline text editing
@@ -50,7 +50,7 @@ ARCHITECTURE MODEL:
 - This replaces the old rigid "variant with hardcoded props" model
 
 CURRENT PHASE: MVP (10-12 week build)
-MVP SCOPE: Auth, dashboard, template gallery, block-based editor (7 section types),
+MVP SCOPE: Auth, dashboard, template gallery, block-based editor (preset-driven sections + blank option),
            image upload, basic SEO, publish to free subdomain
 
 STYLE REFERENCE: See the separate Style Guide (.md) for all colors, theming,
@@ -231,7 +231,8 @@ STATE MANAGEMENT:
 - TanStack Query handles all API calls (fetch project, auto-save, publish)
 - Auto-save: debounced 3 seconds after any change
 - Three selection levels: section-level, group-level, and block-level
-- Editor initialization loads localStorage first; if empty, seeds all section types defined in `SECTION_REGISTRY` (registry order)
+- Editor initialization loads localStorage first; if empty, seeds `DEFAULT_SECTION_SEQUENCE` from `sectionRegistry` (registry-configured order)
+- Editor state loading/import uses a single current schema; no backward migration paths are maintained
 - Default section seeding is idempotent to prevent duplicate sections when effects re-run in development strict mode
 - Default section preset backgrounds alternate between two dark tones to avoid adjacent sections using the same color on first load
 
@@ -305,7 +306,7 @@ DEBUG BACKDOOR:
 - Controlled by URL params: `debug` or `debugMode`
 - Truthy values accepted: empty (`?debug`), `1`, `true`, `yes`, `on`
 - `Export` downloads JSON payload with `{ version, exportedAt, state: { sections, globalStyle } }`
-- `Import` accepts `{ state: { sections, globalStyle } }` or `{ sections, globalStyle }`
+- `Import` accepts only `{ state: { sections, globalStyle } }` (same shape as export)
 - Logic lives in `editor/EditorDebugBackdoor.tsx`; `EditorToolbar.tsx` only renders the debug action component
 
 ZOOM:
@@ -428,7 +429,8 @@ interface GroupStyle {
 
 interface Section {
   id: string;                     // nanoid(10)
-  type: SectionType;              // "hero" | "features" | "cta" | etc.
+  type: SectionType;              // Preset/profile key ("hero", "faq", "custom", etc.)
+  label: string;                  // Editable section display name (defaults from preset)
   groups: Group[];                // Vertical stack of groups inside the section
   style: SectionStyle;            // Background, padding, colors
   isVisible: boolean;             // Toggle visibility without deleting
@@ -436,7 +438,7 @@ interface Section {
 
 type SectionType =
   | "navbar" | "hero" | "features" | "cta"
-  | "testimonials" | "faq" | "footer"
+  | "testimonials" | "faq" | "footer" | "custom"
   // Post-MVP:
   | "pricing" | "gallery" | "stats" | "logos"
   | "newsletter" | "contact" | "team";
@@ -531,7 +533,7 @@ const LAYOUT_TEMPLATES: LayoutTemplate[] = [
 
 ### Section Registry Pattern
 
-Every section type is registered in a central `SECTION_REGISTRY` object. The registry now defines **default groups** (with legacy `defaultBlocks` compatibility):
+Every section preset/profile is registered in a central `SECTION_REGISTRY` object. The registry now defines **default groups** (with legacy `defaultBlocks` compatibility):
 
 ```typescript
 SECTION_REGISTRY[sectionType] = {
@@ -721,12 +723,13 @@ function SectionRenderer({ section, isEditing, globalStyle }) {
 }
 ```
 
-### MVP Section Types
+### MVP Section Presets
 
-Each section type is a **preset** — a combination of default group(s) + default block composition. Users start with the preset and can modify from there.
+Each section preset seeds a starting group/block composition. The section title is editable in Section Settings and is not fixed to the preset label.
 
-| Type | Default Layout | Default Blocks | Picker Layouts |
+| Preset | Default Layout | Default Blocks | Picker Layouts |
 |------|---------------|----------------|----------------|
+| blank (`custom`) | 1col | none (empty section with one group) | all standard |
 | navbar | 3col-1-4-1 | `heading` (col-1), inline `list` (col-2), `button` (col-3) | all standard |
 | hero | 2col-3-3 | `badge` + `heading` + `text` + `button` (col-1), `image` (col-2) | all standard (1-col, 2-col, 3-col) |
 | features | 3col-2-2-2 | 3x (`icon` + `heading` + `text`) per col-1/col-2/col-3 | all standard |
@@ -788,7 +791,7 @@ When a section is selected (not a specific group/block):
 - Group list and group reordering are handled in the LEFT sidebar section tree when a section is focused
 
 Add Block modal behavior (in Group Mode):
-- Shows only block types allowed by the selected section type
+- Shows block types allowed by the selected section profile (`custom`/blank allows all block types)
 - Uses block categories from `BLOCK_REGISTRY[blockType].category` to group cards (Basic / Media / Layout / Content)
 - Includes a category rail + search input + grouped block sections
 - Uses selected group's `layout.slots` for the **Column** picker
@@ -919,7 +922,7 @@ ALWAYS use friendly labels. NEVER expose technical terms:
 Each row in the left sidebar shows:
 - **Drag handle** (â˜°) â€” for reordering via @dnd-kit/sortable
 - **Section icon** â€” from the section registry
-- **Section name** â€” the section type label (Hero, Features, etc.)
+- **Section name** â€” editable section label stored on the section instance (defaults from preset, can be renamed)
 - **Layout label** â€” the currently active layout (Centered, 2-Column, etc.)
 - **Active indicator** â€” dot or highlight on the selected section
 - **Hover actions** â€” visibility toggle, context menu (duplicate, delete)
@@ -1114,7 +1117,7 @@ app/
 â”‚   â”œâ”€â”€ BlockSettings.tsx        # RIGHT sidebar: block mode orchestrator (composed panels)
 â”‚   â”œâ”€â”€ GlobalSettingsPanel.tsx  # RIGHT sidebar: global page settings + Typography Settings modal trigger
 â”‚   â”œâ”€â”€ SettingsCollapsibleSection.tsx # Shared settings collapsible UI
-â”‚   â”œâ”€â”€ AddSectionModal.tsx      # Section type picker dialog
+â”‚   â”œâ”€â”€ AddSectionModal.tsx      # Section preset picker dialog
 â”‚   â”œâ”€â”€ AddBlockModal.tsx        # Grouped block picker modal (within a section)
 â”‚   â”œâ”€â”€ sections-list/
 â”‚   â”‚   â”œâ”€â”€ SectionTreeItem.tsx  # Section node renderer for left tree
@@ -1130,7 +1133,7 @@ app/
 â”‚   â””â”€â”€ Settings.tsx
 â”‚
 â”œâ”€â”€ config/
-â”‚   â”œâ”€â”€ sectionRegistry.ts      # Section type registry
+â”‚   â”œâ”€â”€ sectionRegistry.ts      # Section preset/profile registry
 â”‚   â”œâ”€â”€ blockRegistry.ts        # Block type registry
 â”‚   â””â”€â”€ layoutTemplates.ts      # Pre-defined layout templates
 â”‚
@@ -1384,7 +1387,7 @@ These decisions are final. Don't revisit or suggest alternatives:
 - Email/password + Google OAuth signup/login
 - User dashboard (project list)
 - Template gallery (8-12 templates as section+block presets)
-- Block-based editor with 7 section types and 11 block types
+- Block-based editor with section presets (including blank) and 11 block types
 - Three-panel editor: left sections list, center canvas, right settings
 - Drag-to-reorder sections (left sidebar), groups (left sidebar tree), and blocks (right sidebar + focused canvas drag)
 - Layout templates (1-col, 2-col, 3-col) with visual picker
@@ -1506,7 +1509,8 @@ This contract ensures AI output can be validated and loaded directly into the ed
 | **Block Type** | The kind of content a block represents (heading, text, button, image, etc.). Determines what controls appear in the sidebar. |
 | **Layout Template** | A pre-defined spatial arrangement for blocks within a group. Defined by `spans[]` (6-unit grid), `alignment`, and `reversed`. Users pick from visual thumbnails — never configure numbers directly. |
 | **Slot** | A named position within a layout template where blocks are placed ("main", "left", "right", "col-1", etc.). |
-| **Section Registry** | Central config mapping section types to allowed layouts, default groups/default blocks fallback, and constraints. |
+| **Section Registry** | Central config mapping section profiles/presets to allowed layouts, default groups/default blocks fallback, and constraints. |
+| **Section Label** | Editable display name saved on each section instance. Starts from preset label but is user-controlled in Section Settings. |
 | **Block Registry** | Central config mapping block types to components, default props/styles, and editable fields. |
 | **Block Style** | Constrained visual options for a block (fontFamily override, fontSize, optional heading/text `fontSizePx` for custom size, fontWeight, fontStyle, letterSpacing, textAlign, width, optional `widthPx` for custom divider width, opacity, spacing, positioning mode, scale). Never raw CSS. |
 | **Section Style** | Design data for a section (backgroundColor/backgroundType/gradient fields, backgroundEffect, backgroundEffectIntensity, paddingY, fullHeight, groupVerticalAlign). |
@@ -1522,7 +1526,7 @@ This contract ensures AI output can be validated and loaded directly into the ed
 | **Control** | A right sidebar input component (ColorControl, SliderControl, SizePickerControl, etc.). |
 | **FieldRenderer** | The switch component that renders the correct control based on field type. |
 | **Background Control** | Composite control: type selector (solid/gradient/image) + picker + overlay effect + effect intensity + padding slider. |
-| **Preset** | A section type's default configuration (layout + blocks + style). What users get when they click "Add Section". |
+| **Preset** | A starter section blueprint (layout + groups + blocks + style) used by Add Section. Presets seed data; sections are still fully editable. |
 | **Slug** | URL-friendly project name used as the subdomain (my-landing-page.builder.app). |
 | **Publishing** | Rendering sections and blocks to static HTML and deploying to a subdomain. |
 | **Template** | A pre-configured set of sections with blocks and styles, used as a starting point for a new project. |
@@ -1530,6 +1534,8 @@ This contract ensures AI output can be validated and loaded directly into the ed
 
 ---
 
+*Document Version: 3.54 - Removed editor-state backward-compatibility paths. `editorStore` localStorage/debug import now expects only the current schema, with no legacy migration/normalization branches. `EditorDebugBackdoor` import accepts only `{ state: { sections, globalStyle } }` (export shape).*
+*Document Version: 3.53 - Redesigned `AddSectionModal` into a preset picker (category rail + search + card selection + confirm footer), added a `custom` blank section preset, and moved section naming to instance-level state via editable `Section.label` in Section Mode settings. Section labels in canvas/sidebar/settings now resolve from `Section.label` instead of fixed registry labels.*
 *Document Version: 3.52 - Updated Block Mode architecture notes after componentization: `BlockSettings.tsx` is now an orchestrator and Block Mode concerns are split under `app/editor/block-settings/` (header, content/style/colors/spacing/position panels, shared helpers/constants). Updated references to `groupEditableFields()` location in `editor/block-settings/utils.ts`.*
 *Document Version: 3.51 - Added divider custom width controls. Divider Width now includes a `Custom` (`tune`) option that reveals a 40-1600px slider + numeric input in Block Mode, persisted as `BlockStyle.width="custom"` + `BlockStyle.widthPx`; `DividerBlock.tsx` renders this as a clamped inline width with `max-width: 100%`.*
 *Document Version: 3.50 - Added divider block Width and Opacity controls in Block Mode. `divider` now exposes `block.style.width` (S/M/L/Full presets) and `block.style.opacity` (0-100 slider); `DividerBlock.tsx` applies width presets and renders opacity as `(opacity ?? 20) / 100` while preserving color-mode text color resolution. `BlockSettings.tsx` now falls back to `blockEntry.defaultStyle` for unset style keys so legacy blocks show correct default control states.*
@@ -1537,7 +1543,7 @@ This contract ensures AI output can be validated and loaded directly into the ed
 *Document Version: 3.48 - Extended custom text sizing to `text` blocks. `heading` and `text` Size controls now both include the icon-only `tune` custom option; selecting it uses the same 12-200px slider + numeric input and applies inline `fontSize` from `BlockStyle.fontSizePx` when `fontSize="custom"` in `HeadingBlock.tsx` and `TextBlock.tsx`.*
 *Document Version: 3.47 - Updated heading custom size affordance in Block Mode: the `Custom` size choice now renders as an icon-only button (`tune`) instead of text, while preserving the same `fontSize="custom"` + `fontSizePx` behavior and controls.*
 *Document Version: 3.46 - Added heading custom text size support. `heading` block Size control now includes `Custom`; selecting it reveals a 12-200px slider plus numeric px input in Block Mode, persisted via `BlockStyle.fontSize="custom"` and `BlockStyle.fontSizePx`, and `HeadingBlock.tsx` applies the custom inline font size.*
-*Document Version: 3.45 - Added editor debug backdoor actions behind URL params (`debug`/`debugMode`). Import/Export state UI moved out of `EditorToolbar.tsx` into `EditorDebugBackdoor.tsx` for separation of concerns; Export writes `{ version, exportedAt, state: { sections, globalStyle } }`, and Import accepts both wrapped (`state`) and direct payload shapes.*
+*Document Version: 3.45 - Added editor debug backdoor actions behind URL params (`debug`/`debugMode`). Import/Export state UI moved out of `EditorToolbar.tsx` into `EditorDebugBackdoor.tsx` for separation of concerns; Export writes `{ version, exportedAt, state: { sections, globalStyle } }` (import shape was later tightened in v3.54).*
 *Document Version: 3.44 - Added section-level vertical group alignment via `SectionStyle.groupVerticalAlign` (`"top" | "center" | "bottom"`). `SectionModeSettings` Layout panel now includes Group Alignment buttons (matching the group alignment icon set), and `SectionRenderer` applies this setting to vertically align stacked groups within the section's available height (especially when `fullHeight` is enabled).*
 *Document Version: 3.43 - Added `BlockStyle.letterSpacing` for `heading` and `text` blocks. Block Mode now includes a Letter Spacing slider (0-12px), and both `HeadingBlock.tsx` and `TextBlock.tsx` apply it via inline styles.*
 *Document Version: 3.42 - Added `BlockStyle.fontStyle` (`"normal" | "italic"`) and exposed a new Style control in Block Mode for `heading` and `text` blocks. `HeadingBlock.tsx` and `TextBlock.tsx` now apply block-level italic styling via `block.style.fontStyle`.*
@@ -1555,6 +1561,8 @@ This contract ensures AI output can be validated and loaded directly into the ed
 *Last Updated: February 22, 2026*
 *Keep this document updated as architecture decisions change.*
 *For colors and theming, always reference the separate Style Guide file.*
+
+
 
 
 

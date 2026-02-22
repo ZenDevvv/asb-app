@@ -95,6 +95,7 @@ export function EditorCanvas() {
 
 							const registry = SECTION_REGISTRY[section.type];
 							if (!registry) return null;
+							const sectionLabel = section.label.trim() || registry.label;
 
 							const isSelected = section.id === selectedSectionId;
 
@@ -118,7 +119,7 @@ export function EditorCanvas() {
 													style={{ fontSize: 12 }}>
 													{registry.icon}
 												</span>
-												{registry.label}
+												{sectionLabel}
 											</div>
 										</div>
 									)}

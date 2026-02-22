@@ -1,4 +1,30 @@
+import { LAYOUT_TEMPLATES } from "~/config/layoutTemplates";
 import type { SectionType, SectionRegistryEntry } from "~/types/editor";
+
+export const DEFAULT_SECTION_SEQUENCE: Exclude<SectionType, "custom">[] = [
+  "navbar",
+  "hero",
+  "features",
+  "cta",
+  "testimonials",
+  "faq",
+  "footer",
+];
+
+const ALL_LAYOUT_IDS = LAYOUT_TEMPLATES.map((layout) => layout.id);
+const ALL_BLOCK_TYPES: SectionRegistryEntry["allowedBlockTypes"] = [
+  "heading",
+  "text",
+  "button",
+  "card",
+  "image",
+  "icon",
+  "spacer",
+  "badge",
+  "divider",
+  "list",
+  "quote",
+];
 
 export const SECTION_REGISTRY: Record<SectionType, SectionRegistryEntry> = {
   navbar: {
@@ -423,5 +449,27 @@ export const SECTION_REGISTRY: Record<SectionType, SectionRegistryEntry> = {
       backgroundType: "solid",
     },
     allowedBlockTypes: ["heading", "text", "button", "card", "icon", "list", "divider", "badge", "image"],
+  },
+
+  custom: {
+    label: "Blank Section",
+    icon: "dashboard",
+    description: "Start from an empty section and build your own structure.",
+    allowedLayouts: ALL_LAYOUT_IDS,
+    defaultLayoutId: "1col",
+    defaultGroups: [
+      {
+        label: "Main Group",
+        layoutId: "1col",
+        blocks: [],
+      },
+    ],
+    defaultBlocks: [],
+    defaultStyle: {
+      backgroundColor: "#0f1713",
+      paddingY: 80,
+      backgroundType: "solid",
+    },
+    allowedBlockTypes: ALL_BLOCK_TYPES,
   },
 };
