@@ -149,6 +149,11 @@ export function GroupRenderer({
 	const isDraggingAbsoluteBlock = draggingAbsoluteBlockId !== null;
 	const isDraggingFlowBlock = draggingFlowBlockId !== null;
 	const isDraggingBlock = isDraggingAbsoluteBlock || isDraggingFlowBlock;
+	const hasSelectedBlockInGroup = Boolean(
+		selectedBlockId && group.blocks.some((block) => block.id === selectedBlockId),
+	);
+	const isGroupLevelSelection = isGroupSelected && !hasSelectedBlockInGroup;
+	const isBlockLevelSelection = isGroupSelected && hasSelectedBlockInGroup;
 	const gridClasses = getLayoutGridClasses(layout);
 	const slotContentAlignmentClass =
 		layout.alignment === "center"
@@ -382,7 +387,7 @@ export function GroupRenderer({
 	return (
 		<div
 			className={`relative transition-colors ${isEditing ? "cursor-pointer" : ""} ${
-				isGroupSelected
+				isGroupLevelSelection
 					? "ring-1 ring-primary/60 ring-offset-1 ring-offset-transparent"
 					: ""
 			}`}
@@ -397,6 +402,12 @@ export function GroupRenderer({
 				<div className="pointer-events-none absolute -top-2 left-3 z-[2] rounded-full bg-primary px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-primary-foreground shadow">
 					Group
 				</div>
+			)}
+			{isEditing && isBlockLevelSelection && (
+				<div
+					className="pointer-events-none absolute inset-0 z-[1] border border-dashed border-primary/60"
+					style={{ borderRadius: "inherit" }}
+				/>
 			)}
 
 			<div ref={sectionContentRef} className="relative">

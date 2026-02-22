@@ -174,6 +174,7 @@ The editor has a **LEFT sidebar (sections list) + CENTER canvas + RIGHT sidebar 
 - Selected section has a **floating label badge** (e.g., "â­ Hero Section") at the top
 - Sections are rendered as they will appear when published (WYSIWYG)
 - Click a **block** on canvas -> selects that block (right sidebar switches to block settings)
+- Selection outlines: selected group uses a **solid** focus border in Group Mode; when Block Mode is active, the owning group border becomes **dashed** while the selected block keeps its own focus border.
 - Focused **flow** blocks can be dragged on the canvas across columns and between blocks; hover shows a horizontal insertion line at the exact drop position
 - Group columns stretch to the full group row height so empty column space remains a valid drop zone while dragging
 - Click **text blocks** on canvas â†’ **inline edit via Tiptap**
@@ -199,6 +200,8 @@ The right sidebar changes based on what is selected:
 2. **Blocks** — ordered list of blocks within the selected group. Clicking **+ Add Block** opens a grouped block picker modal (category rail + search + block cards). Users select a block card, then click **Insert Block**; for multi-column layouts, they can choose the target column/slot before inserting.
 3. **Group Style** — group-local spacing controls (top/bottom padding).
 
+4. **Canvas Selection Border** - selected group uses a solid highlight border while Group Mode is active.
+
 **When a BLOCK is selected** (click a specific block on the canvas):
 1. **Block Content** - auto-generated controls based on block type (text input, image upload, etc.)
 2. **Block Style** - constrained style options for that block (size, alignment, spacing, letter spacing). `heading` and `text` blocks also expose a **Font Family** control that opens the same Typography Settings modal used in Global Settings; selecting a font applies a block-level override.
@@ -207,6 +210,7 @@ The right sidebar changes based on what is selected:
    - **Flow / Absolute** toggle — choose positioning mode. Absolute blocks are positioned relative to the selected group and can be moved on the canvas by dragging.
 4. **Block Actions** - header icons for duplicate/delete. Duplicate uses `duplicateBlock(sectionId, groupId, blockId)` and inserts a copy directly below the selected block (flow: same slot, next order; absolute: offset downward).
 5. **Back to Group** - button to go back to group-level settings.
+6. **Group Context Border** - while in Block Mode, the owning group's canvas border is dashed (not solid) to indicate parent context.
 **When NOTHING is selected** (click empty canvas area):
 - **Global Page Settings** - website theme mode (dark/light), font family (button opens a Typography Settings modal with search + preview cards + Apply Font action), primary color, color scheme, corner style. This remains the default font source for all text unless a supported block-level override is set. Typography options include sans, serif, and script families (for example: Inter, Playfair Display, Cormorant Garamond, EB Garamond, Cinzel, Great Vibes, Alex Brush, Allura, Parisienne, Sacramento).
 
@@ -1504,6 +1508,7 @@ This contract ensures AI output can be validated and loaded directly into the ed
 
 ---
 
+*Document Version: 3.49 - Updated canvas selection-border semantics across settings modes: Group Mode shows a solid selected-group border, while Block Mode keeps the selected block focus and switches the owning group border to dashed for parent-context indication.*
 *Document Version: 3.48 - Extended custom text sizing to `text` blocks. `heading` and `text` Size controls now both include the icon-only `tune` custom option; selecting it uses the same 12-200px slider + numeric input and applies inline `fontSize` from `BlockStyle.fontSizePx` when `fontSize="custom"` in `HeadingBlock.tsx` and `TextBlock.tsx`.*
 *Document Version: 3.47 - Updated heading custom size affordance in Block Mode: the `Custom` size choice now renders as an icon-only button (`tune`) instead of text, while preserving the same `fontSize="custom"` + `fontSizePx` behavior and controls.*
 *Document Version: 3.46 - Added heading custom text size support. `heading` block Size control now includes `Custom`; selecting it reveals a 12-200px slider plus numeric px input in Block Mode, persisted via `BlockStyle.fontSize="custom"` and `BlockStyle.fontSizePx`, and `HeadingBlock.tsx` applies the custom inline font size.*
