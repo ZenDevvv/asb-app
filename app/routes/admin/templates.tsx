@@ -1,106 +1,11 @@
 import { useMemo, useState } from "react";
 import { Bell, MoreHorizontal, Plus, Search, SlidersHorizontal, Sparkles } from "lucide-react";
 import { cn } from "~/lib/utils";
+import { useGetTemplateProjects } from "~/hooks/use-template-project";
 import type { TemplateProject } from "~/zod/templateProject.zod";
 
 type TemplateStatus = "active" | "draft" | "archived";
 type TemplateTab = "all" | TemplateStatus;
-
-type TemplateRow = {
-	id: TemplateProject["id"];
-	name: string;
-	category: "Marketing" | "Personal" | "Retail" | "Content" | "Business";
-	status: TemplateStatus;
-	usageCount: number;
-	updatedAt: Date;
-	description?: string;
-	isAiGenerated?: boolean;
-	trend?: string;
-	previewClassName: string;
-};
-
-const MOCK_TEMPLATE_PROJECTS: TemplateProject[] = [
-	{
-		id: "TPL-0192",
-		name: "SaaS Landing Page v2",
-		description: "High-converting SaaS template with hero, pricing, and feature sections.",
-		category: "Marketing",
-		thumbnail: "",
-		createdById: "USR-0001",
-		pages: [],
-		globalStyle: {},
-		seo: {},
-		isActive: true,
-		usageCount: 1240,
-		isDeleted: false,
-		createdAt: new Date("2026-01-10T08:20:00Z"),
-		updatedAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
-	},
-	{
-		id: "TPL-0129",
-		name: "Portfolio Minimal",
-		description: "Simple portfolio for creators and freelancers.",
-		category: "Personal",
-		thumbnail: "",
-		createdById: "USR-0001",
-		pages: [],
-		globalStyle: {},
-		seo: {},
-		isActive: true,
-		usageCount: 856,
-		isDeleted: false,
-		createdAt: new Date("2025-12-05T07:10:00Z"),
-		updatedAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
-	},
-	{
-		id: "TPL-0235",
-		name: "E-commerce Starter",
-		description: "Starter storefront with product and CTA sections.",
-		category: "Retail",
-		thumbnail: "",
-		createdById: "USR-0001",
-		pages: [],
-		globalStyle: {},
-		seo: {},
-		isActive: false,
-		usageCount: 0,
-		isDeleted: false,
-		createdAt: new Date("2026-02-01T10:00:00Z"),
-		updatedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-	},
-	{
-		id: "TPL-0048",
-		name: "Blog Classic",
-		description: "Editorial-first blog design with reading-focused layout.",
-		category: "Content",
-		thumbnail: "",
-		createdById: "USR-0001",
-		pages: [],
-		globalStyle: {},
-		seo: {},
-		isActive: true,
-		usageCount: 2100,
-		isDeleted: false,
-		createdAt: new Date("2025-10-18T13:00:00Z"),
-		updatedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-	},
-	{
-		id: "TPL-0013",
-		name: "Agency Dark Mode",
-		description: "Bold agency template with dark visuals.",
-		category: "Business",
-		thumbnail: "",
-		createdById: "USR-0001",
-		pages: [],
-		globalStyle: {},
-		seo: {},
-		isActive: false,
-		usageCount: 450,
-		isDeleted: true,
-		createdAt: new Date("2025-09-01T09:40:00Z"),
-		updatedAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
-	},
-];
 
 function getTemplateStatus(template: TemplateProject): TemplateStatus {
 	if (template.isDeleted) return "archived";
@@ -156,13 +61,35 @@ const statusClassName: Record<
 	},
 };
 
-const categoryClassName: Record<TemplateRow["category"], string> = {
-	Marketing: "border-chart-1/50 bg-chart-1/12 text-chart-1",
-	Personal: "border-chart-5/50 bg-chart-5/12 text-chart-5",
-	Retail: "border-chart-4/50 bg-chart-4/12 text-chart-4",
-	Content: "border-destructive/45 bg-destructive/12 text-destructive",
-	Business: "border-chart-2/50 bg-chart-2/12 text-chart-2",
-};
+function getCategoryClassName(category?: string): string {
+	switch (category) {
+		case "Marketing":
+			return "border-chart-1/50 bg-chart-1/12 text-chart-1";
+		case "Personal":
+			return "border-chart-5/50 bg-chart-5/12 text-chart-5";
+		case "Retail":
+			return "border-chart-4/50 bg-chart-4/12 text-chart-4";
+		case "Content":
+			return "border-destructive/45 bg-destructive/12 text-destructive";
+		default:
+			return "border-chart-2/50 bg-chart-2/12 text-chart-2";
+	}
+}
+
+function getPreviewClassName(category?: string): string {
+	switch (category) {
+		case "Marketing":
+			return "from-chart-1/55 via-chart-5/35 to-chart-1/20";
+		case "Personal":
+			return "from-card via-chart-5/20 to-card";
+		case "Retail":
+			return "from-chart-4/40 via-muted to-card";
+		case "Content":
+			return "from-card via-card to-muted";
+		default:
+			return "from-black/80 via-chart-5/20 to-black/80";
+	}
+}
 
 const tabs: Array<{ key: TemplateTab; label: string }> = [
 	{ key: "all", label: "All Templates" },
@@ -174,59 +101,47 @@ const tabs: Array<{ key: TemplateTab; label: string }> = [
 export default function AdminTemplatesRoute() {
 	const [selectedTab, setSelectedTab] = useState<TemplateTab>("all");
 	const [searchQuery, setSearchQuery] = useState("");
+	const fields =
+		"id,name,description,category,thumbnail,createdById,pages,globalStyle,seo,isActive,usageCount,isDeleted,createdAt,updatedAt,createdBy";
 
-	const templateRows = useMemo<TemplateRow[]>(() => {
-		return MOCK_TEMPLATE_PROJECTS.map((template) => ({
-			id: template.id,
-			name: template.name,
-			category: (template.category as TemplateRow["category"]) ?? "Business",
-			status: getTemplateStatus(template),
-			usageCount: template.usageCount,
-			updatedAt: template.updatedAt,
-			description: template.description,
-			isAiGenerated:
-				template.name.toLowerCase().includes("starter") ||
-				template.name.toLowerCase().includes("v2"),
-			trend:
-				template.usageCount > 1000 ? "+12%" : template.usageCount > 100 ? "+5%" : undefined,
-			previewClassName:
-				template.category === "Marketing"
-					? "from-chart-1/55 via-chart-5/35 to-chart-1/20"
-					: template.category === "Personal"
-						? "from-card via-chart-5/20 to-card"
-						: template.category === "Retail"
-							? "from-chart-4/40 via-muted to-card"
-							: template.category === "Content"
-								? "from-card via-card to-muted"
-								: "from-black/80 via-chart-5/20 to-black/80",
-		}));
-	}, []);
+	const { data, isLoading, isError, error } = useGetTemplateProjects({
+		page: 1,
+		limit: 100,
+		fields,
+		query: searchQuery.trim(),
+		sort: "updatedAt",
+		order: "desc",
+		document: true,
+		pagination: false,
+		count: true,
+	});
+
+	const templateProjects = data?.templateProjects ?? [];
 
 	const summary = useMemo(() => {
-		const active = templateRows.filter((row) => row.status === "active").length;
-		const draft = templateRows.filter((row) => row.status === "draft").length;
-		const archived = templateRows.filter((row) => row.status === "archived").length;
+		const active = templateProjects.filter(
+			(template) => getTemplateStatus(template) === "active",
+		).length;
+		const draft = templateProjects.filter(
+			(template) => getTemplateStatus(template) === "draft",
+		).length;
+		const archived = templateProjects.filter(
+			(template) => getTemplateStatus(template) === "archived",
+		).length;
 		return {
-			all: templateRows.length,
+			all: data?.count ?? templateProjects.length,
 			active,
 			draft,
 			archived,
 		};
-	}, [templateRows]);
+	}, [data?.count, templateProjects]);
 
 	const filteredTemplates = useMemo(() => {
-		const normalizedSearch = searchQuery.trim().toLowerCase();
-		return templateRows.filter((template) => {
-			const matchesTab = selectedTab === "all" ? true : template.status === selectedTab;
-			const matchesSearch =
-				normalizedSearch.length === 0
-					? true
-					: `${template.name} ${template.category} ${template.id} ${template.description ?? ""}`
-							.toLowerCase()
-							.includes(normalizedSearch);
-			return matchesTab && matchesSearch;
+		return templateProjects.filter((template) => {
+			const status = getTemplateStatus(template);
+			return selectedTab === "all" ? true : status === selectedTab;
 		});
-	}, [searchQuery, selectedTab, templateRows]);
+	}, [selectedTab, templateProjects]);
 
 	return (
 		<div className="min-h-full overflow-hidden rounded-2xl border border-border bg-gradient-to-b from-card via-background to-background text-foreground shadow-xl">
@@ -332,11 +247,42 @@ export default function AdminTemplatesRoute() {
 								</tr>
 							</thead>
 							<tbody>
-								{filteredTemplates.length > 0 ? (
+								{isLoading ? (
+									<tr>
+										<td
+											className="px-5 py-12 text-center text-sm text-muted-foreground"
+											colSpan={7}>
+											Loading templates...
+										</td>
+									</tr>
+								) : isError ? (
+									<tr>
+										<td
+											className="px-5 py-12 text-center text-sm text-destructive"
+											colSpan={7}>
+											{error instanceof Error
+												? error.message
+												: "Failed to load templates."}
+										</td>
+									</tr>
+								) : filteredTemplates.length > 0 ? (
 									filteredTemplates.map((template) => {
-										const status = statusClassName[template.status];
-										const categoryClasses =
-											categoryClassName[template.category];
+										const status = statusClassName[getTemplateStatus(template)];
+										const categoryClasses = getCategoryClassName(
+											template.category,
+										);
+										const previewClassName = getPreviewClassName(
+											template.category,
+										);
+										const isAiGenerated =
+											template.name.toLowerCase().includes("starter") ||
+											template.name.toLowerCase().includes("v2");
+										const trend =
+											template.usageCount > 1000
+												? "+12%"
+												: template.usageCount > 100
+													? "+5%"
+													: undefined;
 
 										return (
 											<tr
@@ -346,7 +292,7 @@ export default function AdminTemplatesRoute() {
 													<div
 														className={cn(
 															"relative h-11 w-[54px] overflow-hidden rounded-md border border-border/70 bg-gradient-to-r",
-															template.previewClassName,
+															previewClassName,
 														)}>
 														<div className="absolute inset-y-2 left-2 w-1.5 rounded-full bg-card/70" />
 														<div className="absolute inset-y-3 left-5 w-4 rounded-sm bg-card/80" />
@@ -359,7 +305,7 @@ export default function AdminTemplatesRoute() {
 													<p className="mt-1 text-xs text-muted-foreground">
 														{template.id}
 													</p>
-													{template.isAiGenerated ? (
+													{isAiGenerated ? (
 														<p className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-primary">
 															<Sparkles className="h-3 w-3" />
 															AI Generated
@@ -372,7 +318,7 @@ export default function AdminTemplatesRoute() {
 															"inline-flex rounded-full border px-2.5 py-0.5 text-xs font-medium",
 															categoryClasses,
 														)}>
-														{template.category}
+														{template.category || "Business"}
 													</span>
 												</td>
 												<td className="px-5 py-4">
@@ -397,9 +343,9 @@ export default function AdminTemplatesRoute() {
 																"en-US",
 															)}
 														</p>
-														{template.trend ? (
+														{trend ? (
 															<span className="rounded-full bg-chart-2/20 px-2 py-0.5 text-xs font-medium text-chart-2">
-																{template.trend}
+																{trend}
 															</span>
 														) : null}
 													</div>
