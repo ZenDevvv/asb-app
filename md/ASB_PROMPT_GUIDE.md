@@ -215,6 +215,7 @@ The right sidebar changes based on what is selected:
 - **Left**: hamburger menu (collapse left sidebar) + page name (editable dropdown)
 - **Center**: device preview toggle (desktop/mobile icons) + undo/redo buttons
 - **Right**: Keyboard Shortcuts button (opens shortcut list modal), Preview button (opens live preview in new tab), Publish button, "Last saved: X min ago" timestamp
+- **Debug Backdoor (params)**: when URL includes `?debug=true` (or `?debugMode=true`), toolbar shows **Import**/**Export** buttons for editor-state JSON roundtrip
 
 ### Key Behaviors
 
@@ -295,6 +296,13 @@ LIVE PREVIEW:
 - Preview route loads saved sections/global style and renders the page with `isEditing=false`
 - Preview tab listens for editor localStorage updates and refreshes automatically as autosave runs
 - Hidden sections remain hidden in preview
+
+DEBUG BACKDOOR:
+- Controlled by URL params: `debug` or `debugMode`
+- Truthy values accepted: empty (`?debug`), `1`, `true`, `yes`, `on`
+- `Export` downloads JSON payload with `{ version, exportedAt, state: { sections, globalStyle } }`
+- `Import` accepts `{ state: { sections, globalStyle } }` or `{ sections, globalStyle }`
+- Logic lives in `editor/EditorDebugBackdoor.tsx`; `EditorToolbar.tsx` only renders the debug action component
 
 ZOOM:
 - Zoom controls at bottom of canvas: minus button, percentage display, plus button
@@ -1492,6 +1500,7 @@ This contract ensures AI output can be validated and loaded directly into the ed
 
 ---
 
+*Document Version: 3.45 - Added editor debug backdoor actions behind URL params (`debug`/`debugMode`). Import/Export state UI moved out of `EditorToolbar.tsx` into `EditorDebugBackdoor.tsx` for separation of concerns; Export writes `{ version, exportedAt, state: { sections, globalStyle } }`, and Import accepts both wrapped (`state`) and direct payload shapes.*
 *Document Version: 3.44 - Added section-level vertical group alignment via `SectionStyle.groupVerticalAlign` (`"top" | "center" | "bottom"`). `SectionModeSettings` Layout panel now includes Group Alignment buttons (matching the group alignment icon set), and `SectionRenderer` applies this setting to vertically align stacked groups within the section's available height (especially when `fullHeight` is enabled).*
 *Document Version: 3.43 - Added `BlockStyle.letterSpacing` for `heading` and `text` blocks. Block Mode now includes a Letter Spacing slider (0-12px), and both `HeadingBlock.tsx` and `TextBlock.tsx` apply it via inline styles.*
 *Document Version: 3.42 - Added `BlockStyle.fontStyle` (`"normal" | "italic"`) and exposed a new Style control in Block Mode for `heading` and `text` blocks. `HeadingBlock.tsx` and `TextBlock.tsx` now apply block-level italic styling via `block.style.fontStyle`.*
@@ -1506,11 +1515,9 @@ This contract ensures AI output can be validated and loaded directly into the ed
 *Document Version: 3.33 - Added `SectionStyle.fullHeight` boolean. When true, the section renders with `min-height: 100vh`. Exposed in the right sidebar under a new "Layout" collapsible panel (above Background) as a Radix Switch labeled "Fill screen height" with sub-label "Section takes up the full screen". `SectionModeSettings` now has `layout` and `background` panels.*
 *Document Version: 3.32 - Section background color pickers now use `globalStyle` as initial defaults. `BackgroundControl` accepts an optional `globalStyle` prop; solid color falls back to `globalStyle.primaryColor` (or theme-appropriate dark/light neutral), gradient "From" defaults to `globalStyle.primaryColor` and "To" to a neutral based on `themeMode`. `SectionModeSettings` reads `globalStyle` from store and passes it to `BackgroundControl`. Users can still set fully custom background colors — saved values always take precedence over these defaults.*
 *Document Version: 3.31 - Moved color settings from section level to block level. Removed `textColor`, `accentColor`, `colorMode` from `SectionStyle`. Added `textColor`, `accentColor`, `colorMode` to `BlockStyle`. Each block now has a dedicated Colors panel (Global Palette / Custom) in the right sidebar. Added `colorOptions: { hasText, hasAccent }` to `BlockRegistryEntry` to control which color pickers are shown per block type. Added `app/lib/blockColors.ts` with `resolveTextColor` and `resolveAccentColor` helpers used by all block components.*
-*Last Updated: February 21, 2026*
+*Last Updated: February 22, 2026*
 *Keep this document updated as architecture decisions change.*
 *For colors and theming, always reference the separate Style Guide file.*
-
-
 
 
 

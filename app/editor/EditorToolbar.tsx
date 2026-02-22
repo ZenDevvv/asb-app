@@ -2,6 +2,7 @@ import { useEditorStore } from "~/stores/editorStore";
 import { cn } from "~/lib/utils";
 import { useMemo, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "~/components/ui/dialog";
+import { EditorDebugBackdoor } from "./EditorDebugBackdoor";
 
 const SHORTCUTS = [
 	{
@@ -124,6 +125,7 @@ export function EditorToolbar() {
 
 			{/* Right */}
 			<div className="flex items-center gap-2">
+				<EditorDebugBackdoor />
 				<button
 					onClick={() => setShortcutsOpen(true)}
 					className="flex items-center gap-1.5 rounded-xl border border-sidebar-border px-3 py-1.5 text-sm text-sidebar-foreground transition-colors hover:bg-sidebar-accent">
