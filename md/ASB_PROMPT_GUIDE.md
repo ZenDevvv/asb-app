@@ -378,7 +378,8 @@ interface BlockStyle {
   marginBottom?: number;          // 0-64, slider
 
   // Size (for images, icons, spacers)
-  width?: "auto" | "sm" | "md" | "lg" | "full";
+  width?: "auto" | "sm" | "md" | "lg" | "full" | "custom";
+  widthPx?: number;               // Custom divider width in px when width="custom"
   height?: number;                // For spacers only, slider
 
   // Appearance
@@ -676,6 +677,20 @@ Rules for block components:
 // icon pixel size driven by block.style.fontSize: sm->24px, base->32px, xl->48px, 2xl->64px
 ```
 
+**Divider block style controls (implemented):**
+```typescript
+// divider style controls in Block Mode
+// width: size-picker options S/M/L/Full/Custom (maps to block.style.width)
+// custom width uses the tune option and stores px value in block.style.widthPx
+// custom width range: 40-1600px via slider + numeric input in Block Mode
+// opacity: 0-100 slider (maps to block.style.opacity)
+// renderer behavior in DividerBlock.tsx:
+//   - width presets use the shared width map (max-w-sm/max-w-md/max-w-lg/w-full)
+//   - custom width applies inline `width: ${block.style.widthPx}px` (clamped) + `max-width: 100%`
+//   - line color comes from resolveTextColor(block.style, globalStyle)
+//   - opacity applies as (block.style.opacity ?? 20) / 100
+```
+
 ### Section Renderer
 
 The section renderer is responsible for:
@@ -747,6 +762,9 @@ BlockStyle.fontWeight       â†’ block-level weight choice (where supported)
 BlockStyle.fontStyle        â†’ block-level style choice ("normal" or "italic" for heading/text)
 BlockStyle.letterSpacing    â†’ block-level letter spacing in px (heading/text only)
 BlockStyle.textAlign        â†’ block-level alignment
+BlockStyle.width            -> block width preset ("auto" | "sm" | "md" | "lg" | "full" | "custom")
+BlockStyle.widthPx          -> custom block width in px (used when width="custom", divider supports this)
+BlockStyle.opacity          -> block opacity percentage (0-100)
 ```
 
 Color resolution (via `app/lib/blockColors.ts`):
@@ -796,6 +814,7 @@ When a group is selected:
 When a specific block is selected (click a block on the canvas):
 - Header includes block actions: **Duplicate** (`content_copy`) and **Delete** (`delete`).
 - `heading` and `text` block Size controls now include an icon-only **Custom Size** option (`tune`). When selected, Block Mode shows a px slider + numeric input (12-200px) and stores the value in `BlockStyle.fontSizePx`.
+- `divider` Width control also includes an icon-only **Custom Width** option (`tune`). When selected, Block Mode shows a px slider + numeric input (40-1600px) and stores the value in `BlockStyle.widthPx` with `BlockStyle.width="custom"`.
 
 ```
 â”Œâ”€ RIGHT SIDEBAR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
@@ -1034,6 +1053,7 @@ POST /api/projects/:id/publish
     - "md"   â†’ max-w-md
     - "lg"   â†’ max-w-lg
     - "full" â†’ w-full
+    - "custom" â†’ divider block uses inline `width: ${block.style.widthPx}px` (clamped) + `max-width: 100%`
 ```
 
 ---
@@ -1486,7 +1506,7 @@ This contract ensures AI output can be validated and loaded directly into the ed
 | **Slot** | A named position within a layout template where blocks are placed ("main", "left", "right", "col-1", etc.). |
 | **Section Registry** | Central config mapping section types to allowed layouts, default groups/default blocks fallback, and constraints. |
 | **Block Registry** | Central config mapping block types to components, default props/styles, and editable fields. |
-| **Block Style** | Constrained visual options for a block (fontFamily override, fontSize, optional heading/text `fontSizePx` for custom size, fontWeight, fontStyle, letterSpacing, textAlign, width, spacing, positioning mode, scale). Never raw CSS. |
+| **Block Style** | Constrained visual options for a block (fontFamily override, fontSize, optional heading/text `fontSizePx` for custom size, fontWeight, fontStyle, letterSpacing, textAlign, width, optional `widthPx` for custom divider width, opacity, spacing, positioning mode, scale). Never raw CSS. |
 | **Section Style** | Design data for a section (backgroundColor/backgroundType/gradient fields, backgroundEffect, backgroundEffectIntensity, paddingY, fullHeight, groupVerticalAlign). |
 | **Global Style** | Page-wide design settings (themeMode, fontFamily, primaryColor, colorScheme, borderRadius). `fontFamily` is the default text font across the page and can be overridden by supported blocks. |
 | **Style Inheritance** | The cascade: Global â†’ Section â†’ Block. Each level can override the parent. |
@@ -1508,6 +1528,8 @@ This contract ensures AI output can be validated and loaded directly into the ed
 
 ---
 
+*Document Version: 3.51 - Added divider custom width controls. Divider Width now includes a `Custom` (`tune`) option that reveals a 40-1600px slider + numeric input in Block Mode, persisted as `BlockStyle.width="custom"` + `BlockStyle.widthPx`; `DividerBlock.tsx` renders this as a clamped inline width with `max-width: 100%`.*
+*Document Version: 3.50 - Added divider block Width and Opacity controls in Block Mode. `divider` now exposes `block.style.width` (S/M/L/Full presets) and `block.style.opacity` (0-100 slider); `DividerBlock.tsx` applies width presets and renders opacity as `(opacity ?? 20) / 100` while preserving color-mode text color resolution. `BlockSettings.tsx` now falls back to `blockEntry.defaultStyle` for unset style keys so legacy blocks show correct default control states.*
 *Document Version: 3.49 - Updated canvas selection-border semantics across settings modes: Group Mode shows a solid selected-group border, while Block Mode keeps the selected block focus and switches the owning group border to dashed for parent-context indication.*
 *Document Version: 3.48 - Extended custom text sizing to `text` blocks. `heading` and `text` Size controls now both include the icon-only `tune` custom option; selecting it uses the same 12-200px slider + numeric input and applies inline `fontSize` from `BlockStyle.fontSizePx` when `fontSize="custom"` in `HeadingBlock.tsx` and `TextBlock.tsx`.*
 *Document Version: 3.47 - Updated heading custom size affordance in Block Mode: the `Custom` size choice now renders as an icon-only button (`tune`) instead of text, while preserving the same `fontSize="custom"` + `fontSizePx` behavior and controls.*

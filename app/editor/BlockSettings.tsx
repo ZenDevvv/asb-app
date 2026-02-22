@@ -28,6 +28,8 @@ function groupEditableFields(
 
 const CUSTOM_TEXT_SIZE_MIN = 12;
 const CUSTOM_TEXT_SIZE_MAX = 200;
+const CUSTOM_DIVIDER_WIDTH_MIN = 40;
+const CUSTOM_DIVIDER_WIDTH_MAX = 1600;
 const FONT_SIZE_PRESET_TO_PX: Record<string, number> = {
 	sm: 14,
 	base: 16,
@@ -41,6 +43,13 @@ const FONT_SIZE_PRESET_TO_PX: Record<string, number> = {
 const CUSTOM_TEXT_SIZE_DEFAULT_BY_BLOCK: Partial<Record<Block["type"], number>> = {
 	heading: 36,
 	text: 16,
+};
+const WIDTH_PRESET_TO_PX: Record<string, number> = {
+	auto: 240,
+	sm: 384,
+	md: 448,
+	lg: 512,
+	full: 720,
 };
 
 function clampCustomTextSize(value: number): number {
@@ -63,6 +72,31 @@ function getCustomTextSizeValue(block: Block): number {
 	}
 
 	return CUSTOM_TEXT_SIZE_DEFAULT_BY_BLOCK[block.type] ?? FONT_SIZE_PRESET_TO_PX.base;
+}
+
+function clampCustomDividerWidth(value: number): number {
+	if (!Number.isFinite(value)) {
+		return WIDTH_PRESET_TO_PX.md;
+	}
+	return Math.min(
+		CUSTOM_DIVIDER_WIDTH_MAX,
+		Math.max(CUSTOM_DIVIDER_WIDTH_MIN, Math.round(value)),
+	);
+}
+
+function getCustomDividerWidthValue(block: Block): number {
+	if (typeof block.style.widthPx === "number") {
+		return clampCustomDividerWidth(block.style.widthPx);
+	}
+
+	if (typeof block.style.width === "string") {
+		const presetValue = WIDTH_PRESET_TO_PX[block.style.width];
+		if (typeof presetValue === "number") {
+			return presetValue;
+		}
+	}
+
+	return WIDTH_PRESET_TO_PX.md;
 }
 
 interface BlockSettingsProps {
@@ -109,7 +143,9 @@ export function BlockSettings({
 		block.style.fontFamily.trim().length > 0 &&
 		block.style.fontFamily !== globalStyle.fontFamily;
 	const supportsCustomTextSize = block.type === "heading" || block.type === "text";
+	const supportsCustomDividerWidth = block.type === "divider";
 	const customTextSizeValue = getCustomTextSizeValue(block);
+	const customDividerWidthValue = getCustomDividerWidthValue(block);
 
 	return (
 		<>
@@ -240,7 +276,9 @@ export function BlockSettings({
 									</div>
 								)}
 								{blockEntry.editableStyles.map((styleField) => {
-									const value = block.style[styleField.key];
+									const value =
+										block.style[styleField.key] ??
+										blockEntry.defaultStyle[styleField.key];
 
 									if (
 										styleField.type === "size-picker" ||
@@ -248,8 +286,13 @@ export function BlockSettings({
 									) {
 										const isCustomTextSizeField =
 											supportsCustomTextSize && styleField.key === "fontSize";
+										const isCustomDividerWidthField =
+											supportsCustomDividerWidth &&
+											styleField.key === "width";
 										const isCustomTextSizeSelected =
 											isCustomTextSizeField && value === "custom";
+										const isCustomDividerWidthSelected =
+											isCustomDividerWidthField && value === "custom";
 
 										return (
 											<div key={styleField.key} className="space-y-1.5">
@@ -261,6 +304,15 @@ export function BlockSettings({
 														const isCustomTextSizeOption =
 															isCustomTextSizeField &&
 															opt.value === "custom";
+														const isCustomDividerWidthOption =
+															isCustomDividerWidthField &&
+															opt.value === "custom";
+														const customOptionLabel =
+															isCustomTextSizeOption
+																? "Custom Size"
+																: isCustomDividerWidthOption
+																	? "Custom Width"
+																	: undefined;
 
 														return (
 															<button
@@ -282,6 +334,22 @@ export function BlockSettings({
 																		);
 																		return;
 																	}
+																	if (
+																		isCustomDividerWidthField &&
+																		opt.value === "custom"
+																	) {
+																		updateBlockStyle(
+																			sectionId,
+																			groupId,
+																			block.id,
+																			{
+																				width: "custom",
+																				widthPx:
+																					customDividerWidthValue,
+																			},
+																		);
+																		return;
+																	}
 
 																	updateBlockStyle(
 																		sectionId,
@@ -293,16 +361,8 @@ export function BlockSettings({
 																		} as Partial<BlockStyle>,
 																	);
 																}}
-																title={
-																	isCustomTextSizeOption
-																		? "Custom Size"
-																		: undefined
-																}
-																aria-label={
-																	isCustomTextSizeOption
-																		? "Custom Size"
-																		: undefined
-																}
+																title={customOptionLabel}
+																aria-label={customOptionLabel}
 																className={cn(
 																	"flex-1 rounded-lg border py-1.5 text-[10px] font-medium transition-colors",
 																	value === opt.value
@@ -320,7 +380,8 @@ export function BlockSettings({
 																				? "format_align_center"
 																				: "format_align_right"}
 																	</span>
-																) : isCustomTextSizeOption ? (
+																) : isCustomTextSizeOption ||
+																  isCustomDividerWidthOption ? (
 																	<span
 																		className="material-symbols-outlined"
 																		style={{ fontSize: 14 }}>
@@ -388,6 +449,74 @@ export function BlockSettings({
 																			fontSize: "custom",
 																			fontSizePx:
 																				clampCustomTextSize(
+																					nextValue,
+																				),
+																		},
+																	);
+																}}
+																className="h-8 w-full rounded-md border border-border bg-background px-2 text-xs text-foreground"
+															/>
+															<span className="text-[10px] font-medium text-muted-foreground">
+																px
+															</span>
+														</div>
+													</div>
+												)}
+												{isCustomDividerWidthSelected && (
+													<div className="space-y-2 rounded-lg border border-border bg-input/40 p-2">
+														<div className="flex items-center justify-between">
+															<span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+																Custom Width
+															</span>
+															<span className="text-[10px] text-muted-foreground">
+																{customDividerWidthValue}px
+															</span>
+														</div>
+														<input
+															type="range"
+															min={CUSTOM_DIVIDER_WIDTH_MIN}
+															max={CUSTOM_DIVIDER_WIDTH_MAX}
+															step={1}
+															value={customDividerWidthValue}
+															onChange={(e) =>
+																updateBlockStyle(
+																	sectionId,
+																	groupId,
+																	block.id,
+																	{
+																		width: "custom",
+																		widthPx:
+																			clampCustomDividerWidth(
+																				Number(
+																					e.target.value,
+																				),
+																			),
+																	},
+																)
+															}
+															className="w-full accent-primary"
+														/>
+														<div className="flex items-center gap-2">
+															<input
+																type="number"
+																min={CUSTOM_DIVIDER_WIDTH_MIN}
+																max={CUSTOM_DIVIDER_WIDTH_MAX}
+																step={1}
+																value={customDividerWidthValue}
+																onChange={(e) => {
+																	const nextValue = Number(
+																		e.target.value,
+																	);
+																	if (!Number.isFinite(nextValue))
+																		return;
+																	updateBlockStyle(
+																		sectionId,
+																		groupId,
+																		block.id,
+																		{
+																			width: "custom",
+																			widthPx:
+																				clampCustomDividerWidth(
 																					nextValue,
 																				),
 																		},

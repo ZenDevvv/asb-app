@@ -28,7 +28,8 @@ export interface BlockStyle {
   colorMode?: "global" | "custom"; // "global" follows GlobalStyle; "custom" uses textColor/accentColor above
   marginTop?: number;
   marginBottom?: number;
-  width?: "auto" | "sm" | "md" | "lg" | "full";
+  width?: "auto" | "sm" | "md" | "lg" | "full" | "custom";
+  widthPx?: number;
   height?: number;
   opacity?: number;
   positionMode?: "flow" | "absolute";

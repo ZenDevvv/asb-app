@@ -422,9 +422,22 @@ export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
     icon: "horizontal_rule",
     category: "layout",
     defaultProps: {},
-    defaultStyle: { marginTop: 16, marginBottom: 16 },
+    defaultStyle: { width: "full", opacity: 20, marginTop: 16, marginBottom: 16 },
     editableProps: [],
     editableStyles: [
+      {
+        key: "width",
+        label: "Width",
+        type: "size-picker",
+        options: [
+          { label: "S", value: "sm" },
+          { label: "M", value: "md" },
+          { label: "L", value: "lg" },
+          { label: "Full", value: "full" },
+          { label: "Custom", value: "custom" },
+        ],
+      },
+      { key: "opacity", label: "Opacity", type: "slider", min: 0, max: 100, step: 5 },
       { key: "marginTop", label: "Top Spacing", type: "slider", min: 0, max: 64, step: 4 },
       { key: "marginBottom", label: "Bottom Spacing", type: "slider", min: 0, max: 64, step: 4 },
     ],
