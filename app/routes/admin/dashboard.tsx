@@ -1,325 +1,368 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import type { LucideIcon } from "lucide-react";
 import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
-import {
-	MOCK_ORG_STATS,
-	MOCK_AT_RISK_STUDENTS,
-	MOCK_PERFORMANCE_OVERVIEW,
-	MOCK_EVENTS,
-} from "~/data/mock-org-admin-data";
-import {
-	Users,
-	GraduationCap,
-	BookOpen,
-	CheckCircle2,
-	TrendingUp,
-	TrendingDown,
-	Minus,
 	AlertTriangle,
-	Plus,
+	Bell,
+	Bot,
+	CircleDollarSign,
+	Globe2,
+	MoreHorizontal,
+	RefreshCw,
+	Rocket,
+	TrendingDown,
+	TrendingUp,
 	UserPlus,
-	FileBarChart,
-	ExternalLink,
+	Users,
 } from "lucide-react";
 
-const statCards = [
+type StatCard = {
+	title: string;
+	value: string;
+	change: string;
+	changeType: "up" | "down";
+	subtitle: string;
+	icon: LucideIcon;
+	iconStyle: string;
+};
+
+type ActivityItem = {
+	title: string;
+	description: string;
+	highlight?: string;
+	descriptionTail?: string;
+	time: string;
+	icon: LucideIcon;
+	iconStyle: string;
+	showPreview?: boolean;
+};
+
+const statCards: StatCard[] = [
 	{
-		title: "Total Students",
-		value: MOCK_ORG_STATS.totalStudents.toLocaleString(),
-		trend: MOCK_ORG_STATS.totalStudentsTrend,
-		trendType: "up" as const,
+		title: "Total Users",
+		value: "24,582",
+		change: "+12.5%",
+		changeType: "up",
+		subtitle: "Active in last 30 days: 18.2k",
 		icon: Users,
-		iconBg: "bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-400",
+		iconStyle: "text-chart-5",
 	},
 	{
-		title: "Active Instructors",
-		value: MOCK_ORG_STATS.activeInstructors.toLocaleString(),
-		trend: MOCK_ORG_STATS.activeInstructorsTrend,
-		trendType: "up" as const,
-		icon: GraduationCap,
-		iconBg: "bg-emerald-50 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400",
+		title: "Active Sites",
+		value: "8,943",
+		change: "+8.2%",
+		changeType: "up",
+		subtitle: "Published this week: 142",
+		icon: Globe2,
+		iconStyle: "text-chart-2",
 	},
 	{
-		title: "Active Courses",
-		value: MOCK_ORG_STATS.activeCourses.toLocaleString(),
-		trend: MOCK_ORG_STATS.activeCoursesTrend,
-		trendType: "neutral" as const,
-		icon: BookOpen,
-		iconBg: "bg-violet-50 text-violet-600 dark:bg-violet-950 dark:text-violet-400",
+		title: "Monthly Revenue",
+		value: "$142.5k",
+		change: "+24%",
+		changeType: "up",
+		subtitle: "Recurring: $118k",
+		icon: CircleDollarSign,
+		iconStyle: "text-chart-4",
 	},
 	{
-		title: "Completion Rate",
-		value: `${MOCK_ORG_STATS.completionRate}%`,
-		trend: MOCK_ORG_STATS.completionRateTrend,
-		trendType: "down" as const,
-		icon: CheckCircle2,
-		iconBg: "bg-amber-50 text-amber-600 dark:bg-amber-950 dark:text-amber-400",
+		title: "AI Tokens Used",
+		value: "4.2M",
+		change: "-2%",
+		changeType: "down",
+		subtitle: "Cost impact: Low",
+		icon: Bot,
+		iconStyle: "text-chart-1",
 	},
 ];
 
-// Max bar height for performance chart
-const maxRate = Math.max(...MOCK_PERFORMANCE_OVERVIEW.map((d) => d.rate));
+const templatePerformance = [
+	{ name: "SaaS Landing", value: 78, color: "bg-chart-1" },
+	{ name: "Portfolio", value: 62, color: "bg-chart-2" },
+	{ name: "E-commerce", value: 45, color: "bg-chart-4" },
+	{ name: "Blog", value: 30, color: "bg-chart-5" },
+];
+
+const recentActivity: ActivityItem[] = [
+	{
+		title: "New Site Published",
+		description: "User ",
+		highlight: "@sarah_design",
+		descriptionTail: ' launched "TechFlow Agency"',
+		time: "2 mins ago",
+		icon: Rocket,
+		iconStyle: "text-chart-2",
+		showPreview: true,
+	},
+	{
+		title: "New User Signup",
+		description: "Michael Chen joined the Pro Plan.",
+		time: "45 mins ago",
+		icon: UserPlus,
+		iconStyle: "text-chart-5",
+	},
+	{
+		title: "Template Updated",
+		description: '"Portfolio Minimal" updated to v2.1 with new AI features.',
+		time: "3 hours ago",
+		icon: RefreshCw,
+		iconStyle: "text-chart-1",
+	},
+	{
+		title: "System Alert",
+		description: "High API usage detected on server US-East-1.",
+		time: "5 hours ago",
+		icon: AlertTriangle,
+		iconStyle: "text-destructive",
+	},
+];
+
+const chartPrimaryPoints =
+	"0,268 70,250 140,238 210,220 280,188 350,170 420,154 490,128 560,120 630,112 700,98 770,68 840,46";
+const chartSecondaryPoints =
+	"0,286 70,278 140,268 210,254 280,240 350,226 420,214 490,206 560,198 630,186 700,168 770,142 840,128";
+
+const panelClass = "rounded-3xl border border-border bg-card/90 p-5 shadow-sm";
 
 export default function OrgAdminDashboard() {
 	return (
-		<div className="space-y-6">
-			{/* Header */}
-			<div>
-				<h1 className="text-2xl font-bold tracking-tight text-foreground">
-					Organization Dashboard
-				</h1>
-				<p className="text-sm text-muted-foreground">
-					Welcome back to Lincoln State University Admin Portal
-				</p>
-			</div>
+		<div className="min-h-full overflow-hidden rounded-2xl border border-border bg-gradient-to-b from-card via-background to-background text-foreground shadow-xl">
+			<header className="flex flex-wrap items-start justify-between gap-4 border-b border-border px-5 py-4 lg:px-6">
+				<div>
+					<h1 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
+						Dashboard Overview
+					</h1>
+					<p className="mt-1 text-xs text-muted-foreground sm:text-sm">
+						Real-time insights into platform performance and growth.
+					</p>
+				</div>
+				<div className="flex items-center gap-3">
+					<div className="inline-flex items-center gap-2 rounded-full border border-border bg-muted/50 px-3 py-1.5 text-xs">
+						<span className="h-2 w-2 rounded-full bg-primary" />
+						<span className="text-muted-foreground">System Status:</span>
+						<span className="font-semibold text-foreground">Operational</span>
+					</div>
+					<button
+						type="button"
+						className="relative inline-flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+						aria-label="Notifications">
+						<Bell className="h-4 w-4" />
+						<span className="absolute right-[9px] top-[9px] h-1.5 w-1.5 rounded-full bg-destructive" />
+					</button>
+				</div>
+			</header>
 
-			{/* Stat Cards */}
-			<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-				{statCards.map((stat) => (
-					<Card key={stat.title} className="border-border/50">
-						<CardContent className="p-5">
-							<div className="flex items-center justify-between">
+			<div className="space-y-5 px-5 py-5 lg:px-6">
+				<div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+					{statCards.map((stat) => (
+						<div
+							key={stat.title}
+							className="rounded-3xl border border-border bg-card/95 p-4 shadow-sm">
+							<div className="flex items-start justify-between">
+								<div className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-background/70">
+									<stat.icon className={`h-4 w-4 ${stat.iconStyle}`} />
+								</div>
+								<div
+									className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-semibold ${
+										stat.changeType === "up"
+											? "bg-chart-2/20 text-chart-2"
+											: "bg-destructive/20 text-destructive"
+									}`}>
+									{stat.changeType === "up" ? (
+										<TrendingUp className="h-3 w-3" />
+									) : (
+										<TrendingDown className="h-3 w-3" />
+									)}
+									{stat.change}
+								</div>
+							</div>
+							<div className="mt-4">
 								<p className="text-sm font-medium text-muted-foreground">
 									{stat.title}
 								</p>
-								<div className={`rounded-lg p-2 ${stat.iconBg}`}>
-									<stat.icon className="size-4" />
-								</div>
-							</div>
-							<div className="mt-3">
-								<p className="text-3xl font-bold tracking-tight text-foreground">
+								<p className="mt-1 text-xl font-semibold leading-none text-foreground sm:text-2xl">
 									{stat.value}
 								</p>
-								<div className="mt-1 flex items-center gap-1.5">
-									{stat.trendType === "up" && (
-										<TrendingUp className="size-3.5 text-emerald-600" />
-									)}
-									{stat.trendType === "down" && (
-										<TrendingDown className="size-3.5 text-red-500" />
-									)}
-									{stat.trendType === "neutral" && (
-										<Minus className="size-3.5 text-muted-foreground" />
-									)}
-									<span
-										className={`text-xs font-medium ${
-											stat.trendType === "up"
-												? "text-emerald-600"
-												: stat.trendType === "down"
-													? "text-red-500"
-													: "text-muted-foreground"
-										}`}>
-										{stat.trend}
-									</span>
-								</div>
-							</div>
-						</CardContent>
-					</Card>
-				))}
-			</div>
-
-			{/* Middle Section: At-Risk Alerts + Quick Actions */}
-			<div className="grid gap-6 lg:grid-cols-3">
-				{/* At-Risk Student Alerts */}
-				<Card className="border-border/50 lg:col-span-2">
-					<CardHeader className="flex flex-row items-center justify-between pb-2">
-						<div className="flex items-center gap-2">
-							<AlertTriangle className="size-5 text-red-500" />
-							<div>
-								<CardTitle className="text-lg font-semibold">
-									At-Risk Student Alerts
-								</CardTitle>
-								<p className="text-xs text-muted-foreground">
-									Students with attendance &lt; 70% or grade &lt; 60%
+								<p className="mt-2 text-xs text-muted-foreground">
+									{stat.subtitle}
 								</p>
 							</div>
 						</div>
-						<Button variant="link" size="sm" className="text-primary">
-							View All Risk Report
-						</Button>
-					</CardHeader>
-					<CardContent className="px-6 pb-6">
-						{/* Table Header */}
-						<div className="grid grid-cols-[1fr_1fr_auto_auto] items-center gap-4 border-b border-border/50 pb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-							<span>Student</span>
-							<span>Course</span>
-							<span className="w-28 text-center">Risk Factor</span>
-							<span className="w-20 text-center">Action</span>
-						</div>
+					))}
+				</div>
 
-						{/* Table Rows */}
-						<div className="divide-y divide-border/40">
-							{MOCK_AT_RISK_STUDENTS.map((student) => (
+				<div className="grid gap-5 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+					<div className="space-y-5">
+						<section className={panelClass}>
+							<div className="flex flex-wrap items-center justify-between gap-3">
+								<div>
+									<h2 className="text-base font-semibold text-foreground sm:text-lg">
+										Platform Growth
+									</h2>
+									<p className="mt-1 text-xs text-muted-foreground sm:text-sm">
+										User acquisition &amp; published sites over time
+									</p>
+								</div>
+								<div className="inline-flex rounded-full border border-border bg-muted/40 p-1 text-xs">
+									<button
+										type="button"
+										className="rounded-full bg-background px-3 py-1 font-semibold text-foreground">
+										30 Days
+									</button>
+									<button
+										type="button"
+										className="rounded-full px-3 py-1 font-medium text-muted-foreground transition-colors hover:text-foreground">
+										90 Days
+									</button>
+									<button
+										type="button"
+										className="rounded-full px-3 py-1 font-medium text-muted-foreground transition-colors hover:text-foreground">
+										Year
+									</button>
+								</div>
+							</div>
+
+							<div className="relative mt-4 h-[300px] overflow-hidden rounded-2xl border border-border bg-background/70 p-4">
 								<div
-									key={student.id}
-									className="grid grid-cols-[1fr_1fr_auto_auto] items-center gap-4 py-4">
-									{/* Student Info */}
-									<div className="flex items-center gap-3">
-										<Avatar className="size-9">
-											<AvatarFallback
-												className={`${student.avatarColor} text-white text-xs font-semibold`}>
-												{student.initials}
-											</AvatarFallback>
-										</Avatar>
-										<span className="text-sm font-medium text-foreground">
-											{student.name}
+									className="absolute inset-4 rounded-xl opacity-30"
+									style={{
+										backgroundImage:
+											"linear-gradient(to right, var(--border) 1px, transparent 1px), linear-gradient(to bottom, var(--border) 1px, transparent 1px)",
+										backgroundSize: "22px 22px",
+									}}
+								/>
+								<svg
+									viewBox="0 0 840 300"
+									className="absolute inset-4 h-[calc(100%-2rem)] w-[calc(100%-2rem)]"
+									preserveAspectRatio="none">
+									<defs>
+										<filter
+											id="line-glow-admin"
+											x="-20%"
+											y="-20%"
+											width="140%"
+											height="140%">
+											<feDropShadow
+												dx="0"
+												dy="0"
+												stdDeviation="2.5"
+												floodColor="var(--primary)"
+												floodOpacity="0.35"
+											/>
+										</filter>
+									</defs>
+									<polyline
+										points={chartPrimaryPoints}
+										fill="none"
+										stroke="var(--primary)"
+										strokeWidth="3.5"
+										strokeLinecap="round"
+										strokeLinejoin="round"
+										filter="url(#line-glow-admin)"
+									/>
+									<polyline
+										points={chartSecondaryPoints}
+										fill="none"
+										stroke="var(--chart-5)"
+										strokeWidth="3.5"
+										strokeLinecap="round"
+										strokeLinejoin="round"
+										strokeDasharray="9 7"
+									/>
+								</svg>
+								<div className="absolute left-[48%] top-[39%] rounded-lg border border-border bg-popover px-3 py-2 text-xs shadow-md">
+									<p className="text-muted-foreground">Feb 14</p>
+									<p className="mt-1 font-semibold text-popover-foreground">
+										<span className="mr-2 inline-block h-2 w-2 rounded-full bg-primary" />
+										1,240 Users
+									</p>
+								</div>
+							</div>
+						</section>
+
+						<section className={panelClass}>
+							<div className="mb-4 flex items-center justify-between gap-3">
+								<h2 className="text-base font-semibold text-foreground sm:text-lg">
+									Template Performance
+								</h2>
+								<button
+									type="button"
+									className="text-sm font-semibold text-primary transition-colors hover:opacity-80">
+									View Report
+								</button>
+							</div>
+							<div className="space-y-3">
+								{templatePerformance.map((template) => (
+									<div
+										key={template.name}
+										className="grid grid-cols-[minmax(0,1fr)_minmax(0,2.5fr)_auto] items-center gap-3 text-sm">
+										<span className="text-sm text-muted-foreground">
+											{template.name}
+										</span>
+										<div className="h-2 rounded-full bg-muted">
+											<div
+												className={`h-full rounded-full ${template.color}`}
+												style={{ width: `${template.value}%` }}
+											/>
+										</div>
+										<span className="text-sm font-semibold text-foreground">
+											{template.value}%
 										</span>
 									</div>
+								))}
+							</div>
+						</section>
+					</div>
 
-									{/* Course */}
-									<span className="text-sm text-muted-foreground">
-										{student.course}
-									</span>
+					<aside className={`${panelClass} relative`}>
+						<div className="mb-5 flex items-center justify-between">
+							<h2 className="text-base font-semibold text-foreground sm:text-lg">
+								Recent Activity
+							</h2>
+							<button
+								type="button"
+								className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+								aria-label="More options">
+								<MoreHorizontal className="h-4 w-4" />
+							</button>
+						</div>
 
-									{/* Risk Factor */}
-									<div className="w-28 text-center">
-										<Badge
-											className={`text-[11px] ${
-												student.riskType === "grade"
-													? "border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-400"
-													: "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-400"
-											}`}>
-											{student.riskFactor}
-										</Badge>
+						<div className="pointer-events-none absolute bottom-20 left-[35px] top-[72px] border-l border-border" />
+
+						<div className="space-y-6">
+							{recentActivity.map((item) => (
+								<div key={item.title} className="relative pl-12">
+									<div className="absolute left-0 top-0 flex h-9 w-9 items-center justify-center rounded-full border border-border bg-background">
+										<item.icon className={`h-4 w-4 ${item.iconStyle}`} />
 									</div>
-
-									{/* Action */}
-									<div className="w-20 text-center">
-										<Button variant="link" size="sm" className="text-primary">
-											Contact
-										</Button>
-									</div>
+									<h3 className="text-sm font-semibold text-foreground">
+										{item.title}
+									</h3>
+									<p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+										{item.description}
+										{item.highlight ? (
+											<span className="text-primary">{item.highlight}</span>
+										) : null}
+										{item.descriptionTail ?? ""}
+									</p>
+									{item.showPreview ? (
+										<div className="relative mt-3 h-20 overflow-hidden rounded-xl border border-border bg-gradient-to-r from-primary/35 via-chart-5/25 to-chart-2/35">
+											<div className="absolute -right-3 -top-4 h-24 w-10 rounded-full bg-card/85" />
+											<div className="absolute right-8 top-0 h-16 w-7 rounded-full bg-card/80" />
+										</div>
+									) : null}
+									<p className="mt-2 text-[11px] text-muted-foreground">
+										{item.time}
+									</p>
 								</div>
 							))}
 						</div>
-					</CardContent>
-				</Card>
 
-				{/* Quick Actions */}
-				<Card className="border-border/50 bg-primary text-primary-foreground">
-					<CardHeader className="pb-2">
-						<CardTitle className="text-lg font-semibold text-primary-foreground">
-							Quick Actions
-						</CardTitle>
-					</CardHeader>
-					<CardContent className="space-y-3 px-6 pb-6">
-						<Button
-							variant="secondary"
-							className="w-full justify-start gap-3 bg-white/15 text-primary-foreground hover:bg-white/25 border-0">
-							<Plus className="size-4" />
-							Create New Course
-						</Button>
-						<Button
-							variant="secondary"
-							className="w-full justify-start gap-3 bg-white/15 text-primary-foreground hover:bg-white/25 border-0">
-							<UserPlus className="size-4" />
-							Register Student
-						</Button>
-						<Button
-							variant="secondary"
-							className="w-full justify-start gap-3 bg-white/15 text-primary-foreground hover:bg-white/25 border-0">
-							<FileBarChart className="size-4" />
-							Generate Report
-						</Button>
-					</CardContent>
-				</Card>
-			</div>
-
-			{/* Bottom Section: Performance Overview + Events & News */}
-			<div className="grid gap-6 lg:grid-cols-5">
-				{/* Performance Overview */}
-				<Card className="border-border/50 lg:col-span-3">
-					<CardHeader className="flex flex-row items-center justify-between pb-2">
-						<CardTitle className="text-lg font-semibold">
-							Performance Overview
-						</CardTitle>
-						<Select defaultValue="this-semester">
-							<SelectTrigger className="w-40 h-9">
-								<SelectValue />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="this-semester">This Semester</SelectItem>
-								<SelectItem value="last-semester">Last Semester</SelectItem>
-								<SelectItem value="this-year">This Year</SelectItem>
-							</SelectContent>
-						</Select>
-					</CardHeader>
-					<CardContent className="px-6 pb-6">
-						{/* Bar Chart */}
-						<div className="flex items-end justify-around gap-4 h-52 pt-4">
-							{MOCK_PERFORMANCE_OVERVIEW.map((dept) => (
-								<div key={dept.department} className="flex flex-col items-center gap-2 flex-1">
-									<div className="w-full flex justify-center">
-										<div
-											className={`w-12 rounded-t-md ${dept.color} transition-all`}
-											style={{
-												height: `${(dept.rate / maxRate) * 180}px`,
-											}}
-										/>
-									</div>
-									<div className="text-center">
-										<p className="text-xs font-medium text-foreground">
-											{dept.department}
-										</p>
-										<p className="text-xs text-muted-foreground">
-											{dept.rate}%
-										</p>
-									</div>
-								</div>
-							))}
-						</div>
-						<p className="mt-4 text-center text-xs text-muted-foreground">
-							Departmental Graduation Rate Comparison
-						</p>
-					</CardContent>
-				</Card>
-
-				{/* Events & News */}
-				<Card className="border-border/50 lg:col-span-2">
-					<CardHeader className="flex flex-row items-center justify-between pb-2">
-						<CardTitle className="text-lg font-semibold">
-							Events & News
-						</CardTitle>
-						<Button variant="ghost" size="icon" className="size-8 text-primary">
-							<Plus className="size-4" />
-						</Button>
-					</CardHeader>
-					<CardContent className="px-6 pb-6">
-						<div className="space-y-5">
-							{MOCK_EVENTS.map((event) => (
-								<div key={event.id} className="flex gap-3">
-									<div className="flex flex-col items-center pt-1.5">
-										<div className={`size-2.5 rounded-full ${event.dotColor}`} />
-									</div>
-									<div className="flex-1 min-w-0">
-										<p className="text-xs font-medium text-primary">
-											{event.date}
-										</p>
-										<p className="text-sm font-semibold text-foreground mt-0.5">
-											{event.title}
-										</p>
-										<p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
-											{event.description}
-										</p>
-									</div>
-								</div>
-							))}
-						</div>
-						<Button
-							variant="link"
-							className="mt-4 w-full justify-center gap-1 text-primary text-sm">
-							View All Events
-							<ExternalLink className="size-3.5" />
-						</Button>
-					</CardContent>
-				</Card>
+						<button
+							type="button"
+							className="mt-7 w-full text-center text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+							View All Activity
+						</button>
+					</aside>
+				</div>
 			</div>
 		</div>
 	);
