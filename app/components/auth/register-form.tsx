@@ -32,7 +32,6 @@ export function RegisterForm() {
 			password,
 			userName,
 			role: "user",
-			subRole: role,
 			person: {
 				personalInfo: {
 					firstName,

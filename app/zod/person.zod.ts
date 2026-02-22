@@ -117,7 +117,8 @@ export const EmergencyContactSchema = z.object({
 	alternatePhone: z
 		.string()
 		.regex(/^[+]?[0-9()\-\s]+$/, "Invalid alternate phone format")
-		.optional(),
+		.optional()
+		,
 	email: z.string().email("Invalid email").optional(),
 	address: z.string().optional(),
 	priority: z.number().int().positive().default(1),
@@ -130,7 +131,8 @@ export const DocumentsSchema = z
 		driverLicense: z.string().optional(),
 		socialSecurityNumber: z.string().optional(),
 	})
-	.optional();
+	.optional()
+	;
 
 // ─── Person Model Schema ────────────────────────────────────────────
 
@@ -146,7 +148,9 @@ export const PersonSchema = z.object({
 	kycStatus: KYCStatus.default("PENDING"),
 	kycCompletedAt: z.coerce.date().optional(),
 	lastVerifiedAt: z.coerce.date().optional(),
-	orgId: ObjectIdSchema.optional(),
+	orgId: ObjectIdSchema
+		.optional()
+		,
 	createdAt: z.coerce.date(),
 	updatedAt: z.coerce.date(),
 });

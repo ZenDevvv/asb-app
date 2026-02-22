@@ -28,16 +28,13 @@ export const RegisterSchema = CreateUserSchema.pick({
 	password: true,
 	userName: true,
 	role: true,
-	subRole: true,
 	orgId: true,
-})
-	.required({
-		userName: true,
-	})
-	.extend({
-		password: z.string().min(6, "Password must be at least 6 characters long"),
-		person: RegisterPersonSchema,
-	});
+}).required({
+	userName: true,
+}).extend({
+	password: z.string().min(6, "Password must be at least 6 characters long"),
+	person: RegisterPersonSchema,
+});
 
 export type Register = z.infer<typeof RegisterSchema>;
 

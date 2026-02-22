@@ -1,14 +1,12 @@
 import { z } from "zod";
+import { ObjectIdSchema } from "./object-id.zod";
 import { PersonSchema } from "./person.zod";
 import { OrganizationSchema } from "./organization.zod";
 import { PaginationSchema } from "./common.zod";
-import { ObjectIdSchema } from "./object-id.zod";
 
 // ─── Enums matching Prisma ───────────────────────────────────────────
 
 export const Role = z.enum(["user", "admin", "viewer"]);
-
-export const SubRole = z.enum(["student", "instructor", "org_admin", "superadmin"]);
 
 export const UserStatus = z.enum(["active", "inactive", "suspended", "archived"]);
 
@@ -25,11 +23,11 @@ export const UserSchema = z.object({
 			/^[a-zA-Z0-9_-]+$/,
 			"Username can only contain letters, numbers, underscores, and hyphens",
 		)
-		.optional(),
+		.optional()
+		,
 	email: z.string().email("Invalid email format"),
 	password: z.string(),
 	role: Role,
-	subRole: z.array(SubRole),
 	status: UserStatus.default("active"),
 	isDeleted: z.boolean().default(false),
 	lastLogin: z.coerce.date().optional(),
@@ -38,11 +36,16 @@ export const UserSchema = z.object({
 	updatedAt: z.coerce.date(),
 
 	// --- Foreign key IDs ---
-	personId: ObjectIdSchema.optional(),
-	orgId: ObjectIdSchema.optional(),
+	personId: ObjectIdSchema
+		.optional()
+		,
+	orgId: ObjectIdSchema
+		.optional()
+		,
+
 	// --- Relation fields (from Prisma model) ---
 	person: PersonSchema.optional(),
-	organization: z.lazy(() => OrganizationSchema).optional(),
+	organization: OrganizationSchema.optional(),
 });
 
 export type User = z.infer<typeof UserSchema>;

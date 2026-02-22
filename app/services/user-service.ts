@@ -1,8 +1,7 @@
 import { APIService } from "./api-service";
 import { apiClient, type ApiResponse } from "~/lib/api-client";
 import { API_ENDPOINTS } from "~/configs/endpoints";
-import type { loginResponse } from "~/types/auth";
-import type { GetAllUsers } from "~/zod/user.zod";
+import type { CreateUser, GetAllUsers, UpdateUser, User } from "~/zod/user.zod";
 
 const { USER } = API_ENDPOINTS;
 
@@ -14,42 +13,39 @@ class UserService extends APIService {
 			);
 			return response.data;
 		} catch (error: any) {
-			console.error("Error fetching users:", error);
 			throw new Error(
-				error.data?.errors?.[0]?.message || error.message || "Error fetching users",
+				error.data?.errors?.[0]?.message || error.message || "An error has occurred",
 			);
 		}
 	};
 
 	getUserById = async (userId: string) => {
 		try {
-			const response = await apiClient.get(
+			const response: ApiResponse<User> = await apiClient.get(
 				`${USER.GET_BY_ID.replace(":id", userId)}${this.getQueryString()}`,
 			);
 			return response.data;
 		} catch (error: any) {
-			console.error("Error fetching user:", error);
 			throw new Error(
-				error.data?.errors?.[0]?.message || error.message || "Error fetching user data",
+				error.data?.errors?.[0]?.message || error.message || "An error has occurred",
 			);
 		}
 	};
 
 	getCurrentUser = async () => {
 		try {
-			const response: ApiResponse<loginResponse> = await apiClient.get(USER.GET_CURRENT);
+			const response: ApiResponse<{ user: User }> = await apiClient.get(USER.GET_CURRENT);
 			return response.data;
 		} catch (error: any) {
-			console.error("Error fetching current user:", error);
 			throw new Error(
-				error.data?.errors?.[0]?.message || error.message || "Error fetching current user",
+				error.data?.errors?.[0]?.message || error.message || "An error has occurred",
 			);
 		}
 	};
 
-	createUser = async (data: object | FormData) => {
+	createUser = async (data: CreateUser | FormData) => {
 		try {
-			let response;
+			let response: ApiResponse<User>;
 			if (data instanceof FormData) {
 				response = await apiClient.postFormData(USER.CREATE, data);
 			} else {
@@ -57,17 +53,15 @@ class UserService extends APIService {
 			}
 			return response.data;
 		} catch (error: any) {
-			console.log(JSON.stringify(error));
-			console.error("Error creating user:", error);
 			throw new Error(
-				error.data?.errors?.[0]?.message || error.message || "Error creating user",
+				error.data?.errors?.[0]?.message || error.message || "An error has occurred",
 			);
 		}
 	};
 
-	updateUser = async (userId: string, data: object | FormData) => {
+	updateUser = async (userId: string, data: UpdateUser | FormData) => {
 		try {
-			let response;
+			let response: ApiResponse<{ user: User }>;
 			if (data instanceof FormData) {
 				response = await apiClient.patchFormData(USER.UPDATE.replace(":id", userId), data);
 			} else {
@@ -75,21 +69,21 @@ class UserService extends APIService {
 			}
 			return response.data;
 		} catch (error: any) {
-			console.error("Error updating user:", error);
 			throw new Error(
-				error.data?.errors?.[0]?.message || error.message || "Error updating user",
+				error.data?.errors?.[0]?.message || error.message || "An error has occurred",
 			);
 		}
 	};
 
 	deleteUser = async (userId: string) => {
 		try {
-			const response = await apiClient.put(USER.DELETE.replace(":id", userId));
+			const response: ApiResponse<Record<string, never>> = await apiClient.delete(
+				USER.DELETE.replace(":id", userId),
+			);
 			return response.data;
 		} catch (error: any) {
-			console.error("Error deleting user:", error);
 			throw new Error(
-				error.data?.errors?.[0]?.message || error.message || "Error deleting user",
+				error.data?.errors?.[0]?.message || error.message || "An error has occurred",
 			);
 		}
 	};

@@ -32,7 +32,6 @@ export function UpsertAdminForm({ onSubmit, onCancel, userId = "", orgId }: Upse
 		email: "",
 		password: "",
 		role: "admin",
-		subRole: ["org_admin"],
 		status: "active",
 		loginMethod: "email",
 		orgId: orgId,

@@ -1,5 +1,10 @@
-import { z } from "zod";
+import z from "zod";
 
-export const ObjectIdSchema = z
-	.string()
-	.regex(/^[0-9a-fA-F]{24}$/, "Invalid ObjectId format");
+export const ObjectIdSchema = z.string().refine(
+	(value) => {
+		return /^[0-9a-fA-F]{24}$/.test(value);
+	},
+	{
+		message: "Invalid MongoDB ObjectId format",
+	},
+);

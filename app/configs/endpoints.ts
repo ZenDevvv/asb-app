@@ -35,6 +35,71 @@ export const API_ENDPOINTS = {
 		DELETE: "/organization/:id", // Soft delete
 	},
 
+	ACTIVITY_LOG: {
+		GET_ALL: "/activityLog",
+		GET_BY_ID: "/activityLog/:id",
+		CREATE: "/activityLog",
+		UPDATE: "/activityLog/:id",
+		DELETE: "/activityLog/:id",
+	},
+
+	AUDIT_LOG: {
+		GET_ALL: "/auditLog",
+		GET_BY_ID: "/auditLog/:id",
+		CREATE: "/auditLog",
+		UPDATE: "/auditLog/:id",
+		DELETE: "/auditLog/:id",
+	},
+
+	MEDIA_ASSET: {
+		GET_ALL: "/mediaAsset",
+		GET_BY_ID: "/mediaAsset/:id",
+		CREATE: "/mediaAsset",
+		UPDATE: "/mediaAsset/:id",
+		DELETE: "/mediaAsset/:id",
+	},
+
+	METRICS: {
+		GET_ALL: "/metrics",
+		GET_BY_ID: "/metrics/:id",
+		CREATE: "/metrics",
+		UPDATE: "/metrics/:id",
+		DELETE: "/metrics/:id",
+		COLLECT: "/metrics/collect",
+	},
+
+	NOTIFICATION: {
+		GET_ALL: "/notification",
+		GET_BY_ID: "/notification/:id",
+		CREATE: "/notification",
+		UPDATE: "/notification/:id",
+		DELETE: "/notification/:id",
+	},
+
+	PROJECT: {
+		GET_ALL: "/project",
+		GET_BY_ID: "/project/:id",
+		CREATE: "/project",
+		UPDATE: "/project/:id",
+		DELETE: "/project/:id",
+	},
+
+	SYSTEM_LOG: {
+		GET_ALL: "/systemLog",
+		GET_BY_ID: "/systemLog/:id",
+		CREATE: "/systemLog",
+		UPDATE: "/systemLog/:id",
+		DELETE: "/systemLog/:id",
+	},
+
+	TEMPLATE_PROJECT: {
+		GET_ALL: "/templateProject",
+		GET_BY_ID: "/templateProject/:id",
+		CREATE: "/templateProject",
+		UPDATE: "/templateProject/:id",
+		DELETE: "/templateProject/:id",
+	},
+
 	COURSE: {
 		GET_ALL: "/course",
 		GET_BY_ID: "/course/:id",

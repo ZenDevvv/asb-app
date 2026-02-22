@@ -23,10 +23,10 @@ export function LoginForm() {
 		setIsLoading(true);
 		try {
 			const response = await login(identifier, password);
-			if (response.user.subRole.includes("superadmin")) {
-				navigate("/superadmin");
-			} else if (response.user.subRole.includes("org_admin")) {
+			if (response.user.role === "admin") {
 				navigate("/admin");
+			} else {
+				navigate("/");
 			}
 		} catch (err) {
 			console.error("Login failed:", err);

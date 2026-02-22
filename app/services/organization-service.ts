@@ -4,7 +4,7 @@ import { API_ENDPOINTS } from "~/configs/endpoints";
 import type {
 	CreateOrganization,
 	GetAllOrganizations,
-	OrganizationWithRelation,
+	Organization,
 	UpdateOrganization,
 } from "~/zod/organization.zod";
 
@@ -26,7 +26,7 @@ class OrganizationService extends APIService {
 
 	getOrganizationById = async ({ organizationId }: { organizationId: string }) => {
 		try {
-			const response: ApiResponse<OrganizationWithRelation> = await apiClient.get(
+			const response: ApiResponse<Organization> = await apiClient.get(
 				`${ORGANIZATION.GET_BY_ID.replace(":id", organizationId)}${this.getQueryString()}`,
 			);
 			return response.data;
@@ -39,7 +39,7 @@ class OrganizationService extends APIService {
 
 	createOrganization = async (data: CreateOrganization | FormData) => {
 		try {
-			let response: ApiResponse<OrganizationWithRelation>;
+			let response: ApiResponse<Organization>;
 			if (data instanceof FormData) {
 				response = await apiClient.postFormData(ORGANIZATION.CREATE, data);
 			} else {
@@ -61,7 +61,7 @@ class OrganizationService extends APIService {
 		data: UpdateOrganization | FormData;
 	}) => {
 		try {
-			let response: ApiResponse<{ organization: OrganizationWithRelation }>;
+			let response: ApiResponse<{ organization: Organization }>;
 			if (data instanceof FormData) {
 				response = await apiClient.patchFormData(
 					ORGANIZATION.UPDATE.replace(":id", organizationId),
