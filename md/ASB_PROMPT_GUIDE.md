@@ -576,7 +576,8 @@ BLOCK_REGISTRY[blockType] = {
   inlineEditable: boolean,                 // Can this block be edited inline on canvas?
   colorOptions?: { hasText: boolean; hasAccent: boolean }; // Controls which pickers appear in the Colors panel
 }
-// colorOptions drives the dedicated Colors panel in BlockSettings.tsx.
+// colorOptions drives the dedicated Colors panel in block-settings/ColorsPanel.tsx
+// (wired by BlockSettings.tsx).
 // hasText=true → shows Text Color picker; hasAccent=true → shows Accent Color picker.
 // textColor and accentColor are NO LONGER in editableStyles — they are handled by the Colors panel.
 ```
@@ -815,6 +816,7 @@ When a specific block is selected (click a block on the canvas):
 - Header includes block actions: **Duplicate** (`content_copy`) and **Delete** (`delete`).
 - `heading` and `text` block Size controls now include an icon-only **Custom Size** option (`tune`). When selected, Block Mode shows a px slider + numeric input (12-200px) and stores the value in `BlockStyle.fontSizePx`.
 - `divider` Width control also includes an icon-only **Custom Width** option (`tune`). When selected, Block Mode shows a px slider + numeric input (40-1600px) and stores the value in `BlockStyle.widthPx` with `BlockStyle.width="custom"`.
+- Block Mode UI is componentized under `app/editor/block-settings/` (header, per-panel components, and shared helpers/constants), while `BlockSettings.tsx` remains the store-wiring/orchestration layer.
 
 ```
 â”Œâ”€ RIGHT SIDEBAR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
@@ -851,7 +853,7 @@ type ControlType =
   | "icon-picker"     // Searchable Material Symbols modal — implemented via IconPickerControl.tsx
                       //   10 categories (~130 icons), search, category browse, remove option
                       //   Consecutive icon-picker fields in editableProps auto-render side-by-side
-                      //   (grid grid-cols-2) via groupEditableFields() in BlockSettings.tsx
+                      //   (grid grid-cols-2) via groupEditableFields() in editor/block-settings/utils.ts
   | "toggle"          // Radix Switch (boolean)
   | "select"          // shadcn Select dropdown (implemented in FieldRenderer; used by block prop/style option fields)
   | "size-picker"     // Segmented control for size choices (sm/md/lg/xl)
@@ -1109,7 +1111,7 @@ app/
 â”‚   â”œâ”€â”€ SettingsPanel.tsx        # RIGHT sidebar orchestrator (mode router)
 â”‚   â”œâ”€â”€ SectionModeSettings.tsx  # RIGHT sidebar: section mode content
 â”‚   â”œâ”€â”€ GroupModeSettings.tsx    # RIGHT sidebar: group mode content
-â”‚   â”œâ”€â”€ BlockSettings.tsx        # RIGHT sidebar: block mode (content + style)
+â”‚   â”œâ”€â”€ BlockSettings.tsx        # RIGHT sidebar: block mode orchestrator (composed panels)
 â”‚   â”œâ”€â”€ GlobalSettingsPanel.tsx  # RIGHT sidebar: global page settings + Typography Settings modal trigger
 â”‚   â”œâ”€â”€ SettingsCollapsibleSection.tsx # Shared settings collapsible UI
 â”‚   â”œâ”€â”€ AddSectionModal.tsx      # Section type picker dialog
@@ -1528,6 +1530,7 @@ This contract ensures AI output can be validated and loaded directly into the ed
 
 ---
 
+*Document Version: 3.52 - Updated Block Mode architecture notes after componentization: `BlockSettings.tsx` is now an orchestrator and Block Mode concerns are split under `app/editor/block-settings/` (header, content/style/colors/spacing/position panels, shared helpers/constants). Updated references to `groupEditableFields()` location in `editor/block-settings/utils.ts`.*
 *Document Version: 3.51 - Added divider custom width controls. Divider Width now includes a `Custom` (`tune`) option that reveals a 40-1600px slider + numeric input in Block Mode, persisted as `BlockStyle.width="custom"` + `BlockStyle.widthPx`; `DividerBlock.tsx` renders this as a clamped inline width with `max-width: 100%`.*
 *Document Version: 3.50 - Added divider block Width and Opacity controls in Block Mode. `divider` now exposes `block.style.width` (S/M/L/Full presets) and `block.style.opacity` (0-100 slider); `DividerBlock.tsx` applies width presets and renders opacity as `(opacity ?? 20) / 100` while preserving color-mode text color resolution. `BlockSettings.tsx` now falls back to `blockEntry.defaultStyle` for unset style keys so legacy blocks show correct default control states.*
 *Document Version: 3.49 - Updated canvas selection-border semantics across settings modes: Group Mode shows a solid selected-group border, while Block Mode keeps the selected block focus and switches the owning group border to dashed for parent-context indication.*
