@@ -25,17 +25,28 @@ const TEXT_ALIGN_MAP: Record<string, string> = {
 	right: "text-right",
 };
 
+const HEADING_CUSTOM_SIZE_MIN = 12;
+const HEADING_CUSTOM_SIZE_MAX = 200;
+
 export function HeadingBlock({ block, globalStyle }: BlockComponentProps) {
 	const { text, textStyle = "default" } = block.props as { text: string; textStyle?: string };
 	const s = block.style;
 
 	const isGradient = textStyle === "gradient";
+	const isCustomFontSize = s.fontSize === "custom";
+	const customFontSizePx =
+		typeof s.fontSizePx === "number" && Number.isFinite(s.fontSizePx)
+			? Math.min(
+					HEADING_CUSTOM_SIZE_MAX,
+					Math.max(HEADING_CUSTOM_SIZE_MIN, Math.round(s.fontSizePx)),
+				)
+			: undefined;
 
 	const accentColor = resolveAccentColor(s, globalStyle);
 	const gradientTo = globalStyle.themeMode === "dark" ? "#ffffff" : "#111111";
 
 	const classes = [
-		FONT_SIZE_MAP[s.fontSize || "4xl"] || "text-4xl",
+		!isCustomFontSize ? FONT_SIZE_MAP[s.fontSize || "4xl"] || "text-4xl" : "text-4xl",
 		FONT_WEIGHT_MAP[s.fontWeight || "bold"] || "font-bold",
 		TEXT_ALIGN_MAP[s.textAlign || "left"] || "text-left",
 		"leading-tight",
@@ -45,6 +56,10 @@ export function HeadingBlock({ block, globalStyle }: BlockComponentProps) {
 	const inlineStyle: React.CSSProperties = {
 		fontFamily: s.fontFamily || globalStyle.fontFamily,
 		fontStyle: s.fontStyle || "normal",
+		fontSize:
+			isCustomFontSize && typeof customFontSizePx === "number"
+				? `${customFontSizePx}px`
+				: undefined,
 		letterSpacing: typeof s.letterSpacing === "number" ? `${s.letterSpacing}px` : undefined,
 		...(isGradient
 			? {

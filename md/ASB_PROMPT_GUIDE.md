@@ -359,7 +359,8 @@ interface Block {
 interface BlockStyle {
   // Text
   fontFamily?: string;            // Optional block-level font override (currently used by heading/text blocks)
-  fontSize?: "sm" | "base" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "5xl";
+  fontSize?: "sm" | "base" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "5xl" | "custom";
+  fontSizePx?: number;            // Custom heading text size in px when fontSize="custom"
   fontWeight?: "normal" | "medium" | "semibold" | "bold";
   fontStyle?: "normal" | "italic";
   letterSpacing?: number;         // 0-12, slider (px, heading/text blocks)
@@ -736,7 +737,8 @@ BlockStyle.colorMode        -> "global" (default): block derives text/accent fro
 BlockStyle.textColor        â†’ custom text color (only active when colorMode="custom")
 BlockStyle.accentColor      â†’ custom accent color (only active when colorMode="custom")
 BlockStyle.fontFamily       â†’ optional block-level font override (heading/text currently use this)
-BlockStyle.fontSize         â†’ block-level size choice
+BlockStyle.fontSize         â†’ block-level size choice (heading supports presets + "custom")
+BlockStyle.fontSizePx       â†’ heading-only custom size in px (applies when fontSize="custom")
 BlockStyle.fontWeight       â†’ block-level weight choice (where supported)
 BlockStyle.fontStyle        â†’ block-level style choice ("normal" or "italic" for heading/text)
 BlockStyle.letterSpacing    â†’ block-level letter spacing in px (heading/text only)
@@ -789,6 +791,7 @@ When a group is selected:
 
 When a specific block is selected (click a block on the canvas):
 - Header includes block actions: **Duplicate** (`content_copy`) and **Delete** (`delete`).
+- `heading` block Size now includes an icon-only **Custom Size** option (`tune`). When selected, Block Mode shows a px slider + numeric input (12-200px) and stores the value in `BlockStyle.fontSizePx`.
 
 ```
 â”Œâ”€ RIGHT SIDEBAR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
@@ -1020,6 +1023,7 @@ POST /api/projects/:id/publish
     - "3xl"  â†’ text-3xl
     - "4xl"  â†’ text-4xl
     - "5xl"  â†’ text-5xl
+    - "custom" â†’ heading-only, uses inline `fontSize: ${block.style.fontSizePx}px`
 12. Block width map (block.style.width):
     - "auto" â†’ w-auto
     - "sm"   â†’ max-w-sm
@@ -1478,7 +1482,7 @@ This contract ensures AI output can be validated and loaded directly into the ed
 | **Slot** | A named position within a layout template where blocks are placed ("main", "left", "right", "col-1", etc.). |
 | **Section Registry** | Central config mapping section types to allowed layouts, default groups/default blocks fallback, and constraints. |
 | **Block Registry** | Central config mapping block types to components, default props/styles, and editable fields. |
-| **Block Style** | Constrained visual options for a block (fontFamily override, fontSize, fontWeight, fontStyle, letterSpacing, textAlign, width, spacing, positioning mode, scale). Never raw CSS. |
+| **Block Style** | Constrained visual options for a block (fontFamily override, fontSize, optional heading `fontSizePx` for custom size, fontWeight, fontStyle, letterSpacing, textAlign, width, spacing, positioning mode, scale). Never raw CSS. |
 | **Section Style** | Design data for a section (backgroundColor/backgroundType/gradient fields, backgroundEffect, backgroundEffectIntensity, paddingY, fullHeight, groupVerticalAlign). |
 | **Global Style** | Page-wide design settings (themeMode, fontFamily, primaryColor, colorScheme, borderRadius). `fontFamily` is the default text font across the page and can be overridden by supported blocks. |
 | **Style Inheritance** | The cascade: Global â†’ Section â†’ Block. Each level can override the parent. |
@@ -1500,6 +1504,8 @@ This contract ensures AI output can be validated and loaded directly into the ed
 
 ---
 
+*Document Version: 3.47 - Updated heading custom size affordance in Block Mode: the `Custom` size choice now renders as an icon-only button (`tune`) instead of text, while preserving the same `fontSize="custom"` + `fontSizePx` behavior and controls.*
+*Document Version: 3.46 - Added heading custom text size support. `heading` block Size control now includes `Custom`; selecting it reveals a 12-200px slider plus numeric px input in Block Mode, persisted via `BlockStyle.fontSize="custom"` and `BlockStyle.fontSizePx`, and `HeadingBlock.tsx` applies the custom inline font size.*
 *Document Version: 3.45 - Added editor debug backdoor actions behind URL params (`debug`/`debugMode`). Import/Export state UI moved out of `EditorToolbar.tsx` into `EditorDebugBackdoor.tsx` for separation of concerns; Export writes `{ version, exportedAt, state: { sections, globalStyle } }`, and Import accepts both wrapped (`state`) and direct payload shapes.*
 *Document Version: 3.44 - Added section-level vertical group alignment via `SectionStyle.groupVerticalAlign` (`"top" | "center" | "bottom"`). `SectionModeSettings` Layout panel now includes Group Alignment buttons (matching the group alignment icon set), and `SectionRenderer` applies this setting to vertically align stacked groups within the section's available height (especially when `fullHeight` is enabled).*
 *Document Version: 3.43 - Added `BlockStyle.letterSpacing` for `heading` and `text` blocks. Block Mode now includes a Letter Spacing slider (0-12px), and both `HeadingBlock.tsx` and `TextBlock.tsx` apply it via inline styles.*
@@ -1518,11 +1524,6 @@ This contract ensures AI output can be validated and loaded directly into the ed
 *Last Updated: February 22, 2026*
 *Keep this document updated as architecture decisions change.*
 *For colors and theming, always reference the separate Style Guide file.*
-
-
-
-
-
 
 
 

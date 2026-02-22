@@ -26,6 +26,38 @@ function groupEditableFields(
 	return result;
 }
 
+const HEADING_CUSTOM_SIZE_MIN = 12;
+const HEADING_CUSTOM_SIZE_MAX = 200;
+const HEADING_SIZE_PRESET_TO_PX: Record<string, number> = {
+	xl: 20,
+	"2xl": 24,
+	"3xl": 30,
+	"4xl": 36,
+	"5xl": 48,
+};
+
+function clampHeadingCustomSize(value: number): number {
+	if (!Number.isFinite(value)) {
+		return HEADING_SIZE_PRESET_TO_PX["4xl"];
+	}
+	return Math.min(HEADING_CUSTOM_SIZE_MAX, Math.max(HEADING_CUSTOM_SIZE_MIN, Math.round(value)));
+}
+
+function getHeadingCustomSizeValue(style: BlockStyle): number {
+	if (typeof style.fontSizePx === "number") {
+		return clampHeadingCustomSize(style.fontSizePx);
+	}
+
+	if (typeof style.fontSize === "string") {
+		const presetValue = HEADING_SIZE_PRESET_TO_PX[style.fontSize];
+		if (typeof presetValue === "number") {
+			return presetValue;
+		}
+	}
+
+	return HEADING_SIZE_PRESET_TO_PX["4xl"];
+}
+
 interface BlockSettingsProps {
 	sectionId: string;
 	groupId: string;
@@ -69,6 +101,8 @@ export function BlockSettings({
 		typeof block.style.fontFamily === "string" &&
 		block.style.fontFamily.trim().length > 0 &&
 		block.style.fontFamily !== globalStyle.fontFamily;
+	const isHeadingBlock = block.type === "heading";
+	const headingCustomSizeValue = getHeadingCustomSizeValue(block.style);
 
 	return (
 		<>
@@ -205,47 +239,161 @@ export function BlockSettings({
 										styleField.type === "size-picker" ||
 										styleField.type === "align-picker"
 									) {
+										const isHeadingFontSizeField =
+											isHeadingBlock && styleField.key === "fontSize";
+										const isHeadingCustomSizeSelected =
+											isHeadingFontSizeField && value === "custom";
+
 										return (
 											<div key={styleField.key} className="space-y-1.5">
 												<label className="text-xs font-medium text-muted-foreground">
 													{styleField.label}
 												</label>
 												<div className="flex gap-1">
-													{styleField.options?.map((opt) => (
-														<button
-															key={opt.value}
-															onClick={() =>
+													{styleField.options?.map((opt) => {
+														const isHeadingCustomSizeOption =
+															isHeadingFontSizeField &&
+															opt.value === "custom";
+
+														return (
+															<button
+																key={opt.value}
+																onClick={() => {
+																	if (
+																		isHeadingFontSizeField &&
+																		opt.value === "custom"
+																	) {
+																		updateBlockStyle(
+																			sectionId,
+																			groupId,
+																			block.id,
+																			{
+																				fontSize: "custom",
+																				fontSizePx:
+																					headingCustomSizeValue,
+																			},
+																		);
+																		return;
+																	}
+
+																	updateBlockStyle(
+																		sectionId,
+																		groupId,
+																		block.id,
+																		{
+																			[styleField.key]:
+																				opt.value,
+																		} as Partial<BlockStyle>,
+																	);
+																}}
+																title={
+																	isHeadingCustomSizeOption
+																		? "Custom Size"
+																		: undefined
+																}
+																aria-label={
+																	isHeadingCustomSizeOption
+																		? "Custom Size"
+																		: undefined
+																}
+																className={cn(
+																	"flex-1 rounded-lg border py-1.5 text-[10px] font-medium transition-colors",
+																	value === opt.value
+																		? "border-primary bg-primary/10 text-primary"
+																		: "border-border text-muted-foreground hover:border-primary/30",
+																)}>
+																{styleField.type ===
+																"align-picker" ? (
+																	<span
+																		className="material-symbols-outlined"
+																		style={{ fontSize: 14 }}>
+																		{opt.value === "left"
+																			? "format_align_left"
+																			: opt.value === "center"
+																				? "format_align_center"
+																				: "format_align_right"}
+																	</span>
+																) : isHeadingCustomSizeOption ? (
+																	<span
+																		className="material-symbols-outlined"
+																		style={{ fontSize: 14 }}>
+																		tune
+																	</span>
+																) : (
+																	opt.label
+																)}
+															</button>
+														);
+													})}
+												</div>
+												{isHeadingCustomSizeSelected && (
+													<div className="space-y-2 rounded-lg border border-border bg-input/40 p-2">
+														<div className="flex items-center justify-between">
+															<span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+																Custom Size
+															</span>
+															<span className="text-[10px] text-muted-foreground">
+																{headingCustomSizeValue}px
+															</span>
+														</div>
+														<input
+															type="range"
+															min={HEADING_CUSTOM_SIZE_MIN}
+															max={HEADING_CUSTOM_SIZE_MAX}
+															step={1}
+															value={headingCustomSizeValue}
+															onChange={(e) =>
 																updateBlockStyle(
 																	sectionId,
 																	groupId,
 																	block.id,
 																	{
-																		[styleField.key]: opt.value,
-																	} as Partial<BlockStyle>,
+																		fontSize: "custom",
+																		fontSizePx:
+																			clampHeadingCustomSize(
+																				Number(
+																					e.target.value,
+																				),
+																			),
+																	},
 																)
 															}
-															className={cn(
-																"flex-1 rounded-lg border py-1.5 text-[10px] font-medium transition-colors",
-																value === opt.value
-																	? "border-primary bg-primary/10 text-primary"
-																	: "border-border text-muted-foreground hover:border-primary/30",
-															)}>
-															{styleField.type === "align-picker" ? (
-																<span
-																	className="material-symbols-outlined"
-																	style={{ fontSize: 14 }}>
-																	{opt.value === "left"
-																		? "format_align_left"
-																		: opt.value === "center"
-																			? "format_align_center"
-																			: "format_align_right"}
-																</span>
-															) : (
-																opt.label
-															)}
-														</button>
-													))}
-												</div>
+															className="w-full accent-primary"
+														/>
+														<div className="flex items-center gap-2">
+															<input
+																type="number"
+																min={HEADING_CUSTOM_SIZE_MIN}
+																max={HEADING_CUSTOM_SIZE_MAX}
+																step={1}
+																value={headingCustomSizeValue}
+																onChange={(e) => {
+																	const nextValue = Number(
+																		e.target.value,
+																	);
+																	if (!Number.isFinite(nextValue))
+																		return;
+																	updateBlockStyle(
+																		sectionId,
+																		groupId,
+																		block.id,
+																		{
+																			fontSize: "custom",
+																			fontSizePx:
+																				clampHeadingCustomSize(
+																					nextValue,
+																				),
+																		},
+																	);
+																}}
+																className="h-8 w-full rounded-md border border-border bg-background px-2 text-xs text-foreground"
+															/>
+															<span className="text-[10px] font-medium text-muted-foreground">
+																px
+															</span>
+														</div>
+													</div>
+												)}
 											</div>
 										);
 									}

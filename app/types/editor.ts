@@ -17,7 +17,8 @@ export type BlockCategory = "basic" | "media" | "layout" | "content";
 
 export interface BlockStyle {
   fontFamily?: string;
-  fontSize?: "sm" | "base" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "5xl";
+  fontSize?: "sm" | "base" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "5xl" | "custom";
+  fontSizePx?: number;
   fontWeight?: "normal" | "medium" | "semibold" | "bold";
   fontStyle?: "normal" | "italic";
   letterSpacing?: number;
