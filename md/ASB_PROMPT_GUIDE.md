@@ -188,6 +188,7 @@ The right sidebar changes based on what is selected:
 1. **Section Actions** — duplicate/delete section.
 2. **Layout** — section layout options:
    - **Fill screen height** toggle — makes the section fill the full viewport height (`min-height: 100vh`). User-facing label: "Fill screen height" / sub-label: "Section takes up the full screen". Implemented as a Radix Switch. Stored as `SectionStyle.fullHeight`.
+   - **Group Alignment** buttons — top/center/bottom segmented icon buttons (same icon language as group alignment) that vertically align stacked groups inside the section's available height. Stored as `SectionStyle.groupVerticalAlign`.
 3. **Background** — section background options (solid/gradient/image + overlay effect + padding slider).
    - In `colorMode: "global"`, section background picker defaults are derived from the active global palette (`primaryColor`, `themeMode`, `colorScheme`) plus section index.
    - When a user changes solid/gradient colors via the picker, section style is promoted to `colorMode: "custom"` so the selected colors render immediately and persist as section overrides.
@@ -437,6 +438,7 @@ interface SectionStyle {
   backgroundEffect?: "none" | "dots" | "grid" | "dim" | "vignette";  // CSS overlay pattern layered via multiple backgrounds
   backgroundEffectIntensity?: number; // 0-100 strength for the selected backgroundEffect
   fullHeight?: boolean;           // When true, section renders with min-height: 100vh (fills screen)
+  groupVerticalAlign?: "top" | "center" | "bottom"; // Vertical alignment for stacked groups within section height
   colorMode?: "global" | "custom"; // "global" follows global palette tokens; "custom" uses section overrides
   textColor?: string;             // Optional section token override (used when colorMode="custom")
   accentColor?: string;           // Optional section token override (used when colorMode="custom")
@@ -718,7 +720,8 @@ GlobalStyle.borderRadius    â†’ applied to buttons, cards, images
 GlobalStyle.themeMode       â†’ light/dark website rendering; drives default textColor in "global" mode
                               (dark â†’ #ffffff, light â†’ #111111)
 
-SectionStyle.backgroundColor -> section background (solid/gradient/image only — no text/accent on sections)
+SectionStyle.backgroundColor    -> section background (solid/gradient/image only — no text/accent on sections)
+SectionStyle.groupVerticalAlign -> vertical alignment of stacked groups inside section height (top/center/bottom)
 
 BlockStyle.colorMode        -> "global" (default): block derives text/accent from GlobalStyle
                                "custom": block uses its own textColor/accentColor
@@ -745,7 +748,8 @@ Color resolution (via `app/lib/blockColors.ts`):
 When a section is selected (not a specific group/block):
 
 - Shows section-level actions (duplicate/delete)
-- Shows **Background** panel only: background type (solid/gradient/image), colors, effect, effect intensity, paddingY
+- Shows **Layout** panel: Fill screen height toggle + Group Alignment buttons (top/center/bottom) for vertically stacked groups
+- Shows **Background** panel: background type (solid/gradient/image), colors, effect, effect intensity, paddingY
 - **No text/accent color controls at section level** — colors are block-level only
 - Code organization: `SettingsPanel.tsx` routes to dedicated mode components (`SectionModeSettings`, `GroupModeSettings`, `BlockSettings`, `GlobalSettingsPanel`)
 - Group list and group reordering are handled in the LEFT sidebar section tree when a section is focused
@@ -1467,13 +1471,13 @@ This contract ensures AI output can be validated and loaded directly into the ed
 | **Section Registry** | Central config mapping section types to allowed layouts, default groups/default blocks fallback, and constraints. |
 | **Block Registry** | Central config mapping block types to components, default props/styles, and editable fields. |
 | **Block Style** | Constrained visual options for a block (fontFamily override, fontSize, fontWeight, fontStyle, letterSpacing, textAlign, width, spacing, positioning mode, scale). Never raw CSS. |
-| **Section Style** | Design data for a section (backgroundColor/backgroundType/gradient fields, backgroundEffect, backgroundEffectIntensity, paddingY, fullHeight). |
+| **Section Style** | Design data for a section (backgroundColor/backgroundType/gradient fields, backgroundEffect, backgroundEffectIntensity, paddingY, fullHeight, groupVerticalAlign). |
 | **Global Style** | Page-wide design settings (themeMode, fontFamily, primaryColor, colorScheme, borderRadius). `fontFamily` is the default text font across the page and can be overridden by supported blocks. |
 | **Style Inheritance** | The cascade: Global â†’ Section â†’ Block. Each level can override the parent. |
 | **Canvas** | The center panel where sections and blocks are rendered WYSIWYG. |
 | **Left Sidebar / Sections List** | The left panel showing section tree navigation: reorderable sections plus focused-section groups with drag reorder. |
 | **Right Sidebar / Settings Panel** | The right panel showing context-sensitive controls (section mode, group mode, block mode, or global settings). |
-| **Section Mode** | Right sidebar state when a section is selected: shows section actions and background controls. |
+| **Section Mode** | Right sidebar state when a section is selected: shows section actions plus section layout/background controls. |
 | **Group Mode** | Right sidebar state when a group is selected: shows group layout, blocks list, and group style controls. |
 | **Block Mode** | Right sidebar state when a block is selected: shows block content and style controls. |
 | **InlineText** | The Tiptap-based component that makes text directly editable on the canvas. Used by heading and text blocks. |
@@ -1488,6 +1492,7 @@ This contract ensures AI output can be validated and loaded directly into the ed
 
 ---
 
+*Document Version: 3.44 - Added section-level vertical group alignment via `SectionStyle.groupVerticalAlign` (`"top" | "center" | "bottom"`). `SectionModeSettings` Layout panel now includes Group Alignment buttons (matching the group alignment icon set), and `SectionRenderer` applies this setting to vertically align stacked groups within the section's available height (especially when `fullHeight` is enabled).*
 *Document Version: 3.43 - Added `BlockStyle.letterSpacing` for `heading` and `text` blocks. Block Mode now includes a Letter Spacing slider (0-12px), and both `HeadingBlock.tsx` and `TextBlock.tsx` apply it via inline styles.*
 *Document Version: 3.42 - Added `BlockStyle.fontStyle` (`"normal" | "italic"`) and exposed a new Style control in Block Mode for `heading` and `text` blocks. `HeadingBlock.tsx` and `TextBlock.tsx` now apply block-level italic styling via `block.style.fontStyle`.*
 *Document Version: 3.41 - Added block-level duplicate action in `BlockSettings.tsx` (`content_copy` icon). Duplicate now creates a copy directly below the selected block in the same group (`duplicateBlock` store action), with flow blocks inserted at the next slot order and absolute blocks offset downward.*

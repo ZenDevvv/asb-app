@@ -1,5 +1,6 @@
 import { GroupRenderer } from "~/sections/GroupRenderer";
 import { resolveSectionColorScheme } from "~/lib/colorSystem";
+import { cn } from "~/lib/utils";
 import type { BlockStyle, GlobalStyle, Section, SectionStyle } from "~/types/editor";
 
 interface SectionRendererProps {
@@ -302,12 +303,29 @@ export function SectionRenderer({
 	};
 	const orderedGroups = renderSection.groups.slice().sort((a, b) => a.order - b.order);
 	const bgStyle = getSectionBackground(renderSection.style, globalStyle.themeMode);
+	const sectionStyle: React.CSSProperties = renderSection.style.fullHeight
+		? { ...bgStyle, minHeight: "100vh", display: "flex", flexDirection: "column" }
+		: bgStyle;
+	const groupStackAlignmentClass =
+		renderSection.style.groupVerticalAlign === "center"
+			? "justify-center"
+			: renderSection.style.groupVerticalAlign === "bottom"
+				? "justify-end"
+				: "justify-start";
 
 	return (
-		<section
-			style={renderSection.style.fullHeight ? { ...bgStyle, minHeight: "100vh" } : bgStyle}>
-			<div className="mx-auto max-w-6xl px-6">
-				<div className="space-y-8">
+		<section style={sectionStyle}>
+			<div
+				className={cn(
+					"mx-auto w-full max-w-6xl px-6",
+					renderSection.style.fullHeight ? "flex flex-1" : "",
+				)}>
+				<div
+					className={cn(
+						"flex w-full flex-col gap-8",
+						groupStackAlignmentClass,
+						renderSection.style.fullHeight ? "flex-1" : "",
+					)}>
 					{orderedGroups.map((group) => (
 						<GroupRenderer
 							key={group.id}

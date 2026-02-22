@@ -75,6 +75,7 @@ export interface SectionStyle {
   backgroundEffect?: "none" | "dots" | "grid" | "dim" | "vignette";
   backgroundEffectIntensity?: number; // 0-100; controls strength for dots/grid/dim/vignette overlays
   fullHeight?: boolean;         // When true, section has min-height: 100vh (fills screen)
+  groupVerticalAlign?: "top" | "center" | "bottom";
   colorMode?: "global" | "custom";
   textColor?: string;
   accentColor?: string;
