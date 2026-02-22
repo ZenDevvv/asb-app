@@ -13,6 +13,7 @@ export default [
 		"layouts/admin-layout.tsx",
 		prefix("admin", [
 			route("/", "routes/admin/dashboard.tsx"),
+			route("templates", "routes/admin/templates.tsx"),
 		]),
 	),
 	route("/editor", "routes/editor/index.tsx"),
