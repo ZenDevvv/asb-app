@@ -21,7 +21,7 @@
 
 ```
 PROJECT: No-code website/landing page builder
-CODENAME: BuilderApp (placeholder â€” rename when you pick a brand)
+PROJECT NAME: AppSite Builder (ASB)
 TYPE: Full-stack web application
 STACK: MERN (MongoDB, Express.js, React, Node.js)
 LANGUAGE: TypeScript (strict mode, both frontend and backend)
