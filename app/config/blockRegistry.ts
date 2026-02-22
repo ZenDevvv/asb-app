@@ -113,6 +113,7 @@ export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
           { label: "M", value: "base" },
           { label: "L", value: "lg" },
           { label: "XL", value: "xl" },
+          { label: "Custom", value: "custom" },
         ],
       },
       {

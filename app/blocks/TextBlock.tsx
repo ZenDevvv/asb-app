@@ -18,12 +18,23 @@ const TEXT_ALIGN_MAP: Record<string, string> = {
 	right: "text-right",
 };
 
+const CUSTOM_TEXT_SIZE_MIN = 12;
+const CUSTOM_TEXT_SIZE_MAX = 200;
+
 export function TextBlock({ block, globalStyle }: BlockComponentProps) {
 	const { text } = block.props as { text: string };
 	const s = block.style;
+	const isCustomFontSize = s.fontSize === "custom";
+	const customFontSizePx =
+		typeof s.fontSizePx === "number" && Number.isFinite(s.fontSizePx)
+			? Math.min(
+					CUSTOM_TEXT_SIZE_MAX,
+					Math.max(CUSTOM_TEXT_SIZE_MIN, Math.round(s.fontSizePx)),
+				)
+			: undefined;
 
 	const classes = [
-		FONT_SIZE_MAP[s.fontSize || "base"] || "text-base",
+		!isCustomFontSize ? FONT_SIZE_MAP[s.fontSize || "base"] || "text-base" : "text-base",
 		TEXT_ALIGN_MAP[s.textAlign || "left"] || "text-left",
 		"leading-relaxed",
 	].join(" ");
@@ -34,6 +45,10 @@ export function TextBlock({ block, globalStyle }: BlockComponentProps) {
 			style={{
 				fontFamily: s.fontFamily || globalStyle.fontFamily,
 				fontStyle: s.fontStyle || "normal",
+				fontSize:
+					isCustomFontSize && typeof customFontSizePx === "number"
+						? `${customFontSizePx}px`
+						: undefined,
 				letterSpacing:
 					typeof s.letterSpacing === "number" ? `${s.letterSpacing}px` : undefined,
 				color: resolveTextColor(s, globalStyle),
