@@ -1,5 +1,6 @@
 import { useEffect, useCallback, useState } from "react";
-import { useEditorStore } from "~/stores/editorStore";
+import { useLocation, useNavigate } from "react-router";
+import { DEFAULT_GLOBAL_STYLE, EDITOR_STORAGE_KEY, useEditorStore } from "~/stores/editorStore";
 import { EditorToolbar } from "./EditorToolbar";
 import { SectionsListPanel } from "./SectionsListPanel";
 import { EditorCanvas } from "./EditorCanvas";
@@ -8,22 +9,63 @@ import { AddSectionModal } from "./AddSectionModal";
 import { debounce } from "lodash";
 import { DEFAULT_SECTION_SEQUENCE } from "~/config/sectionRegistry";
 
+type EditorSeedMode = "blank" | "basic";
+type EditorLocationState = { editorSeed?: EditorSeedMode } | null;
+
+function hasValidPersistedEditorState(): boolean {
+	try {
+		const raw = localStorage.getItem(EDITOR_STORAGE_KEY);
+		if (!raw) return false;
+
+		const parsed = JSON.parse(raw) as { sections?: unknown; globalStyle?: unknown };
+		return (
+			Array.isArray(parsed.sections) &&
+			!!parsed.globalStyle &&
+			typeof parsed.globalStyle === "object"
+		);
+	} catch {
+		return false;
+	}
+}
+
 export default function EditorPage() {
+	const location = useLocation();
+	const navigate = useNavigate();
 	const [addSectionModalOpen, setAddSectionModalOpen] = useState(false);
 	const isDirty = useEditorStore((s) => s.isDirty);
 	const saveToLocalStorage = useEditorStore((s) => s.saveToLocalStorage);
+	const editorSeed = (location.state as EditorLocationState)?.editorSeed;
 
 	// Initialize editor state once: load from storage, then seed defaults only if still empty.
 	useEffect(() => {
 		const store = useEditorStore.getState();
+
+		if (editorSeed === "blank") {
+			store.loadSections([], { ...DEFAULT_GLOBAL_STYLE });
+			store.saveToLocalStorage();
+			navigate("/editor", { replace: true, state: null });
+			return;
+		}
+
+		if (editorSeed === "basic") {
+			store.loadSections([], { ...DEFAULT_GLOBAL_STYLE });
+			DEFAULT_SECTION_SEQUENCE.forEach((type) => {
+				store.addSection(type);
+			});
+			store.saveToLocalStorage();
+			navigate("/editor", { replace: true, state: null });
+			return;
+		}
+
+		const hasPersistedState = hasValidPersistedEditorState();
 		store.loadFromLocalStorage();
 
-		if (store.sections.length === 0) {
+		if (!hasPersistedState && store.sections.length === 0) {
 			DEFAULT_SECTION_SEQUENCE.forEach((type) => {
 				store.addSection(type);
 			});
 		}
-	}, []);
+	}, [editorSeed, navigate]);
 
 	// Auto-save debounced
 	const debouncedSave = useCallback(

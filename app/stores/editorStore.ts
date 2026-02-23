@@ -21,7 +21,7 @@ import type {
   EditorActions,
 } from "~/types/editor";
 
-const STORAGE_KEY = "asb-editor-state";
+export const EDITOR_STORAGE_KEY = "asb-editor-state";
 const BLOCK_STYLE_HISTORY_DEBOUNCE_MS = 400;
 const blockStyleHistoryWindows = new Map<string, ReturnType<typeof setTimeout>>();
 
@@ -43,7 +43,7 @@ function clearBlockStyleHistoryWindows() {
   blockStyleHistoryWindows.clear();
 }
 
-const DEFAULT_GLOBAL_STYLE: GlobalStyle = {
+export const DEFAULT_GLOBAL_STYLE: GlobalStyle = {
   fontFamily: "Inter",
   primaryColor: "#00e5a0",
   colorScheme: "monochromatic",
@@ -966,7 +966,7 @@ export const useEditorStore = create<EditorState & EditorActions>()(
         globalStyle: state.globalStyle,
       };
       try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        localStorage.setItem(EDITOR_STORAGE_KEY, JSON.stringify(data));
         set((s) => {
           s.isDirty = false;
           s.lastSaved = new Date().toISOString();
@@ -979,7 +979,7 @@ export const useEditorStore = create<EditorState & EditorActions>()(
     loadFromLocalStorage: () => {
       clearBlockStyleHistoryWindows();
       try {
-        const raw = localStorage.getItem(STORAGE_KEY);
+        const raw = localStorage.getItem(EDITOR_STORAGE_KEY);
         if (raw) {
           const data = JSON.parse(raw) as {
             sections?: unknown;

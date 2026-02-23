@@ -231,7 +231,11 @@ STATE MANAGEMENT:
 - TanStack Query handles all API calls (fetch project, auto-save, publish)
 - Auto-save: debounced 3 seconds after any change
 - Three selection levels: section-level, group-level, and block-level
-- Editor initialization loads localStorage first; if empty, seeds `DEFAULT_SECTION_SEQUENCE` from `sectionRegistry` (registry-configured order)
+- Editor initialization: checks `location.state.editorSeed` first:
+  - `"blank"` → loads an empty canvas (no sections), saves to localStorage, clears navigation state
+  - `"basic"` → seeds `DEFAULT_SECTION_SEQUENCE` from scratch (ignoring localStorage), saves, clears state
+  - No seed → loads from localStorage; if no valid persisted state found, falls back to seeding `DEFAULT_SECTION_SEQUENCE`
+- `EDITOR_STORAGE_KEY` ("asb-editor-state") and `DEFAULT_GLOBAL_STYLE` are exported from `editorStore.ts`
 - Editor state loading/import uses a single current schema; no backward migration paths are maintained
 - Default section seeding is idempotent to prevent duplicate sections when effects re-run in development strict mode
 - Default section preset backgrounds alternate between two dark tones to avoid adjacent sections using the same color on first load
@@ -960,8 +964,12 @@ Project:
 
 Template:
   _id, name, category, description, thumbnail,
-  pages: [{ sections: [...], ... }], globalStyle: {...},
-  isActive, usageCount, createdAt
+  createdById (ref→User),
+  pages: [{ id, name, slug, isDefault, sections: [...] }],
+  globalStyle: {...},
+  seo: { tags: string[], summary?: string },
+  isActive, isDeleted, usageCount, createdAt, updatedAt
+  // category options: "Marketing" | "SaaS" | "Business" | "Personal" | "Retail" | "Content"
 
 MediaAsset:
   _id, userId (refâ†’User), url, publicId, filename,
@@ -1412,7 +1420,7 @@ These decisions are final. Don't revisit or suggest alternatives:
 - Analytics integrations
 - Blog / CMS
 - Custom code injection
-- Admin panel (use MongoDB Compass)
+- Full admin panel (a basic admin templates route exists at `/admin/templates` for template management; anything beyond that is post-MVP)
 - Subscription billing (free-only for MVP)
 - Mobile app
 - Stock photo integration
@@ -1534,6 +1542,7 @@ This contract ensures AI output can be validated and loaded directly into the ed
 
 ---
 
+*Document Version: 3.55 - Connected template creation to backend. CreateTemplateModal wired to useCreateTemplateProject (name, category, tags, description, blank/basic seed). EditorPage now reads editorSeed location state to initialize blank/basic canvas on template create. EDITOR_STORAGE_KEY and DEFAULT_GLOBAL_STYLE exported from editorStore. Updated Template schema (createdById, seo, isDeleted, updatedAt), admin templates route documented.*
 *Document Version: 3.54 - Removed editor-state backward-compatibility paths. `editorStore` localStorage/debug import now expects only the current schema, with no legacy migration/normalization branches. `EditorDebugBackdoor` import accepts only `{ state: { sections, globalStyle } }` (export shape).*
 *Document Version: 3.53 - Redesigned `AddSectionModal` into a preset picker (category rail + search + card selection + confirm footer), added a `custom` blank section preset, and moved section naming to instance-level state via editable `Section.label` in Section Mode settings. Section labels in canvas/sidebar/settings now resolve from `Section.label` instead of fixed registry labels.*
 *Document Version: 3.52 - Updated Block Mode architecture notes after componentization: `BlockSettings.tsx` is now an orchestrator and Block Mode concerns are split under `app/editor/block-settings/` (header, content/style/colors/spacing/position panels, shared helpers/constants). Updated references to `groupEditableFields()` location in `editor/block-settings/utils.ts`.*

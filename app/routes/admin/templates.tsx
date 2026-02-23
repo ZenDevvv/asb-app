@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { Bell, MoreHorizontal, Plus, Search, SlidersHorizontal, Sparkles } from "lucide-react";
+import { CreateTemplateModal } from "~/components/admin/CreateTemplateModal";
 import { cn } from "~/lib/utils";
 import { useGetTemplateProjects } from "~/hooks/use-template-project";
 import type { TemplateProject } from "~/zod/templateProject.zod";
@@ -101,6 +102,7 @@ const tabs: Array<{ key: TemplateTab; label: string }> = [
 export default function AdminTemplatesRoute() {
 	const [selectedTab, setSelectedTab] = useState<TemplateTab>("all");
 	const [searchQuery, setSearchQuery] = useState("");
+	const [createTemplateModalOpen, setCreateTemplateModalOpen] = useState(false);
 	const fields =
 		"id,name,description,category,thumbnail,createdById,pages,globalStyle,seo,isActive,usageCount,isDeleted,createdAt,updatedAt,createdBy";
 
@@ -164,6 +166,7 @@ export default function AdminTemplatesRoute() {
 					</button>
 					<button
 						type="button"
+						onClick={() => setCreateTemplateModalOpen(true)}
 						className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90">
 						<Plus className="h-4 w-4" />
 						Create New Template
@@ -408,6 +411,12 @@ export default function AdminTemplatesRoute() {
 					</div>
 				</footer>
 			</div>
+
+			<CreateTemplateModal
+				open={createTemplateModalOpen}
+				onOpenChange={setCreateTemplateModalOpen}
+				fallbackCreatedById={templateProjects[0]?.createdById}
+			/>
 		</div>
 	);
 }
