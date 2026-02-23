@@ -1,17 +1,30 @@
 import { useEffect } from "react";
-import { Link } from "react-router";
+import { Link, useSearchParams } from "react-router";
 import { SectionRenderer } from "~/sections/SectionRenderer";
 import { useEditorStore } from "~/stores/editorStore";
+import { useGetTemplateProjectById } from "~/hooks/use-template-project";
+import { DEFAULT_GLOBAL_STYLE } from "~/stores/editorStore";
 import { cn } from "~/lib/utils";
 
 const STORAGE_KEY = "asb-editor-state";
 
 export default function EditorPreviewRoute() {
-	const sections = useEditorStore((s) => s.sections);
-	const globalStyle = useEditorStore((s) => s.globalStyle);
+	const [searchParams] = useSearchParams();
+	const templateId = searchParams.get("templateId");
+
+	// Template-backed preview
+	const { data: templateData, isLoading } = useGetTemplateProjectById(templateId ?? "", {
+		fields: "id,pages,globalStyle",
+	});
+
+	// Fallback: localStorage-backed preview
+	const storeSections = useEditorStore((s) => s.sections);
+	const storeGlobalStyle = useEditorStore((s) => s.globalStyle);
 	const loadFromLocalStorage = useEditorStore((s) => s.loadFromLocalStorage);
 
 	useEffect(() => {
+		if (templateId) return;
+
 		loadFromLocalStorage();
 
 		const handleStorage = (event: StorageEvent) => {
@@ -21,10 +34,28 @@ export default function EditorPreviewRoute() {
 
 		window.addEventListener("storage", handleStorage);
 		return () => window.removeEventListener("storage", handleStorage);
-	}, [loadFromLocalStorage]);
+	}, [templateId, loadFromLocalStorage]);
+
+	const sections = templateId
+		? (templateData?.pages?.[0]?.sections ?? [])
+		: storeSections;
+
+	const globalStyle = templateId
+		? (templateData?.globalStyle ?? { ...DEFAULT_GLOBAL_STYLE })
+		: storeGlobalStyle;
 
 	const visibleSections = sections.filter((section) => section.isVisible);
 	const themeClass = globalStyle.themeMode === "light" ? "light" : "dark";
+
+	const backHref = templateId ? `/editor/${templateId}` : "/editor";
+
+	if (templateId && isLoading) {
+		return (
+			<div className="flex h-screen items-center justify-center bg-background text-sm text-muted-foreground">
+				Loading preview...
+			</div>
+		);
+	}
 
 	return (
 		<div className={cn("min-h-screen bg-background text-foreground", themeClass)}>
@@ -32,7 +63,7 @@ export default function EditorPreviewRoute() {
 				<div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between px-6">
 					<div className="text-sm font-semibold tracking-wide">Live Preview</div>
 					<Link
-						to="/editor"
+						to={backHref}
 						className="inline-flex items-center gap-1 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground">
 						<span className="material-symbols-outlined" style={{ fontSize: 14 }}>
 							arrow_back

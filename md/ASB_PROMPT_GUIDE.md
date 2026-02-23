@@ -304,10 +304,10 @@ ABSOLUTE BLOCK POSITIONING:
 
 LIVE PREVIEW:
 - Preview button saves current editor state to localStorage before opening preview
-- Opens `/editor/preview` in a new tab
-- Preview route loads saved sections/global style and renders the page with `isEditing=false`
-- Preview tab listens for editor localStorage updates and refreshes automatically as autosave runs
-- Hidden sections remain hidden in preview
+- Opens `/editor/preview` in a new tab; when editing a template, opens `/editor/preview?templateId=<id>` instead
+- Preview route: if `templateId` query param is present, fetches template data from the backend via `useGetTemplateProjectById` and renders the server-side page (sections + globalStyle); shows a loading state while fetching; "Back to Editor" link returns to `/editor/:templateId`
+- Preview route: if no `templateId`, falls back to localStorage — loads saved sections/global style and listens for storage events to refresh automatically as autosave runs
+- Renders the page with `isEditing=false`; hidden sections remain hidden in preview
 
 DEBUG BACKDOOR:
 - Controlled by URL params: `debug` or `debugMode`

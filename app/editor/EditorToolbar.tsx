@@ -1,6 +1,7 @@
 import { useEditorStore } from "~/stores/editorStore";
 import { cn } from "~/lib/utils";
 import { useMemo, useState } from "react";
+import { useParams } from "react-router";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "~/components/ui/dialog";
 import { EditorDebugBackdoor } from "./EditorDebugBackdoor";
 
@@ -41,6 +42,7 @@ export function EditorToolbar() {
 	const future = useEditorStore((s) => s.future);
 	const lastSaved = useEditorStore((s) => s.lastSaved);
 	const saveToLocalStorage = useEditorStore((s) => s.saveToLocalStorage);
+	const { templateId } = useParams<{ templateId?: string }>();
 	const [shortcutsOpen, setShortcutsOpen] = useState(false);
 
 	const savedAgo = useMemo(() => {
@@ -137,7 +139,10 @@ export function EditorToolbar() {
 				<button
 					onClick={() => {
 						saveToLocalStorage();
-						window.open("/editor/preview", "_blank");
+						const previewUrl = templateId
+							? `/editor/preview?templateId=${templateId}`
+							: "/editor/preview";
+						window.open(previewUrl, "_blank");
 					}}
 					className="flex items-center gap-1.5 rounded-xl border border-sidebar-border px-3 py-1.5 text-sm text-sidebar-foreground transition-colors hover:bg-sidebar-accent">
 					<span className="material-symbols-outlined" style={{ fontSize: 16 }}>
