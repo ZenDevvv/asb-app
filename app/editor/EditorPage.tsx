@@ -158,7 +158,26 @@ export default function EditorPage() {
 
 			if ((e.ctrlKey || e.metaKey) && e.key === "s") {
 				e.preventDefault();
+				debouncedSave.cancel();
 				store.saveToLocalStorage();
+				const ctx = activeTemplateRef.current;
+				if (!ctx) return;
+				const { sections, globalStyle } = useEditorStore.getState();
+				updateTemplate(
+					{
+						templateProjectId: ctx.templateId,
+						data: {
+							pages: [{ ...ctx.pageMetadata, sections }],
+							globalStyle,
+						},
+					},
+					{
+						onSuccess: (data) => {
+							const updatedAt = data?.templateProject?.updatedAt;
+							if (updatedAt) setLastSaved(new Date(updatedAt).toISOString());
+						},
+					},
+				);
 			}
 
 			if (e.key === "Delete" && store.selectedSectionId) {
@@ -203,7 +222,7 @@ export default function EditorPage() {
 
 		window.addEventListener("keydown", handleKeyDown);
 		return () => window.removeEventListener("keydown", handleKeyDown);
-	}, []);
+	}, [debouncedSave, updateTemplate, setLastSaved]);
 
 	if (templateId && isTemplateLoading) {
 		return (

@@ -53,6 +53,19 @@ CURRENT PHASE: MVP (10-12 week build)
 MVP SCOPE: Auth, dashboard, template gallery, block-based editor (preset-driven sections + blank option),
            image upload, basic SEO, publish to free subdomain
 
+EDITOR ROUTES — TWO DISTINCT MODES:
+1. `/editor` — PUBLIC GUEST SANDBOX (no auth required)
+   - Intended for unauthenticated users to explore and try the editor freely
+   - State is persisted in localStorage only (no backend entity, no user account)
+   - Changes are NOT saved to any server; data is lost if localStorage is cleared
+   - No Publish, no project ownership, no dashboard link
+   - Acts as a feature demo / try-before-you-sign-up experience
+2. `/editor/:templateId` — AUTHENTICATED TEMPLATE EDITOR
+   - Requires auth; editing is backed by a real TemplateProject document in MongoDB
+   - State is auto-saved to the server (debounced 3 s) AND mirrored to localStorage
+   - localStorage here is a write-through cache only — MongoDB is the source of truth
+   - Ctrl+S triggers an immediate server save (bypasses the debounce)
+
 STYLE REFERENCE: See the separate Style Guide (.md) for all colors, theming,
                  and visual design tokens. Do NOT hardcode colors â€” always
                  reference the style guide's design tokens / CSS variables.
@@ -231,13 +244,14 @@ STATE MANAGEMENT:
 - TanStack Query handles all API calls (fetch project, auto-save, publish)
 - Auto-save: debounced 3 seconds after any change
 - Three selection levels: section-level, group-level, and block-level
-- Editor routes: `/editor` (no template) and `/editor/:templateId` (template editing). Both render the same `EditorPage` component; `templateId` is read via `useParams<{ templateId?: string }>()`.
+- Editor routes: `/editor` (guest sandbox) and `/editor/:templateId` (authenticated template editing). Both render the same `EditorPage` component; `templateId` is read via `useParams<{ templateId?: string }>()`.
 - Editor initialization: checks `useParams` and `location.state` on mount, priority order:
   1. `location.state.editorSeed === "blank"` → loads an empty canvas (no sections), saves to localStorage, clears navigation state
   2. `location.state.editorSeed === "basic"` → seeds `DEFAULT_SECTION_SEQUENCE` from scratch (ignoring localStorage), saves, clears state
   3. `useParams().templateId` (string, from `/editor/:templateId` URL) → fetches the template via `useGetTemplateProjectById(templateId)` (TanStack Query), loads the first page's sections + globalStyle into the store once data arrives, caches page metadata in `activeTemplateRef`; shows a loading indicator while fetching; deeplinkable and survives page refresh
-  4. No seed / no templateId → loads from localStorage; if no valid persisted state found, falls back to seeding `DEFAULT_SECTION_SEQUENCE`
-- Template server auto-save: when the editor is on `/editor/:templateId`, `activeTemplateRef` (a `useRef`) holds `{ templateId, pageMetadata }` after load. The existing 3 s debounced auto-save also calls `useUpdateTemplateProject` — sending `{ pages: [{ ...pageMetadata, sections }], globalStyle }` — so every debounced save persists changes back to the server. On `onSuccess`, the mutation's returned `templateProject.updatedAt` is written to `editorStore.lastSaved` via `setLastSaved`, so the toolbar "Last saved" timestamp reflects the server-confirmed save time (not localStorage time) when editing a template.
+  4. No seed / no templateId (guest `/editor`) → loads from localStorage; if no valid persisted state found, falls back to seeding `DEFAULT_SECTION_SEQUENCE`
+- Template server auto-save (`/editor/:templateId` only): `activeTemplateRef` (a `useRef`) holds `{ templateId, pageMetadata }` after load. The 3 s debounced auto-save calls both `saveToLocalStorage()` (write-through cache) and `useUpdateTemplateProject` — sending `{ pages: [{ ...pageMetadata, sections }], globalStyle }` — to persist changes to MongoDB. On `onSuccess`, the mutation's returned `templateProject.updatedAt` is written to `editorStore.lastSaved` via `setLastSaved`, so the toolbar "Last saved" timestamp reflects server-confirmed save time (not localStorage time).
+- Guest auto-save (`/editor` only): debounced save writes to localStorage only. No server call is made. `activeTemplateRef` is null.
 - `EDITOR_STORAGE_KEY` ("asb-editor-state") and `DEFAULT_GLOBAL_STYLE` are exported from `editorStore.ts`
 - Editor state loading/import uses a single current schema; no backward migration paths are maintained
 - Default section seeding is idempotent to prevent duplicate sections when effects re-run in development strict mode
@@ -285,7 +299,7 @@ KEYBOARD SHORTCUTS:
 - Toolbar has a **Shortcuts** button that opens a modal with all available editor keyboard shortcuts
 - Ctrl/Cmd + Z: Undo
 - Ctrl/Cmd + Shift + Z: Redo
-- Ctrl/Cmd + S: Save now
+- Ctrl/Cmd + S: Save now — cancels pending debounce and saves immediately. On `/editor/:templateId`, also triggers an immediate server save via `useUpdateTemplateProject`. On guest `/editor`, saves to localStorage only.
 - Delete: Delete currently selected block, group, or section (deepest active selection)
 - Esc: Deselect current block/section level
 
@@ -303,10 +317,9 @@ ABSOLUTE BLOCK POSITIONING:
 - Flow blocks continue to use layout slots and normal document flow
 
 LIVE PREVIEW:
-- Preview button saves current editor state to localStorage before opening preview
-- Opens `/editor/preview` in a new tab; when editing a template, opens `/editor/preview?templateId=<id>` instead
-- Preview route: if `templateId` query param is present, fetches template data from the backend via `useGetTemplateProjectById` and renders the server-side page (sections + globalStyle); shows a loading state while fetching; "Back to Editor" link returns to `/editor/:templateId`
-- Preview route: if no `templateId`, falls back to localStorage — loads saved sections/global style and listens for storage events to refresh automatically as autosave runs
+- Preview button opens `/editor/preview` in a new tab; when editing a template, opens `/editor/preview?templateId=<id>` instead
+- Preview route (template mode): if `templateId` query param is present, fetches template data from the backend via `useGetTemplateProjectById` and renders the server-side page (sections + globalStyle); shows a loading state while fetching; "Back to Editor" link returns to `/editor/:templateId`
+- Preview route (guest mode): if no `templateId`, reads from localStorage — loads saved sections/global style and listens for `StorageEvent` to refresh automatically as debounced auto-save runs
 - Renders the page with `isEditing=false`; hidden sections remain hidden in preview
 
 DEBUG BACKDOOR:
