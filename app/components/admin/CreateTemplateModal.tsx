@@ -214,7 +214,7 @@ export function CreateTemplateModal({
 		}
 
 		setSubmitError(null);
-		const createdById = user?.id || fallbackCreatedById || "000000000000000000000000";
+		const createdById = user?.id || fallbackCreatedById || "unknown"; // Fallback to "unknown" if no user ID is available
 		const pages = buildPages(structure);
 		const seo =
 			parsedTags.length > 0 || description.trim().length > 0

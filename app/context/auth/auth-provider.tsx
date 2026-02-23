@@ -88,7 +88,7 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
 
 	// Check for existing authentication on mount
 	useEffect(() => {
-		// getCurrentUser();
+		getCurrentUser();
 	}, []);
 
 	const contextValue: AuthContextType = {
