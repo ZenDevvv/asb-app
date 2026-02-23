@@ -18,4 +18,5 @@ export default [
 	),
 	route("/editor", "routes/editor/index.tsx"),
 	route("/editor/preview", "routes/editor/preview.tsx"),
+	route("/editor/:templateId", "routes/editor/template.tsx"),
 ] satisfies RouteConfig;

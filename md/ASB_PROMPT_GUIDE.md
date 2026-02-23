@@ -231,10 +231,13 @@ STATE MANAGEMENT:
 - TanStack Query handles all API calls (fetch project, auto-save, publish)
 - Auto-save: debounced 3 seconds after any change
 - Three selection levels: section-level, group-level, and block-level
-- Editor initialization: checks `location.state.editorSeed` first:
-  - `"blank"` → loads an empty canvas (no sections), saves to localStorage, clears navigation state
-  - `"basic"` → seeds `DEFAULT_SECTION_SEQUENCE` from scratch (ignoring localStorage), saves, clears state
-  - No seed → loads from localStorage; if no valid persisted state found, falls back to seeding `DEFAULT_SECTION_SEQUENCE`
+- Editor routes: `/editor` (no template) and `/editor/:templateId` (template editing). Both render the same `EditorPage` component; `templateId` is read via `useParams<{ templateId?: string }>()`.
+- Editor initialization: checks `useParams` and `location.state` on mount, priority order:
+  1. `location.state.editorSeed === "blank"` → loads an empty canvas (no sections), saves to localStorage, clears navigation state
+  2. `location.state.editorSeed === "basic"` → seeds `DEFAULT_SECTION_SEQUENCE` from scratch (ignoring localStorage), saves, clears state
+  3. `useParams().templateId` (string, from `/editor/:templateId` URL) → fetches the template via `useGetTemplateProjectById(templateId)` (TanStack Query), loads the first page's sections + globalStyle into the store once data arrives, caches page metadata in `activeTemplateRef`; shows a loading indicator while fetching; deeplinkable and survives page refresh
+  4. No seed / no templateId → loads from localStorage; if no valid persisted state found, falls back to seeding `DEFAULT_SECTION_SEQUENCE`
+- Template server auto-save: when the editor is on `/editor/:templateId`, `activeTemplateRef` (a `useRef`) holds `{ templateId, pageMetadata }` after load. The existing 3 s debounced auto-save also calls `useUpdateTemplateProject` — sending `{ pages: [{ ...pageMetadata, sections }], globalStyle }` — so every debounced save persists changes back to the server.
 - `EDITOR_STORAGE_KEY` ("asb-editor-state") and `DEFAULT_GLOBAL_STYLE` are exported from `editorStore.ts`
 - Editor state loading/import uses a single current schema; no backward migration paths are maintained
 - Default section seeding is idempotent to prevent duplicate sections when effects re-run in development strict mode
@@ -1421,6 +1424,7 @@ These decisions are final. Don't revisit or suggest alternatives:
 - Blog / CMS
 - Custom code injection
 - Full admin panel (a basic admin templates route exists at `/admin/templates` for template management; anything beyond that is post-MVP)
+  - `/admin/templates` row click navigates to `/editor/:templateId` — deeplinkable, survives refresh; the editor fetches template data via `useGetTemplateProjectById` using the URL param and saves changes back via `useUpdateTemplateProject`; new templates are created via `CreateTemplateModal` which navigates to `/editor` (no templateId) with `{ state: { editorSeed } }` instead
 - Subscription billing (free-only for MVP)
 - Mobile app
 - Stock photo integration

@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router";
 import { Bell, MoreHorizontal, Plus, Search, SlidersHorizontal, Sparkles } from "lucide-react";
 import { CreateTemplateModal } from "~/components/admin/CreateTemplateModal";
 import { cn } from "~/lib/utils";
@@ -100,6 +101,7 @@ const tabs: Array<{ key: TemplateTab; label: string }> = [
 ];
 
 export default function AdminTemplatesRoute() {
+	const navigate = useNavigate();
 	const [selectedTab, setSelectedTab] = useState<TemplateTab>("all");
 	const [searchQuery, setSearchQuery] = useState("");
 	const [createTemplateModalOpen, setCreateTemplateModalOpen] = useState(false);
@@ -290,7 +292,8 @@ export default function AdminTemplatesRoute() {
 										return (
 											<tr
 												key={template.id}
-												className="border-t border-border/80 text-sm text-foreground transition hover:bg-background/45">
+												onClick={() => navigate(`/editor/${template.id}`)}
+												className="cursor-pointer border-t border-border/80 text-sm text-foreground transition hover:bg-background/45">
 												<td className="px-5 py-4">
 													<div
 														className={cn(
@@ -362,6 +365,7 @@ export default function AdminTemplatesRoute() {
 												<td className="px-5 py-4">
 													<button
 														type="button"
+														onClick={(e) => e.stopPropagation()}
 														className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-border bg-card/70 text-muted-foreground transition-colors hover:text-foreground"
 														aria-label={`Actions for ${template.name}`}>
 														<MoreHorizontal className="h-4 w-4" />

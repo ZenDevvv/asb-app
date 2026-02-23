@@ -1,6 +1,7 @@
-import { useEffect, useCallback, useState } from "react";
-import { useLocation, useNavigate } from "react-router";
+import { useEffect, useCallback, useState, useRef } from "react";
+import { useLocation, useNavigate, useParams } from "react-router";
 import { DEFAULT_GLOBAL_STYLE, EDITOR_STORAGE_KEY, useEditorStore } from "~/stores/editorStore";
+import { useGetTemplateProjectById, useUpdateTemplateProject } from "~/hooks/use-template-project";
 import { EditorToolbar } from "./EditorToolbar";
 import { SectionsListPanel } from "./SectionsListPanel";
 import { EditorCanvas } from "./EditorCanvas";
@@ -28,16 +29,34 @@ function hasValidPersistedEditorState(): boolean {
 	}
 }
 
+type ActiveTemplateContext = {
+	templateId: string;
+	pageMetadata: { id: string; name: string; slug: string; isDefault: boolean };
+};
+
 export default function EditorPage() {
 	const location = useLocation();
 	const navigate = useNavigate();
 	const [addSectionModalOpen, setAddSectionModalOpen] = useState(false);
 	const isDirty = useEditorStore((s) => s.isDirty);
 	const saveToLocalStorage = useEditorStore((s) => s.saveToLocalStorage);
-	const editorSeed = (location.state as EditorLocationState)?.editorSeed;
+	const locationState = location.state as EditorLocationState;
+	const editorSeed = locationState?.editorSeed;
+	const { templateId } = useParams<{ templateId?: string }>();
 
-	// Initialize editor state once: load from storage, then seed defaults only if still empty.
+	// Persists the loaded template context after nav state is cleared.
+	const activeTemplateRef = useRef<ActiveTemplateContext | null>(null);
+
+	const { data: templateData, isLoading: isTemplateLoading } = useGetTemplateProjectById(
+		templateId ?? "",
+		{ fields: "id,name,pages,globalStyle" },
+	);
+	const { mutate: updateTemplate } = useUpdateTemplateProject();
+
+	// Seed/localStorage init — skipped when waiting on a template fetch.
 	useEffect(() => {
+		if (templateId) return;
+
 		const store = useEditorStore.getState();
 
 		if (editorSeed === "blank") {
@@ -65,14 +84,45 @@ export default function EditorPage() {
 				store.addSection(type);
 			});
 		}
-	}, [editorSeed, navigate]);
+	}, [editorSeed, templateId, navigate]);
 
-	// Auto-save debounced
+	// Load fetched template data into the editor store and cache context for saves.
+	useEffect(() => {
+		if (!templateId || !templateData) return;
+		const store = useEditorStore.getState();
+		const firstPage = templateData.pages?.[0];
+		activeTemplateRef.current = {
+			templateId: templateData.id,
+			pageMetadata: {
+				id: firstPage?.id,
+				name: firstPage?.name,
+				slug: firstPage?.slug,
+				isDefault: firstPage?.isDefault ?? true,
+			},
+		};
+		store.loadSections(
+			firstPage?.sections ?? [],
+			templateData.globalStyle ?? { ...DEFAULT_GLOBAL_STYLE },
+		);
+		store.saveToLocalStorage();
+	}, [templateId, templateData]);
+
+	// Auto-save debounced — also persists to server when editing a template.
 	const debouncedSave = useCallback(
 		debounce(() => {
 			saveToLocalStorage();
+			const ctx = activeTemplateRef.current;
+			if (!ctx) return;
+			const { sections, globalStyle } = useEditorStore.getState();
+			updateTemplate({
+				templateProjectId: ctx.templateId,
+				data: {
+					pages: [{ ...ctx.pageMetadata, sections }],
+					globalStyle,
+				},
+			});
 		}, 3000),
-		[saveToLocalStorage],
+		[saveToLocalStorage, updateTemplate],
 	);
 
 	useEffect(() => {
@@ -145,6 +195,14 @@ export default function EditorPage() {
 		window.addEventListener("keydown", handleKeyDown);
 		return () => window.removeEventListener("keydown", handleKeyDown);
 	}, []);
+
+	if (templateId && isTemplateLoading) {
+		return (
+			<div className="flex h-screen items-center justify-center bg-background text-sm text-muted-foreground">
+				Loading template...
+			</div>
+		);
+	}
 
 	return (
 		<div className="flex h-screen flex-col overflow-hidden bg-background">
