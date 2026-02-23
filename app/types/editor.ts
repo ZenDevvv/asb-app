@@ -219,6 +219,7 @@ export interface EditorState {
   history: Section[][];
   future: Section[][];
   isDirty: boolean;
+  isSaving: boolean;
   device: DeviceMode;
   zoom: number;
   lastSaved: string | null;
@@ -308,6 +309,7 @@ export interface EditorActions {
   saveToLocalStorage: () => void;
   loadFromLocalStorage: () => void;
   setLastSaved: (timestamp: string) => void;
+  setIsSaving: (value: boolean) => void;
 
   // Reset
   loadSections: (sections: Section[], globalStyle: GlobalStyle) => void;

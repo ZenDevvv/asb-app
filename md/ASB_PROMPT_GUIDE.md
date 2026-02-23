@@ -231,7 +231,7 @@ The right sidebar changes based on what is selected:
 
 - **Left**: hamburger menu (collapse left sidebar) + page name (editable dropdown)
 - **Center**: device preview toggle (desktop/mobile icons) + undo/redo buttons
-- **Right**: Keyboard Shortcuts button (opens shortcut list modal), Preview button (opens live preview in new tab), Publish button, "Last saved: X min ago" timestamp
+- **Right**: Keyboard Shortcuts button (opens shortcut list modal), Preview button (opens live preview in new tab), Publish button, save status indicator ("Saving..." spinner while server save is in-flight, "Last saved: X min ago" once confirmed, "Not saved yet" otherwise)
 - **Debug Backdoor (params)**: when URL includes `?debug=true` (or `?debugMode=true`), toolbar shows **Import**/**Export** buttons for editor-state JSON roundtrip
 
 ### Key Behaviors
@@ -239,7 +239,7 @@ The right sidebar changes based on what is selected:
 ```
 STATE MANAGEMENT:
 - Zustand store (editorStore) holds: sections[], selectedSectionId,
-  selectedGroupId, selectedBlockId, globalStyle, history[], future[], isDirty, device, zoom
+  selectedGroupId, selectedBlockId, globalStyle, history[], future[], isDirty, isSaving, device, zoom
 - Immer middleware for mutable-looking immutable updates
 - TanStack Query handles all API calls (fetch project, auto-save, publish)
 - Auto-save: debounced 3 seconds after any change
@@ -250,7 +250,7 @@ STATE MANAGEMENT:
   2. `location.state.editorSeed === "basic"` → seeds `DEFAULT_SECTION_SEQUENCE` from scratch (ignoring localStorage), saves, clears state
   3. `useParams().templateId` (string, from `/editor/:templateId` URL) → fetches the template via `useGetTemplateProjectById(templateId)` (TanStack Query), loads the first page's sections + globalStyle into the store once data arrives, caches page metadata in `activeTemplateRef`; shows a loading indicator while fetching; deeplinkable and survives page refresh
   4. No seed / no templateId (guest `/editor`) → loads from localStorage; if no valid persisted state found, falls back to seeding `DEFAULT_SECTION_SEQUENCE`
-- Template server auto-save (`/editor/:templateId` only): `activeTemplateRef` (a `useRef`) holds `{ templateId, pageMetadata }` after load. The 3 s debounced auto-save calls both `saveToLocalStorage()` (write-through cache) and `useUpdateTemplateProject` — sending `{ pages: [{ ...pageMetadata, sections }], globalStyle }` — to persist changes to MongoDB. On `onSuccess`, the mutation's returned `templateProject.updatedAt` is written to `editorStore.lastSaved` via `setLastSaved`, so the toolbar "Last saved" timestamp reflects server-confirmed save time (not localStorage time).
+- Template server auto-save (`/editor/:templateId` only): `activeTemplateRef` (a `useRef`) holds `{ templateId, pageMetadata }` after load. The 3 s debounced auto-save calls both `saveToLocalStorage()` (write-through cache) and `useUpdateTemplateProject` — sending `{ pages: [{ ...pageMetadata, sections }], globalStyle }` — to persist changes to MongoDB. On `onSuccess`, the mutation's returned `templateProject.updatedAt` is written to `editorStore.lastSaved` via `setLastSaved`, so the toolbar "Last saved" timestamp reflects server-confirmed save time (not localStorage time). `isPending` from `useUpdateTemplateProject` is synced to `editorStore.isSaving` via a `useEffect` in `EditorPage`, driving the toolbar "Saving..." spinner. `setIsSaving(value: boolean)` is the store action used for this.
 - Guest auto-save (`/editor` only): debounced save writes to localStorage only. No server call is made. `activeTemplateRef` is null.
 - `EDITOR_STORAGE_KEY` ("asb-editor-state") and `DEFAULT_GLOBAL_STYLE` are exported from `editorStore.ts`
 - Editor state loading/import uses a single current schema; no backward migration paths are maintained

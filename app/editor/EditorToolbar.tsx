@@ -1,7 +1,7 @@
 import { useEditorStore } from "~/stores/editorStore";
 import { cn } from "~/lib/utils";
 import { useMemo, useState } from "react";
-import { useParams } from "react-router";
+import { useParams, useNavigate } from "react-router";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "~/components/ui/dialog";
 import { EditorDebugBackdoor } from "./EditorDebugBackdoor";
 
@@ -41,8 +41,10 @@ export function EditorToolbar() {
 	const history = useEditorStore((s) => s.history);
 	const future = useEditorStore((s) => s.future);
 	const lastSaved = useEditorStore((s) => s.lastSaved);
+	const isSaving = useEditorStore((s) => s.isSaving);
 	const saveToLocalStorage = useEditorStore((s) => s.saveToLocalStorage);
 	const { templateId } = useParams<{ templateId?: string }>();
+	const navigate = useNavigate();
 	const [shortcutsOpen, setShortcutsOpen] = useState(false);
 
 	const savedAgo = useMemo(() => {
@@ -57,6 +59,17 @@ export function EditorToolbar() {
 		<div className="flex h-14 shrink-0 items-center justify-between border-b border-sidebar-border bg-sidebar px-4">
 			{/* Left */}
 			<div className="flex items-center gap-3">
+				<button
+					onClick={() => {
+						saveToLocalStorage();
+						navigate("/admin/templates");
+					}}
+					className="flex size-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-foreground"
+					title="Back to templates">
+					<span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+						chevron_left
+					</span>
+				</button>
 				<div className="flex size-8 items-center justify-center rounded-lg bg-primary/10">
 					<span
 						className="material-symbols-outlined text-primary"
@@ -68,8 +81,21 @@ export function EditorToolbar() {
 					<div className="text-sm font-semibold text-sidebar-foreground">
 						Landing Page V1
 					</div>
-					<div className="text-[10px] text-muted-foreground">
-						{savedAgo ? `Last saved ${savedAgo}` : "Not saved yet"}
+					<div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+						{isSaving ? (
+							<>
+								<span
+									className="material-symbols-outlined animate-spin"
+									style={{ fontSize: 10 }}>
+									progress_activity
+								</span>
+								Saving...
+							</>
+						) : savedAgo ? (
+							`Last saved ${savedAgo}`
+						) : (
+							"Not saved yet"
+						)}
 					</div>
 				</div>
 			</div>

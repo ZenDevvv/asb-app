@@ -41,6 +41,7 @@ export default function EditorPage() {
 	const isDirty = useEditorStore((s) => s.isDirty);
 	const saveToLocalStorage = useEditorStore((s) => s.saveToLocalStorage);
 	const setLastSaved = useEditorStore((s) => s.setLastSaved);
+	const setIsSaving = useEditorStore((s) => s.setIsSaving);
 	const locationState = location.state as EditorLocationState;
 	const editorSeed = locationState?.editorSeed;
 	const { templateId } = useParams<{ templateId?: string }>();
@@ -52,7 +53,11 @@ export default function EditorPage() {
 		templateId ?? "",
 		{ fields: "id,name,pages,globalStyle" },
 	);
-	const { mutate: updateTemplate } = useUpdateTemplateProject();
+	const { mutate: updateTemplate, isPending: isServerSaving } = useUpdateTemplateProject();
+
+	useEffect(() => {
+		setIsSaving(isServerSaving);
+	}, [isServerSaving, setIsSaving]);
 
 	// Seed/localStorage init — skipped when waiting on a template fetch.
 	useEffect(() => {

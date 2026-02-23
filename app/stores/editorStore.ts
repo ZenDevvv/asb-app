@@ -60,6 +60,7 @@ const initialState: EditorState = {
   history: [],
   future: [],
   isDirty: false,
+  isSaving: false,
   device: "desktop",
   zoom: 100,
   lastSaved: null,
@@ -1009,6 +1010,12 @@ export const useEditorStore = create<EditorState & EditorActions>()(
     setLastSaved: (timestamp: string) => {
       set((state) => {
         state.lastSaved = timestamp;
+      });
+    },
+
+    setIsSaving: (value: boolean) => {
+      set((state) => {
+        state.isSaving = value;
       });
     },
 
