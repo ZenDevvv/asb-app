@@ -40,6 +40,7 @@ export default function EditorPage() {
 	const [addSectionModalOpen, setAddSectionModalOpen] = useState(false);
 	const isDirty = useEditorStore((s) => s.isDirty);
 	const saveToLocalStorage = useEditorStore((s) => s.saveToLocalStorage);
+	const setLastSaved = useEditorStore((s) => s.setLastSaved);
 	const locationState = location.state as EditorLocationState;
 	const editorSeed = locationState?.editorSeed;
 	const { templateId } = useParams<{ templateId?: string }>();
@@ -114,15 +115,23 @@ export default function EditorPage() {
 			const ctx = activeTemplateRef.current;
 			if (!ctx) return;
 			const { sections, globalStyle } = useEditorStore.getState();
-			updateTemplate({
-				templateProjectId: ctx.templateId,
-				data: {
-					pages: [{ ...ctx.pageMetadata, sections }],
-					globalStyle,
+			updateTemplate(
+				{
+					templateProjectId: ctx.templateId,
+					data: {
+						pages: [{ ...ctx.pageMetadata, sections }],
+						globalStyle,
+					},
 				},
-			});
+				{
+					onSuccess: (data) => {
+						const updatedAt = data?.templateProject?.updatedAt;
+						if (updatedAt) setLastSaved(new Date(updatedAt).toISOString());
+					},
+				},
+			);
 		}, 3000),
-		[saveToLocalStorage, updateTemplate],
+		[saveToLocalStorage, updateTemplate, setLastSaved],
 	);
 
 	useEffect(() => {
