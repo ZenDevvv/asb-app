@@ -61,7 +61,7 @@ function getVariantConfig(
     case "text":
       return {
         className: "cursor-pointer inline-flex items-center gap-1.5 transition-opacity hover:opacity-70",
-        style: {},
+        style: { color: accentColor },
       };
     case "solid":
     default:

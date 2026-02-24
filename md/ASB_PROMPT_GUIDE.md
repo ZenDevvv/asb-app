@@ -366,7 +366,7 @@ type BlockType =
   | "text"           // Body/paragraph text
   | "button"         // CTA button — variant (solid/outline/ghost/link/text) + text + link + optional iconLeft/iconRight
   | "card"           // Surface card with title/body/button/image
-  | "image"          // Single image with alt text
+  | "image"          // Single image with alt text — editableStyles: width (size-picker), opacity (0-100), height (0-800, 0=auto)
   | "icon"           // Material Symbol icon — plain icon only, no label
   | "spacer"         // Vertical space (height slider)
   | "badge"          // Small label/tag — variant (subtle/filled/outline/pill-dot) + text
@@ -410,7 +410,7 @@ interface BlockStyle {
   // Size (for images, icons, spacers)
   width?: "auto" | "sm" | "md" | "lg" | "full" | "custom";
   widthPx?: number;               // Custom divider width in px when width="custom"
-  height?: number;                // For spacers only, slider
+  height?: number;                // For spacers (8-128) and images (0-800, 0 = auto); slider
 
   // Appearance
   opacity?: number;               // 0-100 slider

@@ -23,15 +23,17 @@ export function ImageBlock({ block, globalStyle }: BlockComponentProps) {
   const widthClass = WIDTH_MAP[s.width || "full"] || "w-full";
   const radius = RADIUS_MAP[globalStyle.borderRadius || "md"] || "rounded-lg";
   const isLightTheme = globalStyle.themeMode === "light";
+  const heightStyle = s.height ? { height: s.height } : {};
 
   if (!src) {
     return (
       <div
-        className={`flex aspect-video items-center justify-center ${widthClass} ${radius}`}
+        className={`flex items-center justify-center ${widthClass} ${radius} ${s.height ? "" : "aspect-video"}`}
         style={{
           marginTop: s.marginTop ?? 0,
           marginBottom: s.marginBottom ?? 0,
           backgroundColor: isLightTheme ? "rgba(16,26,22,0.06)" : "rgba(255,255,255,0.05)",
+          ...heightStyle,
         }}
       >
         <span
@@ -56,6 +58,7 @@ export function ImageBlock({ block, globalStyle }: BlockComponentProps) {
         marginTop: s.marginTop ?? 0,
         marginBottom: s.marginBottom ?? 0,
         opacity: (s.opacity ?? 100) / 100,
+        ...heightStyle,
       }}
     />
   );

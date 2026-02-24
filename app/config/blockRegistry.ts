@@ -301,6 +301,7 @@ export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
         ],
       },
       { key: "opacity", label: "Opacity", type: "slider", min: 0, max: 100, step: 5 },
+      { key: "height", label: "Height", type: "slider", min: 0, max: 800, step: 8 },
     ],
     inlineEditable: false,
     colorOptions: { hasText: false, hasAccent: false },
