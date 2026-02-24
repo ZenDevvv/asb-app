@@ -211,7 +211,16 @@ The right sidebar changes based on what is selected:
 **When a GROUP is selected** (click group container on the canvas or from the left sidebar section tree):
 1. **Layout** — flexible picker for all groups (including navigation): segmented [1][2][3] column count tabs → distribution thumbnails (active matched by spans signature) → alignment buttons (top/center/bottom) → reversed On/Off toggle (multi-col only). Layout switching preserves flow block placement via per-layout slot memory; alignment and reversed are preserved across distribution changes within the same column count.
 2. **Blocks** — ordered list of blocks within the selected group. Clicking **+ Add Block** opens a grouped block picker modal (category rail + search + block cards). Users select a block card, then click **Insert Block**; for multi-column layouts, they can choose the target column/slot before inserting.
-3. **Group Style** — group-local spacing controls (top/bottom padding).
+3. **Group Style** — group-local spacing controls (top/bottom padding), surface preset (card/glass/bordered), corner radius, and block gap.
+4. **Column Styling** — only visible when the group has 2 or 3 columns. A column selector (Col 1 / Col 2 / Col 3 tabs) lets the user pick which column to style independently. Controls:
+   - **Preset** — dropdown select with built-in styles: **None** (clears all), **Card** (subtle light-gray border + sm shadow + padding), **Outlined** (border only), **Raised** (shadow only), **Frosted** (light background fill + border + sm shadow). All fields remain individually customizable after selecting a preset.
+   - **Border** group: border color picker (hex), border width slider (0–8 px), border radius slider (0–32 px).
+   - **Shadow** group: size buttons (None / S / M / L); shadow color picker (hex) shown only when a size is active.
+   - **Background** group: background color picker (hex).
+   - **Padding** group: horizontal padding slider (0–64 px), vertical padding slider (0–64 px).
+   - All color pickers use `ColorControl` (react-colorful HexColorPicker + hex text input). Always store and display hex strings — never rgba/rgb strings.
+   - Column styles are stored in `GroupStyle.columnStyles` as a `Record<number, ColumnStyle>` (0-based index). Applied per-slot in `GroupRenderer` via `getColumnContainerStyle()`.
+   - Store action: `updateGroupColumnStyle(sectionId, groupId, colIndex, Partial<ColumnStyle>)`.
 
 4. **Canvas Selection Border** - selected group uses a solid highlight border while Group Mode is active.
 
@@ -437,6 +446,18 @@ interface Group {
   style?: GroupStyle;             // Optional group-local spacing controls
 }
 
+interface ColumnStyle {
+  preset?: "none" | "card";       // "card" applies card-like defaults; individual fields are always customizable
+  borderColor?: string;           // Hex color for the column border
+  borderWidth?: number;           // Border thickness in px (0–8)
+  borderRadius?: number;          // Corner radius in px (0–32)
+  shadowColor?: string;           // Hex color for the column drop shadow
+  shadowSize?: "none" | "sm" | "md" | "lg";  // Shadow intensity
+  backgroundColor?: string;      // Hex color for the column background fill
+  paddingX?: number;              // Horizontal inner padding in px (0–64)
+  paddingY?: number;              // Vertical inner padding in px (0–64)
+}
+
 interface GroupStyle {
   paddingTop?: number;            // Group inner top spacing (px)
   paddingBottom?: number;         // Group inner bottom spacing (px)
@@ -445,6 +466,7 @@ interface GroupStyle {
   surface?: "none" | "card" | "glass" | "bordered";  // Visual surface applied to the group container
   borderRadius?: "none" | "sm" | "md" | "lg";         // Corner radius when surface is active (default "md")
   gap?: "sm" | "md" | "lg" | "xl";                    // Spacing between blocks within each slot
+  columnStyles?: Record<number, ColumnStyle>;          // Per-column styling, keyed by 0-based column index
 }
 
 interface Section {

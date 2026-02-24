@@ -84,6 +84,18 @@ export interface SectionStyle {
   accentColor?: string;
 }
 
+export interface ColumnStyle {
+  preset?: "none" | "card" | "outlined" | "raised" | "frosted";
+  borderColor?: string;
+  borderWidth?: number;    // px, 0–8
+  borderRadius?: number;   // px, 0–24
+  shadowColor?: string;
+  shadowSize?: "none" | "sm" | "md" | "lg";
+  backgroundColor?: string;
+  paddingX?: number;       // px, 0–64
+  paddingY?: number;       // px, 0–64
+}
+
 export interface GroupStyle {
   paddingTop?: number;
   paddingBottom?: number;
@@ -92,6 +104,7 @@ export interface GroupStyle {
   surface?: "none" | "card" | "glass" | "bordered";
   borderRadius?: "none" | "sm" | "md" | "lg";
   gap?: "sm" | "md" | "lg" | "xl";
+  columnStyles?: Record<number, ColumnStyle>; // key = 0-based column index
 }
 
 export interface LayoutSlotMemoryEntry {
@@ -259,6 +272,7 @@ export interface EditorActions {
   ) => void;
   updateSectionStyle: (id: string, style: Partial<SectionStyle>) => void;
   updateGroupStyle: (sectionId: string, groupId: string, style: Partial<GroupStyle>) => void;
+  updateGroupColumnStyle: (sectionId: string, groupId: string, colIndex: number, style: Partial<ColumnStyle>) => void;
 
   // Block CRUD
   addBlock: (

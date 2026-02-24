@@ -4,8 +4,16 @@ import { BLOCK_REGISTRY } from "~/config/blockRegistry";
 import { LAYOUT_TEMPLATES } from "~/config/layoutTemplates";
 import { AddBlockModal } from "./AddBlockModal";
 import { SettingsCollapsibleSection } from "./SettingsCollapsibleSection";
+import { ColorControl } from "~/components/controls/ColorControl";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
 import { cn } from "~/lib/utils";
-import type { Group, GroupStyle, LayoutTemplate, Section } from "~/types/editor";
+import type { ColumnStyle, Group, GroupStyle, LayoutTemplate, Section } from "~/types/editor";
 
 interface GroupModeSettingsProps {
   section: Section;
@@ -41,6 +49,7 @@ export function GroupModeSettings({
   const updateGroupLayout = useEditorStore((s) => s.updateGroupLayout);
   const updateGroupLayoutOptions = useEditorStore((s) => s.updateGroupLayoutOptions);
   const updateGroupStyle = useEditorStore((s) => s.updateGroupStyle);
+  const updateGroupColumnStyle = useEditorStore((s) => s.updateGroupColumnStyle);
   const renameGroup = useEditorStore((s) => s.renameGroup);
   const selectBlock = useEditorStore((s) => s.selectBlock);
 
@@ -49,9 +58,11 @@ export function GroupModeSettings({
     layout: true,
     blocks: true,
     groupStyle: false,
+    columnStyle: false,
   });
+  const [selectedColIndex, setSelectedColIndex] = useState(0);
 
-  const togglePanel = (key: "layout" | "blocks" | "groupStyle") => {
+  const togglePanel = (key: "layout" | "blocks" | "groupStyle" | "columnStyle") => {
     setOpenSections((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
@@ -395,6 +406,26 @@ export function GroupModeSettings({
           </div>
         </div>
       </SettingsCollapsibleSection>
+
+      {/* Column Styling — only available when 2 or 3 columns */}
+      {colCount > 1 && (
+        <SettingsCollapsibleSection
+          title="Column Styling"
+          isOpen={openSections.columnStyle}
+          onToggle={() => togglePanel("columnStyle")}
+        >
+          <ColumnStylingPanel
+            section={section}
+            activeGroup={activeGroup}
+            colCount={colCount as 2 | 3}
+            selectedColIndex={selectedColIndex}
+            onSelectCol={setSelectedColIndex}
+            onUpdate={(style: Partial<ColumnStyle>) =>
+              updateGroupColumnStyle(section.id, activeGroup.id, selectedColIndex, style)
+            }
+          />
+        </SettingsCollapsibleSection>
+      )}
     </>
   );
 }
@@ -420,6 +451,277 @@ function getBlockPreviewText(props: Record<string, unknown>): string {
   if (typeof props.src === "string" && props.src) return "Image";
   if (Array.isArray(props.items)) return `${props.items.length} items`;
   return "";
+}
+
+// ─── Column presets ──────────────────────────────────────────────────────────
+type ColumnPreset = NonNullable<ColumnStyle["preset"]>;
+
+const COLUMN_PRESETS: Record<ColumnPreset, { label: string; defaults: Partial<ColumnStyle> }> = {
+  none: {
+    label: "None",
+    defaults: {
+      preset: "none",
+      borderColor: undefined,
+      borderWidth: 0,
+      borderRadius: 0,
+      shadowColor: undefined,
+      shadowSize: "none",
+      backgroundColor: undefined,
+      paddingX: 0,
+      paddingY: 0,
+    },
+  },
+  card: {
+    label: "Card",
+    defaults: {
+      preset: "card",
+      borderColor: "#d1d5db",
+      borderWidth: 1,
+      borderRadius: 10,
+      shadowColor: "#cecece",
+      shadowSize: "sm",
+      backgroundColor: undefined,
+      paddingX: 20,
+      paddingY: 20,
+    },
+  },
+  outlined: {
+    label: "Outlined",
+    defaults: {
+      preset: "outlined",
+      borderColor: "#94a3b8",
+      borderWidth: 1,
+      borderRadius: 8,
+      shadowSize: "none",
+      shadowColor: undefined,
+      backgroundColor: undefined,
+      paddingX: 16,
+      paddingY: 16,
+    },
+  },
+  raised: {
+    label: "Raised",
+    defaults: {
+      preset: "raised",
+      borderWidth: 0,
+      borderColor: undefined,
+      shadowColor: "#c9c9c9",
+      shadowSize: "md",
+      borderRadius: 12,
+      backgroundColor: undefined,
+      paddingX: 20,
+      paddingY: 20,
+    },
+  },
+  frosted: {
+    label: "Frosted",
+    defaults: {
+      preset: "frosted",
+      backgroundColor: "#f8fafc",
+      borderColor: "#e2e8f0",
+      borderWidth: 1,
+      borderRadius: 12,
+      shadowSize: "sm",
+      shadowColor: "#c9c9c9",
+      paddingX: 20,
+      paddingY: 20,
+    },
+  },
+};
+
+interface ColumnStylingPanelProps {
+  section: Section;
+  activeGroup: Group;
+  colCount: 2 | 3;
+  selectedColIndex: number;
+  onSelectCol: (index: number) => void;
+  onUpdate: (style: Partial<ColumnStyle>) => void;
+}
+
+function ColumnStylingPanel({
+  activeGroup,
+  colCount,
+  selectedColIndex,
+  onSelectCol,
+  onUpdate,
+}: ColumnStylingPanelProps) {
+  const colStyle: ColumnStyle = activeGroup.style?.columnStyles?.[selectedColIndex] ?? {};
+  const activePreset: ColumnPreset = colStyle.preset ?? "none";
+
+  function handlePresetChange(preset: ColumnPreset) {
+    onUpdate({ ...COLUMN_PRESETS[preset].defaults });
+  }
+
+  return (
+    <div className="space-y-3">
+      {/* Column selector */}
+      <div className="space-y-1.5">
+        <label className="text-xs font-medium text-muted-foreground">Column</label>
+        <div className="flex gap-1">
+          {Array.from({ length: colCount }, (_, i) => (
+            <button
+              key={i}
+              onClick={() => onSelectCol(i)}
+              className={cn(
+                "flex-1 rounded-lg border py-1.5 text-[11px] font-medium transition-colors",
+                selectedColIndex === i
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-border bg-muted/20 text-muted-foreground hover:border-primary/30",
+              )}
+            >
+              Col {i + 1}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Preset */}
+      <div className="space-y-1.5">
+        <label className="text-xs font-medium text-muted-foreground">Preset</label>
+        <Select value={activePreset} onValueChange={(v) => handlePresetChange(v as ColumnPreset)}>
+          <SelectTrigger className="h-8 w-full rounded-lg border border-border/50 bg-muted/20 px-3 text-xs font-medium text-foreground shadow-none ring-0 transition-colors hover:border-border hover:bg-muted/40 focus-visible:ring-0 data-[state=open]:border-primary/50 data-[state=open]:bg-muted/40">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {(Object.keys(COLUMN_PRESETS) as ColumnPreset[]).map((key) => (
+              <SelectItem key={key} value={key} className="text-xs">
+                {COLUMN_PRESETS[key].label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Border */}
+      <div className="space-y-1.5 rounded-xl border border-border/50 p-2.5">
+        <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground/70">
+          Border
+        </p>
+        <ColorControl
+          label="Border Color"
+          value={colStyle.borderColor ?? "#ffffff"}
+          onChange={(v) => onUpdate({ borderColor: v })}
+        />
+        <div className="space-y-1">
+          <div className="flex items-center justify-between">
+            <label className="text-xs font-medium text-muted-foreground">Border Width</label>
+            <span className="text-[10px] text-muted-foreground">
+              {colStyle.borderWidth ?? 0}px
+            </span>
+          </div>
+          <input
+            type="range"
+            min={0}
+            max={8}
+            step={1}
+            value={colStyle.borderWidth ?? 0}
+            onChange={(e) => onUpdate({ borderWidth: Number(e.target.value) })}
+            className="w-full accent-primary"
+          />
+        </div>
+        <div className="space-y-1">
+          <div className="flex items-center justify-between">
+            <label className="text-xs font-medium text-muted-foreground">Border Radius</label>
+            <span className="text-[10px] text-muted-foreground">
+              {colStyle.borderRadius ?? 0}px
+            </span>
+          </div>
+          <input
+            type="range"
+            min={0}
+            max={32}
+            step={2}
+            value={colStyle.borderRadius ?? 0}
+            onChange={(e) => onUpdate({ borderRadius: Number(e.target.value) })}
+            className="w-full accent-primary"
+          />
+        </div>
+      </div>
+
+      {/* Shadow */}
+      <div className="space-y-1.5 rounded-xl border border-border/50 p-2.5">
+        <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground/70">
+          Shadow
+        </p>
+        <div className="flex gap-1">
+          {(["none", "sm", "md", "lg"] as const).map((size) => (
+            <button
+              key={size}
+              onClick={() => onUpdate({ shadowSize: size })}
+              className={cn(
+                "flex-1 rounded-lg border py-1.5 text-[10px] font-medium uppercase transition-colors",
+                (colStyle.shadowSize ?? "none") === size
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-border bg-muted/20 text-muted-foreground hover:border-primary/30",
+              )}
+            >
+              {size}
+            </button>
+          ))}
+        </div>
+        {(colStyle.shadowSize ?? "none") !== "none" && (
+          <ColorControl
+            label="Shadow Color"
+            value={colStyle.shadowColor ?? "#c9c9c9"}
+            onChange={(v) => onUpdate({ shadowColor: v })}
+          />
+        )}
+      </div>
+
+      {/* Background */}
+      <div className="space-y-1.5 rounded-xl border border-border/50 p-2.5">
+        <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground/70">
+          Background
+        </p>
+        <ColorControl
+          label="Background Color"
+          value={colStyle.backgroundColor ?? "#ffffff"}
+          onChange={(v) => onUpdate({ backgroundColor: v })}
+        />
+      </div>
+
+      {/* Padding */}
+      <div className="space-y-1.5 rounded-xl border border-border/50 p-2.5">
+        <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground/70">
+          Padding
+        </p>
+        <div className="space-y-1">
+          <div className="flex items-center justify-between">
+            <label className="text-xs font-medium text-muted-foreground">Horizontal</label>
+            <span className="text-[10px] text-muted-foreground">
+              {colStyle.paddingX ?? 0}px
+            </span>
+          </div>
+          <input
+            type="range"
+            min={0}
+            max={64}
+            step={4}
+            value={colStyle.paddingX ?? 0}
+            onChange={(e) => onUpdate({ paddingX: Number(e.target.value) })}
+            className="w-full accent-primary"
+          />
+        </div>
+        <div className="space-y-1">
+          <div className="flex items-center justify-between">
+            <label className="text-xs font-medium text-muted-foreground">Vertical</label>
+            <span className="text-[10px] text-muted-foreground">
+              {colStyle.paddingY ?? 0}px
+            </span>
+          </div>
+          <input
+            type="range"
+            min={0}
+            max={64}
+            step={4}
+            value={colStyle.paddingY ?? 0}
+            onChange={(e) => onUpdate({ paddingY: Number(e.target.value) })}
+            className="w-full accent-primary"
+          />
+        </div>
+      </div>
+    </div>
+  );
 }
 
 

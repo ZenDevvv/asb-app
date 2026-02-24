@@ -15,6 +15,7 @@ import type {
   SectionType,
   SectionStyle,
   GroupStyle,
+  ColumnStyle,
   GlobalStyle,
   DeviceMode,
   EditorState,
@@ -614,6 +615,24 @@ export const useEditorStore = create<EditorState & EditorActions>()(
         if (!group) return;
 
         group.style = { ...(group.style || {}), ...style };
+        state.isDirty = true;
+      });
+    },
+
+    updateGroupColumnStyle: (sectionId: string, groupId: string, colIndex: number, style: Partial<ColumnStyle>) => {
+      set((state) => {
+        const section = findSection(state, sectionId);
+        if (!section) return;
+
+        const group = findGroup(section, groupId);
+        if (!group) return;
+
+        if (!group.style) group.style = {};
+        if (!group.style.columnStyles) group.style.columnStyles = {};
+        group.style.columnStyles[colIndex] = {
+          ...(group.style.columnStyles[colIndex] || {}),
+          ...style,
+        };
         state.isDirty = true;
       });
     },

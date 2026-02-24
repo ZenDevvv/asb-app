@@ -4,6 +4,7 @@ import { hexToRgba } from "~/lib/colorSystem";
 import type {
 	Block,
 	BlockStyle,
+	ColumnStyle,
 	GlobalStyle,
 	Group,
 	LayoutTemplate,
@@ -90,6 +91,37 @@ function getGroupContainerStyle(
 		style.border = `1px solid ${hexToRgba(accentColor, isDark ? 0.34 : 0.26)}`;
 	} else if (surface === "bordered") {
 		style.border = `1px solid ${hexToRgba(accentColor, isDark ? 0.36 : 0.28)}`;
+	}
+
+	return style;
+}
+
+const SHADOW_MAP: Record<string, string> = {
+	none: "none",
+	sm: "0 2px 8px",
+	md: "0 4px 16px",
+	lg: "0 8px 32px",
+};
+
+function getColumnContainerStyle(colStyle: ColumnStyle | undefined): React.CSSProperties {
+	if (!colStyle || colStyle.preset === "none") return {};
+
+	const style: React.CSSProperties = {};
+
+	if (colStyle.backgroundColor) style.backgroundColor = colStyle.backgroundColor;
+	if (colStyle.paddingX != null || colStyle.paddingY != null) {
+		style.paddingLeft = colStyle.paddingX ?? 0;
+		style.paddingRight = colStyle.paddingX ?? 0;
+		style.paddingTop = colStyle.paddingY ?? 0;
+		style.paddingBottom = colStyle.paddingY ?? 0;
+	}
+	if (colStyle.borderRadius != null) style.borderRadius = colStyle.borderRadius;
+	if ((colStyle.borderWidth ?? 0) > 0 && colStyle.borderColor) {
+		style.border = `${colStyle.borderWidth}px solid ${colStyle.borderColor}`;
+	}
+	const shadowBase = SHADOW_MAP[colStyle.shadowSize ?? "none"];
+	if (shadowBase && shadowBase !== "none" && colStyle.shadowColor) {
+		style.boxShadow = `${shadowBase} ${colStyle.shadowColor}`;
 	}
 
 	return style;
@@ -417,9 +449,12 @@ export function GroupRenderer({
 						gridTemplateColumns: layout.spans.map((s) => `${s}fr`).join(" "),
 						direction: layout.reversed ? "rtl" : "ltr",
 					}}>
-					{layout.slots.map((slotName) => {
+					{layout.slots.map((slotName, slotIndex) => {
 						const isActiveFlowDropSlot =
 							isDraggingFlowBlock && flowDropTarget?.slot === slotName;
+						const colStyle = getColumnContainerStyle(
+							group.style?.columnStyles?.[slotIndex],
+						);
 
 						return (
 							<div
@@ -427,12 +462,12 @@ export function GroupRenderer({
 								ref={(element) => {
 									slotRefs.current[slotName] = element;
 								}}
-								className={`relative flex min-h-full flex-col rounded-md transition-colors ${slotContentAlignmentClass} ${
+								className={`relative flex min-h-full flex-col transition-colors ${slotContentAlignmentClass} ${
 									isActiveFlowDropSlot
 										? "bg-primary/10 ring-2 ring-primary/50"
 										: ""
 								}`}
-								style={{ direction: "ltr", gap: slotGap }}>
+								style={{ direction: "ltr", gap: slotGap, ...colStyle }}>
 								{blocksBySlot[slotName]?.map((block) => {
 									const isBlockSelected = block.id === selectedBlockId;
 									const canDragSelectedFlowBlock =
