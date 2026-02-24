@@ -226,7 +226,7 @@ The right sidebar changes based on what is selected:
 
 **When a BLOCK is selected** (click a specific block on the canvas):
 1. **Block Content** - auto-generated controls based on block type (text input, image upload, etc.)
-2. **Block Style** - constrained style options for that block (size, alignment, spacing, letter spacing). `heading` and `text` blocks also expose a **Font Family** control that opens the same Typography Settings modal used in Global Settings; selecting a font applies a block-level override.
+2. **Block Style** - constrained style options for that block (size, alignment, spacing, letter spacing). `heading`, `text`, and `button` blocks also expose a **Font Family** control that opens the same Typography Settings modal used in Global Settings; selecting a font applies a block-level override.
 3. **Position** - collapsible panel with:
    - **Column** — slot/column picker (shown only when the group layout has multiple slots and the block is in flow mode). Allows moving the block to a different column after it was added. Calls `moveBlockToSlot` / `moveBlockToSlotAtIndex` store actions.
    - **Flow / Absolute** toggle — choose positioning mode. Absolute blocks are positioned relative to the selected group and can be moved on the canvas by dragging.
@@ -364,7 +364,7 @@ EDITOR DOES NOT HAVE (by design):
 type BlockType =
   | "heading"        // H1-H4 text with size/weight/style options
   | "text"           // Body/paragraph text
-  | "button"         // CTA button — variant (solid/outline/ghost/link) + text + link + optional iconLeft/iconRight
+  | "button"         // CTA button — variant (solid/outline/ghost/link/text) + text + link + optional iconLeft/iconRight
   | "card"           // Surface card with title/body/button/image
   | "image"          // Single image with alt text
   | "icon"           // Material Symbol icon — plain icon only, no label
@@ -392,7 +392,7 @@ interface Block {
 
 interface BlockStyle {
   // Text
-  fontFamily?: string;            // Optional block-level font override (currently used by heading/text blocks)
+  fontFamily?: string;            // Optional block-level font override (heading, text, button blocks)
   fontSize?: "sm" | "base" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "5xl" | "custom";
   fontSizePx?: number;            // Custom heading/text size in px when fontSize="custom"
   fontWeight?: "normal" | "medium" | "semibold" | "bold";
@@ -662,7 +662,7 @@ Rules for block components:
   iconRight?: string;  // Material Symbol name, set via icon-picker modal â€” empty string = no icon
 }
 // variant drives className/style branching in ButtonBlock.tsx
-// all 4 variants inherit accentColor from sectionStyle (or globalStyle.primaryColor)
+// all variants except "text" inherit accentColor from sectionStyle (or globalStyle.primaryColor)
 // globalStyle.borderRadius applies to solid, outline, ghost â€” NOT link
 // iconLeft/iconRight use "icon-picker" control in editableProps; render as <span class="material-symbols-outlined"> inside the <a>
 // icon size tracks block.style.fontSize: sm=16, base=18, lg=20, xl=22px
@@ -807,7 +807,7 @@ BlockStyle.colorMode        -> "global" (default): block derives text/accent fro
                                "custom": block uses its own textColor/accentColor
 BlockStyle.textColor        â†’ custom text color (only active when colorMode="custom")
 BlockStyle.accentColor      â†’ custom accent color (only active when colorMode="custom")
-BlockStyle.fontFamily       â†’ optional block-level font override (heading/text currently use this)
+BlockStyle.fontFamily       â†’ optional block-level font override (heading, text, button blocks)
 BlockStyle.fontSize         â†’ block-level size choice (heading/text support presets + "custom")
 BlockStyle.fontSizePx       â†’ heading/text custom size in px (applies when fontSize="custom")
 BlockStyle.fontWeight       â†’ block-level weight choice (where supported)
@@ -1591,6 +1591,8 @@ This contract ensures AI output can be validated and loaded directly into the ed
 
 ---
 
+*Document Version: 3.58 - Added "text" variant to button block. ButtonBlock now supports a plain-text style (no background, border, or underline) via a new "text" case in `getVariantConfig`. All button variants now include `cursor-pointer`. `blockRegistry.ts` adds the "Text" option to the button variant select.*
+*Document Version: 3.58 - Added block-level font override to `button` block. `ButtonBlock.tsx` now applies `s.fontFamily || globalStyle.fontFamily` as an inline `fontFamily` on the `<a>` element. `BlockSettings.tsx` and `StylePanel.tsx` updated `supportsFontOverride` to include `block.type === "button"`, exposing the Font Family picker in the Style panel for button blocks the same way as `heading` and `text`.*
 *Document Version: 3.57 - Fixed Group Mode delete action in `SettingsPanel.tsx`. The header Delete button now calls `removeGroup(sectionId, groupId)` when `isGroupMode && activeGroup` is true (previously always called `removeSection`, deleting the whole section). `removeGroup` is now imported from `editorStore`. Duplicate was already correct.*
 *Document Version: 3.57 - Added `fontWeight` control to `text` block. `TextBlock.tsx` now includes a `FONT_WEIGHT_MAP` and applies `block.style.fontWeight` via Tailwind class (default: `"normal"`). `blockRegistry.ts` adds `fontWeight: "normal"` to `text` defaultStyle and a Weight size-picker (Normal/Medium/Bold) to `text` editableStyles, matching the existing `heading` block behavior.*
 *Document Version: 3.56 - Removed `label` prop from `icon` block. IconBlock now renders a plain icon only — no caption/text below. Removed `label` from `icon` defaultProps and editableProps in blockRegistry. `colorOptions` for `icon` changed to `{ hasText: false, hasAccent: true }` — text color no longer exposed in Block Mode color settings; only accent color controls the icon.*

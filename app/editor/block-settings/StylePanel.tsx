@@ -83,7 +83,7 @@ export function StylePanel({
 		return null;
 	}
 
-	const supportsFontOverride = block.type === "heading" || block.type === "text";
+	const supportsFontOverride = block.type === "heading" || block.type === "text" || block.type === "button";
 	const effectiveFontValue = block.style.fontFamily || globalFontFamily;
 	const selectedFont = resolveFontOption(effectiveFontValue);
 	const hasBlockFontOverride =

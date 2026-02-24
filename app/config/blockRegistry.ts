@@ -184,6 +184,7 @@ export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
           { label: "Outline", value: "outline" },
           { label: "Ghost", value: "ghost" },
           { label: "Link", value: "link" },
+          { label: "Text", value: "text" },
         ],
       },
       { key: "iconLeft", label: "Left Icon", type: "icon-picker" },

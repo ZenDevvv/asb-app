@@ -1,7 +1,7 @@
 import type { BlockComponentProps } from "~/types/editor";
 import { resolveAccentColor } from "~/lib/blockColors";
 
-type ButtonVariant = "solid" | "outline" | "ghost" | "link";
+type ButtonVariant = "solid" | "outline" | "ghost" | "link" | "text";
 
 const RADIUS_MAP: Record<string, string> = {
   none: "rounded-none",
@@ -45,23 +45,28 @@ function getVariantConfig(
   switch (variant) {
     case "outline":
       return {
-        className: `inline-flex items-center gap-2 font-semibold transition-opacity hover:opacity-80 border-2 ${radius} ${sizeClass}`,
+        className: `cursor-pointer inline-flex items-center gap-2 font-semibold transition-opacity hover:opacity-80 border-2 ${radius} ${sizeClass}`,
         style: { color: accentColor, borderColor: accentColor, backgroundColor: "transparent" },
       };
     case "ghost":
       return {
-        className: `inline-flex items-center gap-2 font-semibold transition-opacity hover:opacity-80 ${radius} ${sizeClass}`,
+        className: `cursor-pointer inline-flex items-center gap-2 font-semibold transition-opacity hover:opacity-80 ${radius} ${sizeClass}`,
         style: { color: accentColor, backgroundColor: `${accentColor}14` },
       };
     case "link":
       return {
-        className: "inline-flex items-center gap-1.5 font-semibold transition-opacity hover:opacity-70 underline underline-offset-4",
+        className: "cursor-pointer inline-flex items-center gap-1.5 font-semibold transition-opacity hover:opacity-70 underline underline-offset-4",
         style: { color: accentColor },
+      };
+    case "text":
+      return {
+        className: "cursor-pointer inline-flex items-center gap-1.5 transition-opacity hover:opacity-70",
+        style: {},
       };
     case "solid":
     default:
       return {
-        className: `inline-flex items-center gap-2 font-semibold text-white transition-opacity hover:opacity-90 ${radius} ${sizeClass}`,
+        className: `cursor-pointer inline-flex items-center gap-2 font-semibold text-white transition-opacity hover:opacity-90 ${radius} ${sizeClass}`,
         style: { backgroundColor: accentColor },
       };
   }
@@ -110,7 +115,7 @@ export function ButtonBlock({
         href={isEditing ? undefined : url || "#"}
         onClick={handleClick}
         className={variantClass}
-        style={variantStyle}
+        style={{ ...variantStyle, fontFamily: s.fontFamily || globalStyle.fontFamily }}
       >
         {iconLeft ? (
           <span className="material-symbols-outlined" style={{ fontSize: iconSize }}>
