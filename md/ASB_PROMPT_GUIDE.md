@@ -731,7 +731,12 @@ Rules for block components:
 // custom width range: 40-1600px via slider + numeric input in Block Mode
 // opacity: 0-100 slider (maps to block.style.opacity)
 // renderer behavior in DividerBlock.tsx:
-//   - width presets use the shared width map (max-w-sm/max-w-md/max-w-lg/w-full)
+//   - width presets use percentage-based inline widths relative to the parent container:
+//       "sm"   → width: 25%
+//       "md"   → width: 50%
+//       "lg"   → width: 75%
+//       "full" → width: 100%
+//   - all presets also set max-width: 100% to prevent overflow in narrow columns (e.g. group 3x3)
 //   - custom width applies inline `width: ${block.style.widthPx}px` (clamped) + `max-width: 100%`
 //   - line color comes from resolveTextColor(block.style, globalStyle)
 //   - opacity applies as (block.style.opacity ?? 20) / 100
@@ -1108,6 +1113,9 @@ POST /api/projects/:id/publish
     - "full" â†’ w-full
     - "custom" â†’ divider block uses inline `width: ${block.style.widthPx}px` (clamped) + `max-width: 100%`
 ```
+    NOTE: DividerBlock does NOT use the Tailwind class map above. Divider width presets
+    are percentage-based relative to the parent column: sm=25%, md=50%, lg=75%, full=100%,
+    all with max-width: 100% to respect narrow group columns (e.g. 3x3 grid).
 
 ---
 
@@ -1585,6 +1593,7 @@ This contract ensures AI output can be validated and loaded directly into the ed
 
 *Document Version: 3.57 - Fixed Group Mode delete action in `SettingsPanel.tsx`. The header Delete button now calls `removeGroup(sectionId, groupId)` when `isGroupMode && activeGroup` is true (previously always called `removeSection`, deleting the whole section). `removeGroup` is now imported from `editorStore`. Duplicate was already correct.*
 *Document Version: 3.56 - Removed `label` prop from `icon` block. IconBlock now renders a plain icon only — no caption/text below. Removed `label` from `icon` defaultProps and editableProps in blockRegistry. `colorOptions` for `icon` changed to `{ hasText: false, hasAccent: true }` — text color no longer exposed in Block Mode color settings; only accent color controls the icon.*
+*Document Version: 3.56 - Fixed DividerBlock width to be relative to parent container. Width presets (S/M/L/Full) now use percentage-based inline styles (25%/50%/75%/100%) instead of absolute Tailwind max-w-* classes, ensuring dividers respect group column widths in multi-column layouts.*
 *Document Version: 3.55 - Connected template creation to backend. CreateTemplateModal wired to useCreateTemplateProject (name, category, tags, description, blank/basic seed). EditorPage now reads editorSeed location state to initialize blank/basic canvas on template create. EDITOR_STORAGE_KEY and DEFAULT_GLOBAL_STYLE exported from editorStore. Updated Template schema (createdById, seo, isDeleted, updatedAt), admin templates route documented.*
 *Document Version: 3.54 - Removed editor-state backward-compatibility paths. `editorStore` localStorage/debug import now expects only the current schema, with no legacy migration/normalization branches. `EditorDebugBackdoor` import accepts only `{ state: { sections, globalStyle } }` (export shape).*
 *Document Version: 3.53 - Redesigned `AddSectionModal` into a preset picker (category rail + search + card selection + confirm footer), added a `custom` blank section preset, and moved section naming to instance-level state via editable `Section.label` in Section Mode settings. Section labels in canvas/sidebar/settings now resolve from `Section.label` instead of fixed registry labels.*

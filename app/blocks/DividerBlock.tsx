@@ -1,12 +1,11 @@
 import type { BlockComponentProps } from "~/types/editor";
 import { resolveTextColor } from "~/lib/blockColors";
 
-const WIDTH_MAP: Record<string, string> = {
-	auto: "w-auto",
-	sm: "max-w-sm",
-	md: "max-w-md",
-	lg: "max-w-lg",
-	full: "w-full",
+const RELATIVE_WIDTH_MAP: Record<string, string> = {
+	sm: "25%",
+	md: "50%",
+	lg: "75%",
+	full: "100%",
 };
 const CUSTOM_WIDTH_MIN = 40;
 const CUSTOM_WIDTH_MAX = 1600;
@@ -23,18 +22,20 @@ export function DividerBlock({ block, globalStyle }: BlockComponentProps) {
 	const s = block.style;
 	const color = resolveTextColor(s, globalStyle);
 	const isCustomWidth = s.width === "custom";
-	const widthClass = WIDTH_MAP[s.width || "full"] || "w-full";
 	const customWidthPx = clampCustomWidth(
 		typeof s.widthPx === "number" ? s.widthPx : CUSTOM_WIDTH_DEFAULT,
 	);
+	const relativeWidth = isCustomWidth
+		? undefined
+		: (RELATIVE_WIDTH_MAP[s.width || "full"] ?? "100%");
 
 	return (
 		<hr
-			className={`border-0 ${!isCustomWidth ? widthClass : ""}`}
+			className="border-0"
 			style={{
 				height: 1,
-				width: isCustomWidth ? `${customWidthPx}px` : undefined,
-				maxWidth: isCustomWidth ? "100%" : undefined,
+				width: isCustomWidth ? `${customWidthPx}px` : relativeWidth,
+				maxWidth: "100%",
 				backgroundColor: color,
 				opacity: (s.opacity ?? 20) / 100,
 				marginTop: s.marginTop ?? 16,
