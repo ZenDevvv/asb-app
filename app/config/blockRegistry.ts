@@ -300,11 +300,10 @@ export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
     label: "Icon",
     icon: "emoji_symbols",
     category: "media",
-    defaultProps: { icon: "star", label: "", displayStyle: "plain", bgOpacity: "medium" },
+    defaultProps: { icon: "star", displayStyle: "plain", bgOpacity: "medium" },
     defaultStyle: { fontSize: "xl", textAlign: "left" },
     editableProps: [
       { key: "icon", label: "Icon", type: "icon-picker" },
-      { key: "label", label: "Label", type: "short-text" },
       {
         key: "displayStyle",
         label: "Display",
@@ -351,7 +350,7 @@ export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
       },
     ],
     inlineEditable: false,
-    colorOptions: { hasText: true, hasAccent: true },
+    colorOptions: { hasText: false, hasAccent: true },
   },
 
   spacer: {

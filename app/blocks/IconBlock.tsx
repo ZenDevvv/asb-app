@@ -1,5 +1,5 @@
 import type { BlockComponentProps } from "~/types/editor";
-import { resolveTextColor, resolveAccentColor } from "~/lib/blockColors";
+import { resolveAccentColor } from "~/lib/blockColors";
 
 const SIZE_MAP: Record<string, number> = {
   sm: 24,
@@ -32,9 +32,8 @@ function hexToRgba(hex: string, alpha: number): string {
 }
 
 export function IconBlock({ block, globalStyle }: BlockComponentProps) {
-  const { icon, label, displayStyle = "plain", bgOpacity = "medium" } = block.props as {
+  const { icon, displayStyle = "plain", bgOpacity = "medium" } = block.props as {
     icon: string;
-    label?: string;
     displayStyle?: string;
     bgOpacity?: string;
   };
@@ -84,11 +83,6 @@ export function IconBlock({ block, globalStyle }: BlockComponentProps) {
         >
           {iconEl}
         </div>
-      )}
-      {label && (
-        <p className="mt-1 text-sm" style={{ color: resolveTextColor(s, globalStyle) }}>
-          {label}
-        </p>
       )}
     </div>
   );

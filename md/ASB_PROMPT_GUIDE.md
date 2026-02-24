@@ -358,7 +358,7 @@ type BlockType =
   | "button"         // CTA button — variant (solid/outline/ghost/link) + text + link + optional iconLeft/iconRight
   | "card"           // Surface card with title/body/button/image
   | "image"          // Single image with alt text
-  | "icon"           // Material Symbol icon with optional label
+  | "icon"           // Material Symbol icon — plain icon only, no label
   | "spacer"         // Vertical space (height slider)
   | "badge"          // Small label/tag — variant (subtle/filled/outline/pill-dot) + text
   | "divider"        // Horizontal line
@@ -685,11 +685,12 @@ Rules for block components:
 // icon block.props shape
 {
   icon: string;          // Material Symbol name (e.g., "star", "bolt", "rocket_launch")
-  label?: string;        // Optional text label below the icon
   displayStyle?: "plain" | "circle" | "square" | "rounded-square";  // default: "plain"
   bgOpacity?: "subtle" | "medium" | "strong";  // default: "medium" — only when displayStyle != "plain"
 }
-// "plain" renders just the icon (and label if set) with no container background
+// No label — icon block renders the icon only (no caption/text below)
+// colorOptions: { hasText: false, hasAccent: true } — only accent color is exposed in Block Mode color settings
+// "plain" renders just the icon with no container background
 // "circle" / "square" / "rounded-square" wrap the icon in an inline-flex div with:
 //   - tinted background using accentColor via hexToRgba() helper in IconBlock.tsx
 //   - bgOpacity maps to alpha: subtle=0.10, medium=0.18, strong=0.28
@@ -1559,6 +1560,7 @@ This contract ensures AI output can be validated and loaded directly into the ed
 
 ---
 
+*Document Version: 3.56 - Removed `label` prop from `icon` block. IconBlock now renders a plain icon only — no caption/text below. Removed `label` from `icon` defaultProps and editableProps in blockRegistry. `colorOptions` for `icon` changed to `{ hasText: false, hasAccent: true }` — text color no longer exposed in Block Mode color settings; only accent color controls the icon.*
 *Document Version: 3.55 - Connected template creation to backend. CreateTemplateModal wired to useCreateTemplateProject (name, category, tags, description, blank/basic seed). EditorPage now reads editorSeed location state to initialize blank/basic canvas on template create. EDITOR_STORAGE_KEY and DEFAULT_GLOBAL_STYLE exported from editorStore. Updated Template schema (createdById, seo, isDeleted, updatedAt), admin templates route documented.*
 *Document Version: 3.54 - Removed editor-state backward-compatibility paths. `editorStore` localStorage/debug import now expects only the current schema, with no legacy migration/normalization branches. `EditorDebugBackdoor` import accepts only `{ state: { sections, globalStyle } }` (export shape).*
 *Document Version: 3.53 - Redesigned `AddSectionModal` into a preset picker (category rail + search + card selection + confirm footer), added a `custom` blank section preset, and moved section naming to instance-level state via editable `Section.label` in Section Mode settings. Section labels in canvas/sidebar/settings now resolve from `Section.label` instead of fixed registry labels.*
