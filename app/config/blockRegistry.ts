@@ -99,7 +99,7 @@ export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
     icon: "notes",
     category: "basic",
     defaultProps: { text: "Body text goes here. Write something compelling for your visitors." },
-    defaultStyle: { fontSize: "base", fontStyle: "normal", letterSpacing: 0, textAlign: "left" },
+    defaultStyle: { fontSize: "base", fontWeight: "normal", fontStyle: "normal", letterSpacing: 0, textAlign: "left" },
     editableProps: [
       { key: "text", label: "Text", type: "long-text" },
     ],
@@ -114,6 +114,16 @@ export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
           { label: "L", value: "lg" },
           { label: "XL", value: "xl" },
           { label: "Custom", value: "custom" },
+        ],
+      },
+      {
+        key: "fontWeight",
+        label: "Weight",
+        type: "size-picker",
+        options: [
+          { label: "Normal", value: "normal" },
+          { label: "Medium", value: "medium" },
+          { label: "Bold", value: "bold" },
         ],
       },
       {

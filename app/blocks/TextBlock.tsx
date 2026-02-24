@@ -18,6 +18,13 @@ const TEXT_ALIGN_MAP: Record<string, string> = {
 	right: "text-right",
 };
 
+const FONT_WEIGHT_MAP: Record<string, string> = {
+	normal: "font-normal",
+	medium: "font-medium",
+	semibold: "font-semibold",
+	bold: "font-bold",
+};
+
 const CUSTOM_TEXT_SIZE_MIN = 12;
 const CUSTOM_TEXT_SIZE_MAX = 200;
 
@@ -36,6 +43,7 @@ export function TextBlock({ block, globalStyle }: BlockComponentProps) {
 	const classes = [
 		!isCustomFontSize ? FONT_SIZE_MAP[s.fontSize || "base"] || "text-base" : "text-base",
 		TEXT_ALIGN_MAP[s.textAlign || "left"] || "text-left",
+		FONT_WEIGHT_MAP[s.fontWeight || "normal"] || "font-normal",
 		"leading-relaxed",
 	].join(" ");
 
