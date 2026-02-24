@@ -823,6 +823,7 @@ Add Block modal behavior (in Group Mode):
 
 When a group is selected:
 
+- **Header actions** — **Back to Section** (`arrow_back`), **Duplicate** (`content_copy`), **Delete** (`delete`). Duplicate calls `duplicateGroup(sectionId, groupId)`; Delete calls `removeGroup(sectionId, groupId)`. These are context-aware in `SettingsPanel.tsx`: when `isGroupMode && activeGroup` is true the group-scoped actions fire; otherwise section-level actions (`duplicateSection` / `removeSection`) fire.
 - **Layout** panel applies only to that group. Uses `updateGroupLayout(sectionId, groupId, layoutId)` for distribution/column-count changes and `updateGroupLayoutOptions(sectionId, groupId, { alignment?, reversed? })` for alignment and reversed without triggering slot migration.
 - **Blocks** panel lists only blocks owned by that group
 - **Group Style** panel controls group-local visual properties:
@@ -1560,6 +1561,7 @@ This contract ensures AI output can be validated and loaded directly into the ed
 
 ---
 
+*Document Version: 3.57 - Fixed Group Mode delete action in `SettingsPanel.tsx`. The header Delete button now calls `removeGroup(sectionId, groupId)` when `isGroupMode && activeGroup` is true (previously always called `removeSection`, deleting the whole section). `removeGroup` is now imported from `editorStore`. Duplicate was already correct.*
 *Document Version: 3.56 - Removed `label` prop from `icon` block. IconBlock now renders a plain icon only — no caption/text below. Removed `label` from `icon` defaultProps and editableProps in blockRegistry. `colorOptions` for `icon` changed to `{ hasText: false, hasAccent: true }` — text color no longer exposed in Block Mode color settings; only accent color controls the icon.*
 *Document Version: 3.55 - Connected template creation to backend. CreateTemplateModal wired to useCreateTemplateProject (name, category, tags, description, blank/basic seed). EditorPage now reads editorSeed location state to initialize blank/basic canvas on template create. EDITOR_STORAGE_KEY and DEFAULT_GLOBAL_STYLE exported from editorStore. Updated Template schema (createdById, seo, isDeleted, updatedAt), admin templates route documented.*
 *Document Version: 3.54 - Removed editor-state backward-compatibility paths. `editorStore` localStorage/debug import now expects only the current schema, with no legacy migration/normalization branches. `EditorDebugBackdoor` import accepts only `{ state: { sections, globalStyle } }` (export shape).*

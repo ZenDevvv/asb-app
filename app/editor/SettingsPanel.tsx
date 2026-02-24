@@ -11,6 +11,7 @@ export function SettingsPanel() {
 	const selectedBlockId = useEditorStore((s) => s.selectedBlockId);
 	const sections = useEditorStore((s) => s.sections);
 	const removeSection = useEditorStore((s) => s.removeSection);
+	const removeGroup = useEditorStore((s) => s.removeGroup);
 	const duplicateSection = useEditorStore((s) => s.duplicateSection);
 	const duplicateGroup = useEditorStore((s) => s.duplicateGroup);
 	const duplicateBlock = useEditorStore((s) => s.duplicateBlock);
@@ -91,7 +92,11 @@ export function SettingsPanel() {
 						</span>
 					</button>
 					<button
-						onClick={() => removeSection(section.id)}
+						onClick={() =>
+							isGroupMode && activeGroup
+								? removeGroup(section.id, activeGroup.id)
+								: removeSection(section.id)
+						}
 						className="flex size-7 items-center justify-center rounded-lg text-muted-foreground hover:bg-destructive/20 hover:text-destructive"
 						title="Delete">
 						<span className="material-symbols-outlined" style={{ fontSize: 16 }}>
