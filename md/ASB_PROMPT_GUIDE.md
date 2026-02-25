@@ -229,7 +229,7 @@ The right sidebar changes based on what is selected:
 
 **When a BLOCK is selected** (click a specific block on the canvas):
 1. **Block Content** - auto-generated controls based on block type (text input, image upload, etc.)
-2. **Block Style** - constrained style options for that block (size, alignment, spacing, letter spacing). `heading`, `text`, `button`, and `image` blocks expose a **Font Family** control that opens the same Typography Settings modal used in Global Settings; selecting a font applies a block-level override (applied to the caption text for `image` blocks).
+2. **Block Style** - constrained style options for that block (size, alignment, spacing, letter spacing). `heading`, `text`, `button`, `image`, and `date` blocks expose a **Font Family** control that opens the same Typography Settings modal used in Global Settings; selecting a font applies a block-level override (applied to the caption text for `image` blocks).
 3. **Position** - collapsible panel with:
    - **Column** — slot/column picker (shown only when the group layout has multiple slots and the block is in flow mode). Allows moving the block to a different column after it was added. Calls `moveBlockToSlot` / `moveBlockToSlotAtIndex` store actions.
    - **Flow / Absolute** toggle — choose positioning mode. Absolute blocks are positioned relative to the selected group and can be moved on the canvas by dragging.
@@ -404,7 +404,7 @@ interface Block {
 
 interface BlockStyle {
   // Text
-  fontFamily?: string;            // Optional block-level font override (heading, text, button, image blocks)
+  fontFamily?: string;            // Optional block-level font override (heading, text, button, image, date blocks)
   fontSize?: "sm" | "base" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "5xl" | "custom";
   fontSizePx?: number;            // Custom heading/text size in px when fontSize="custom"
   fontWeight?: "normal" | "medium" | "semibold" | "bold";
@@ -870,7 +870,7 @@ BlockStyle.colorMode        -> "global" (default): block derives text/accent fro
                                "custom": block uses its own textColor/accentColor
 BlockStyle.textColor        â†’ custom text color (only active when colorMode="custom")
 BlockStyle.accentColor      â†’ custom accent color (only active when colorMode="custom")
-BlockStyle.fontFamily       â†’ optional block-level font override (heading, text, button, image blocks — applies to caption on image)
+BlockStyle.fontFamily       â†’ optional block-level font override (heading, text, button, image, date blocks — applies to caption on image)
 BlockStyle.fontSize         â†’ block-level size choice (heading/text support presets + "custom")
 BlockStyle.fontSizePx       â†’ heading/text custom size in px (applies when fontSize="custom")
 BlockStyle.fontWeight       â†’ block-level weight choice (where supported)
@@ -1667,6 +1667,7 @@ This contract ensures AI output can be validated and loaded directly into the ed
 
 ---
 
+*Document Version: 3.72 - Added block-level Font Family selector support to `date` block. `BlockSettings.tsx` and `StylePanel.tsx` updated `supportsFontOverride` to include `block.type === "date"`, so date blocks can override `globalStyle.fontFamily` using the same Typography Settings modal as heading/text/button/image blocks.*
 *Document Version: 3.71 - Added vertical section spacing control to `date` block. `blockRegistry.ts` date entry now includes `defaultStyle.dateSectionGap = 24` and a Section Spacing slider (`dateSectionGap`, 0–160, step 2). `DateBlock.tsx` now applies this value as the gap between the weekday, center row, and year sections (scale-aware), so users can tighten or expand vertical spacing.*
 *Document Version: 3.70 - Added width control to `date` block. `blockRegistry.ts` date entry now includes `defaultStyle.widthPx = 920` and a Width slider (`widthPx`, 320–1600, step 10). `DateBlock.tsx` now applies `style.maxWidth` from `block.style.widthPx`, allowing the month/time parallel lines to shrink instead of always stretching full width.*
 *Document Version: 3.69 - Updated `date` block day-number blur treatment to use the block's selected text color as the blur/halo source (not global accent), ensuring the duplicated blurred background always matches the block color choice.*
