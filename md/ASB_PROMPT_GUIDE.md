@@ -248,7 +248,7 @@ The right sidebar changes based on what is selected:
 ```
 STATE MANAGEMENT:
 - Zustand store (editorStore) holds: sections[], selectedSectionId,
-  selectedGroupId, selectedBlockId, globalStyle, history[], future[], isDirty, isSaving, device, zoom
+  selectedGroupId, selectedBlockId, clipboard (Block | null), globalStyle, history[], future[], isDirty, isSaving, device, zoom
 - Immer middleware for mutable-looking immutable updates
 - TanStack Query handles all API calls (fetch project, auto-save, publish)
 - Auto-save: debounced 3 seconds after any change
@@ -309,6 +309,13 @@ KEYBOARD SHORTCUTS:
 - Ctrl/Cmd + Z: Undo
 - Ctrl/Cmd + Shift + Z: Redo
 - Ctrl/Cmd + S: Save now — cancels pending debounce and saves immediately. On `/editor/:templateId`, also triggers an immediate server save via `useUpdateTemplateProject`. On guest `/editor`, saves to localStorage only.
+- Ctrl/Cmd + C: Copy currently selected block to an in-memory clipboard (EditorState.clipboard). Ignored when focus is in a text input/textarea/contentEditable.
+- Ctrl/Cmd + V: Paste copied block into the currently focused group/block target. Rules:
+    - If a block is focused (selectedBlockId set): inserts the clone directly after the focused block in the same slot and selects the new block.
+    - If only a group is focused (selectedGroupId set, no block): inserts the clone at the end of the group's first slot and selects the new block.
+    - Clipboard persists across selections; paste can be repeated into different groups.
+    - Ignored when focus is in a text input/textarea/contentEditable or when clipboard is empty.
+    - Calls `copyBlock(sectionId, groupId, blockId)` and `pasteBlock(targetSectionId, targetGroupId, targetBlockId?)` store actions.
 - Delete: Delete currently selected block, group, or section (deepest active selection)
 - Esc: Deselect current block/section level
 
@@ -1600,6 +1607,8 @@ This contract ensures AI output can be validated and loaded directly into the ed
 | **Style Guide** | Separate file containing all color tokens, theme values, and visual design specs for the editor UI. |
 
 ---
+
+*Document Version: 3.63 - Added block copy/paste via Ctrl/Cmd+C and Ctrl/Cmd+V. `EditorState` extended with `clipboard: Block | null` (initialised to `null`). Two new store actions added to `editorStore.ts` and `EditorActions` interface: `copyBlock(sectionId, groupId, blockId)` — deep-copies the block into `state.clipboard`; `pasteBlock(targetSectionId, targetGroupId, targetBlockId?)` — clones the clipboard block with a fresh `nanoid(10)` id and inserts it after `targetBlockId` (same slot, next order) when a block is focused, or at the end of the group's first slot when only a group is focused. Clipboard persists across selections and paste can be repeated. Both shortcuts are skipped when focus is in a text input/textarea/contentEditable.*
 
 *Document Version: 3.62 - Added captionPadding to image block. `BlockStyle.captionPadding` (number, default 16) controls uniform padding around the caption container via inline style. `blockRegistry.ts` adds a "Text Padding" slider (0–64, step 4) to image editableStyles. `ImageBlock.tsx` replaces hardcoded `px-4 py-3` with dynamic `style={{ padding: s.captionPadding ?? 16 }}`.*
 *Document Version: 3.61 - Upgraded image block caption styling to match heading block. `BlockStyle` extended with `captionVerticalAlign` ("top"|"center"|"bottom"). `constants.ts` adds `image: 20` to `CUSTOM_TEXT_SIZE_DEFAULT_BY_BLOCK`. `StylePanel.tsx` adds `image` to `supportsCustomTextSize`. `blockRegistry.ts` image entry now has full editableStyles: fontSize (with custom), fontWeight, fontStyle, letterSpacing, textAlign (align-picker), captionVerticalAlign (size-picker Top/Mid/Bot). `textPosition` prop removed; horizontal alignment uses shared `BlockStyle.textAlign`, vertical uses new `captionVerticalAlign`. Caption container is full-width (`inset-x-0 w-full`). `ImageBlock.tsx` rewrote caption rendering with all style maps matching HeadingBlock.*

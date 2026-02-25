@@ -233,6 +233,7 @@ export interface EditorState {
   selectedSectionId: string | null;
   selectedGroupId: string | null;
   selectedBlockId: string | null;
+  clipboard: Block | null;
   globalStyle: GlobalStyle;
   history: Section[][];
   future: Section[][];
@@ -288,6 +289,8 @@ export interface EditorActions {
     options?: { addAsAbsolute?: boolean },
   ) => void;
   duplicateBlock: (sectionId: string, groupId: string, blockId: string) => void;
+  copyBlock: (sectionId: string, groupId: string, blockId: string) => void;
+  pasteBlock: (targetSectionId: string, targetGroupId: string, targetBlockId?: string | null) => void;
   removeBlock: (sectionId: string, groupId: string, blockId: string) => void;
   reorderBlocks: (sectionId: string, groupId: string, fromIndex: number, toIndex: number) => void;
   moveBlockToSlot: (sectionId: string, groupId: string, blockId: string, slot: string) => void;

@@ -57,6 +57,7 @@ const initialState: EditorState = {
   selectedSectionId: null,
   selectedGroupId: null,
   selectedBlockId: null,
+  clipboard: null,
   globalStyle: { ...DEFAULT_GLOBAL_STYLE },
   history: [],
   future: [],
@@ -739,6 +740,78 @@ export const useEditorStore = create<EditorState & EditorActions>()(
 
         state.selectedSectionId = sectionId;
         state.selectedGroupId = groupId;
+        state.selectedBlockId = clone.id;
+        state.isDirty = true;
+      });
+    },
+
+    copyBlock: (sectionId: string, groupId: string, blockId: string) => {
+      set((state) => {
+        const section = findSection(state, sectionId);
+        if (!section) return;
+        const group = findGroup(section, groupId);
+        if (!group) return;
+        const block = findBlock(group, blockId);
+        if (!block) return;
+        state.clipboard = JSON.parse(JSON.stringify(block));
+      });
+    },
+
+    pasteBlock: (targetSectionId: string, targetGroupId: string, targetBlockId?: string | null) => {
+      set((state) => {
+        if (!state.clipboard) return;
+
+        const section = findSection(state, targetSectionId);
+        if (!section) return;
+        const group = findGroup(section, targetGroupId);
+        if (!group) return;
+
+        state.history.push(JSON.parse(JSON.stringify(state.sections)));
+        state.future = [];
+
+        const clone: Block = {
+          ...JSON.parse(JSON.stringify(state.clipboard)),
+          id: nanoid(10),
+        };
+
+        if (targetBlockId) {
+          // Paste after the focused block in the same slot
+          const sourceBlock = findBlock(group, targetBlockId);
+          if (sourceBlock) {
+            clone.slot = sourceBlock.slot;
+            const sourceIsAbsolute = isAbsoluteBlock(sourceBlock);
+            if (sourceIsAbsolute) {
+              clone.style.positionMode = "absolute";
+              clone.style.positionY = (sourceBlock.style.positionY ?? 0) + 24;
+            } else {
+              clone.style.positionMode = "flow";
+              const peerBlocks = group.blocks
+                .filter((b) => !isAbsoluteBlock(b) && b.slot === sourceBlock.slot)
+                .sort((a, b) => a.order - b.order);
+              const sourceIndex = peerBlocks.findIndex((b) => b.id === targetBlockId);
+              clone.order = sourceIndex + 1;
+              // Shift later blocks down
+              peerBlocks.forEach((b) => {
+                if (b.order >= clone.order) b.order += 1;
+              });
+            }
+          }
+        } else {
+          // Paste at end of first slot in group
+          const targetSlot = group.layout.slots[0] ?? "main";
+          clone.slot = targetSlot;
+          const slotBlocks = group.blocks.filter(
+            (b) => !isAbsoluteBlock(b) && b.slot === targetSlot,
+          );
+          clone.order = slotBlocks.length;
+          clone.style.positionMode = "flow";
+        }
+
+        group.blocks.push(clone);
+        normalizeBlocksBySlotOrder(group.blocks, group.layout.slots);
+
+        state.selectedSectionId = targetSectionId;
+        state.selectedGroupId = targetGroupId;
         state.selectedBlockId = clone.id;
         state.isDirty = true;
       });

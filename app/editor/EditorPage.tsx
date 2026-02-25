@@ -185,6 +185,40 @@ export default function EditorPage() {
 				);
 			}
 
+			if ((e.ctrlKey || e.metaKey) && e.key === "c") {
+				const target = e.target as HTMLElement;
+				if (
+					target.tagName === "INPUT" ||
+					target.tagName === "TEXTAREA" ||
+					target.isContentEditable
+				) {
+					return;
+				}
+				if (store.selectedBlockId && store.selectedGroupId && store.selectedSectionId) {
+					e.preventDefault();
+					store.copyBlock(store.selectedSectionId, store.selectedGroupId, store.selectedBlockId);
+				}
+			}
+
+			if ((e.ctrlKey || e.metaKey) && e.key === "v") {
+				const target = e.target as HTMLElement;
+				if (
+					target.tagName === "INPUT" ||
+					target.tagName === "TEXTAREA" ||
+					target.isContentEditable
+				) {
+					return;
+				}
+				if (store.clipboard && store.selectedGroupId && store.selectedSectionId) {
+					e.preventDefault();
+					store.pasteBlock(
+						store.selectedSectionId,
+						store.selectedGroupId,
+						store.selectedBlockId,
+					);
+				}
+			}
+
 			if (e.key === "Delete" && store.selectedSectionId) {
 				const target = e.target as HTMLElement;
 				if (
