@@ -1,14 +1,17 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router";
-import {
-	motion,
-	useReducedMotion,
-	useInView,
-	AnimatePresence,
-	type Variants,
-} from "framer-motion";
+import { motion, useReducedMotion, useInView, AnimatePresence, type Variants } from "framer-motion";
 import { useAuth } from "~/hooks/use-auth";
 import { Icon } from "~/components/ui/icon";
+import { useGetTemplateProjects } from "~/hooks/use-template-project";
+import {
+	TEMPLATE_PROJECT_FIELDS,
+	getTemplateCategories,
+	getTemplateCategoryLabel,
+	getTemplateDescription,
+	getTemplateTheme,
+} from "~/lib/template-project-utils";
+import { cn } from "~/lib/utils";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 function getGreeting() {
@@ -62,76 +65,47 @@ const QUICK_PROMPTS = [
 	"A blog for a tech writer",
 ];
 
-const TEMPLATE_CATEGORIES = ["All", "Marketing", "Personal", "Retail", "Content"];
+function TemplatePreviewCanvas({
+	thumbnail,
+	name,
+	placeholderClassName,
+}: {
+	thumbnail?: string;
+	name: string;
+	placeholderClassName: string;
+}) {
+	const [imageFailed, setImageFailed] = useState(false);
 
-const TEMPLATES = [
-	{
-		name: "SaaS Launch",
-		category: "Marketing",
-		desc: "High-converting launch page with hero, feature grid, pricing table, and waitlist CTA.",
-		gradient: "from-chart-1/55 via-chart-5/35 to-chart-1/20",
-		categoryClass: "border-chart-1/50 bg-chart-1/12 text-chart-1",
-		usageCount: "4.1k",
-		pages: 4,
-		icon: "rocket_launch",
-		popular: true,
-	},
-	{
-		name: "Designer Portfolio",
-		category: "Personal",
-		desc: "Minimal and elegant showcase for creatives. Works pages, about section, and contact form.",
-		gradient: "from-card via-chart-5/20 to-card",
-		categoryClass: "border-chart-5/50 bg-chart-5/12 text-chart-5",
-		usageCount: "2.8k",
-		pages: 3,
-		icon: "palette",
-		popular: false,
-	},
-	{
-		name: "Agency Showcase",
-		category: "Marketing",
-		desc: "Bold, dynamic layout built to impress. Ideal for creative studios and digital agencies.",
-		gradient: "from-primary/40 via-cyan-400/20 to-primary/10",
-		categoryClass: "border-chart-1/50 bg-chart-1/12 text-chart-1",
-		usageCount: "3.2k",
-		pages: 5,
-		icon: "auto_awesome",
-		popular: false,
-	},
-	{
-		name: "Coffee & Co.",
-		category: "Retail",
-		desc: "Warm, inviting storefront for cafés, bakeries, and local shops. Menu and hours included.",
-		gradient: "from-chart-4/40 via-muted to-card",
-		categoryClass: "border-chart-4/50 bg-chart-4/12 text-chart-4",
-		usageCount: "1.6k",
-		pages: 2,
-		icon: "storefront",
-		popular: false,
-	},
-	{
-		name: "Blog & Journal",
-		category: "Content",
-		desc: "Clean editorial layout with article cards, featured posts, and a newsletter signup.",
-		gradient: "from-card via-card to-muted",
-		categoryClass: "border-destructive/45 bg-destructive/12 text-destructive",
-		usageCount: "1.1k",
-		pages: 3,
-		icon: "article",
-		popular: false,
-	},
-	{
-		name: "Startup MVP",
-		category: "Marketing",
-		desc: "Ship your idea page in minutes. Waitlist capture, social proof, and FAQ ready to go.",
-		gradient: "from-emerald-400/30 via-primary/15 to-card",
-		categoryClass: "border-chart-1/50 bg-chart-1/12 text-chart-1",
-		usageCount: "5.0k",
-		pages: 2,
-		icon: "bolt",
-		popular: true,
-	},
-];
+	if (thumbnail && !imageFailed) {
+		return (
+			<img
+				src={thumbnail}
+				alt={`${name} preview`}
+				className="h-full w-full object-cover"
+				onError={() => setImageFailed(true)}
+			/>
+		);
+	}
+
+	return (
+		<div className={cn("relative h-full w-full", placeholderClassName)}>
+			<div className="absolute left-5 right-5 top-6 rounded-2xl bg-white/90 p-4 shadow-xl shadow-slate-900/20">
+				<div className="mb-3 flex items-center gap-1.5">
+					<div className="h-2 w-2 rounded-full bg-slate-300" />
+					<div className="h-2 w-2 rounded-full bg-slate-200" />
+					<div className="h-2 w-2 rounded-full bg-slate-200" />
+				</div>
+				<div className="h-2 w-2/3 rounded-full bg-slate-200" />
+				<div className="mt-2 h-2 w-1/2 rounded-full bg-slate-200" />
+				<div className="mt-5 grid grid-cols-6 gap-1">
+					{Array.from({ length: 24 }).map((_, index) => (
+						<span key={index} className="h-2 rounded-full bg-slate-200/90" />
+					))}
+				</div>
+			</div>
+		</div>
+	);
+}
 
 export function meta() {
 	return [{ title: "Dashboard — AppSiteBuilder" }];
@@ -155,6 +129,46 @@ export default function UserDashboard() {
 	const projectsInView = useInView(projectsRef, { once: true, margin: "-80px" });
 
 	const safeFadeUp = prefersReducedMotion ? (fadeIn as Variants) : fadeUp;
+	const {
+		data: templateData,
+		isLoading: isTemplatesLoading,
+		isError: isTemplatesError,
+		error: templateLoadError,
+	} = useGetTemplateProjects({
+		page: 1,
+		limit: 60,
+		fields: TEMPLATE_PROJECT_FIELDS,
+		sort: "usageCount",
+		order: "desc",
+		document: true,
+		pagination: false,
+		count: true,
+	});
+
+	const templateProjects = useMemo(() => {
+		const templates = templateData?.templateProjects ?? [];
+		const nonDeleted = templates.filter((template) => !template.isDeleted);
+		const activeTemplates = nonDeleted.filter((template) => template.isActive);
+		return activeTemplates.length > 0 ? activeTemplates : nonDeleted;
+	}, [templateData?.templateProjects]);
+
+	const templateCategories = useMemo(
+		() => getTemplateCategories(templateProjects),
+		[templateProjects],
+	);
+
+	const filteredTemplates = useMemo(
+		() =>
+			activeCategory === "All"
+				? templateProjects
+				: templateProjects.filter(
+						(template) =>
+							getTemplateCategoryLabel(template.category) === activeCategory,
+					),
+		[activeCategory, templateProjects],
+	);
+
+	const templateCount = templateProjects.length;
 
 	// Auto-resize textarea
 	useEffect(() => {
@@ -164,16 +178,18 @@ export default function UserDashboard() {
 		el.style.height = `${Math.min(el.scrollHeight, 180)}px`;
 	}, [prompt]);
 
+	useEffect(() => {
+		if (!templateCategories.includes(activeCategory)) {
+			setActiveCategory("All");
+		}
+	}, [activeCategory, templateCategories]);
+
 	const handleGenerate = () => {
 		if (!prompt.trim()) return;
 		navigate(`/editor?prompt=${encodeURIComponent(prompt.trim())}&tone=${tone}`);
 	};
 
 	const displayName = user?.userName || user?.email?.split("@")[0] || "Creator";
-	const filteredTemplates =
-		activeCategory === "All"
-			? TEMPLATES
-			: TEMPLATES.filter((t) => t.category === activeCategory);
 
 	return (
 		<div className="relative overflow-x-hidden bg-background text-foreground">
@@ -218,13 +234,14 @@ export default function UserDashboard() {
 						prefersReducedMotion
 							? { duration: 0.4, delay: 0.7 }
 							: { duration: 5.5, delay: 0.9, ease: "easeInOut", repeat: Infinity }
-					}
-				>
+					}>
 					<div className="mb-3 flex items-center gap-2">
 						<div className="flex h-6 w-6 items-center justify-center rounded-lg bg-chart-3/20">
 							<Icon name="history" size={13} className="text-chart-3" />
 						</div>
-						<span className="text-xs font-semibold text-foreground">Recent activity</span>
+						<span className="text-xs font-semibold text-foreground">
+							Recent activity
+						</span>
 					</div>
 					{[
 						{ text: "SaaS page generated", time: "2m ago", dot: "bg-chart-1/70" },
@@ -236,7 +253,9 @@ export default function UserDashboard() {
 							<span className="min-w-0 flex-1 truncate text-[11px] text-muted-foreground">
 								{text}
 							</span>
-							<span className="shrink-0 text-[10px] text-muted-foreground/55">{time}</span>
+							<span className="shrink-0 text-[10px] text-muted-foreground/55">
+								{time}
+							</span>
 						</div>
 					))}
 				</motion.div>
@@ -254,8 +273,7 @@ export default function UserDashboard() {
 						prefersReducedMotion
 							? { duration: 0.4, delay: 0.85 }
 							: { duration: 5, delay: 1.1, ease: "easeInOut", repeat: Infinity }
-					}
-				>
+					}>
 					<div className="mb-3 flex items-center gap-2">
 						<div className="flex h-6 w-6 items-center justify-center rounded-lg bg-primary/20">
 							<Icon name="auto_awesome" size={13} className="text-primary" filled />
@@ -281,8 +299,7 @@ export default function UserDashboard() {
 					initial="hidden"
 					animate="show"
 					transition={{ delay: 0.04 }}
-					className="text-xs font-semibold uppercase tracking-widest text-primary"
-				>
+					className="text-xs font-semibold uppercase tracking-widest text-primary">
 					{getGreeting()},
 				</motion.p>
 
@@ -292,8 +309,7 @@ export default function UserDashboard() {
 					initial="hidden"
 					animate="show"
 					transition={{ delay: 0.1 }}
-					className="mt-1 text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl"
-				>
+					className="mt-1 text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl">
 					<span className="bg-gradient-to-r from-foreground via-foreground/85 to-foreground/60 bg-clip-text text-transparent">
 						{displayName}.
 					</span>
@@ -304,8 +320,7 @@ export default function UserDashboard() {
 					initial="hidden"
 					animate="show"
 					transition={{ delay: 0.16 }}
-					className="mt-3 text-lg text-muted-foreground"
-				>
+					className="mt-3 text-lg text-muted-foreground">
 					What will you bring to life today?
 				</motion.p>
 
@@ -315,8 +330,7 @@ export default function UserDashboard() {
 					initial="hidden"
 					animate="show"
 					transition={{ delay: 0.24 }}
-					className="relative mt-10 w-full max-w-3xl"
-				>
+					className="relative mt-10 w-full max-w-3xl">
 					{/* Tone-reactive aurora glow */}
 					<motion.div
 						className="pointer-events-none absolute -inset-4 -z-10 rounded-[2.5rem] opacity-70 blur-2xl"
@@ -332,12 +346,16 @@ export default function UserDashboard() {
 								: { borderColor: "rgba(255,255,255,0.12)" }
 						}
 						transition={{ duration: 0.25 }}
-						className="overflow-hidden rounded-[1.75rem] border bg-card/75 shadow-2xl shadow-black/20 backdrop-blur-xl"
-					>
+						className="overflow-hidden rounded-[1.75rem] border bg-card/75 shadow-2xl shadow-black/20 backdrop-blur-xl">
 						{/* Top bar: model hint */}
 						<div className="flex items-center gap-2 border-b border-border/40 px-5 py-2.5">
 							<span className="flex h-5 w-5 items-center justify-center rounded-md bg-primary/20">
-								<Icon name="auto_awesome" size={12} className="text-primary" filled />
+								<Icon
+									name="auto_awesome"
+									size={12}
+									className="text-primary"
+									filled
+								/>
 							</span>
 							<span className="text-xs font-medium text-muted-foreground">
 								ASB AI Generator
@@ -357,7 +375,8 @@ export default function UserDashboard() {
 								onFocus={() => setChatFocused(true)}
 								onBlur={() => setChatFocused(false)}
 								onKeyDown={(e) => {
-									if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) handleGenerate();
+									if (e.key === "Enter" && (e.metaKey || e.ctrlKey))
+										handleGenerate();
 								}}
 								placeholder="Describe your website... e.g. 'A bold SaaS landing page for a project management tool — dark theme, pricing section, and waitlist form'"
 								className="minimal-scrollbar w-full resize-none bg-transparent text-base leading-relaxed text-foreground placeholder:text-muted-foreground/45 focus:outline-none"
@@ -369,7 +388,9 @@ export default function UserDashboard() {
 						<div className="flex flex-col gap-3 border-t border-border/40 px-4 py-3 sm:flex-row sm:items-center">
 							{/* Tone selector */}
 							<div className="flex flex-wrap items-center gap-1.5">
-								<span className="shrink-0 text-xs text-muted-foreground/70">Tone:</span>
+								<span className="shrink-0 text-xs text-muted-foreground/70">
+									Tone:
+								</span>
 								{TONES.map(({ id, label, icon }) => (
 									<button
 										key={id}
@@ -379,8 +400,7 @@ export default function UserDashboard() {
 											tone === id
 												? "bg-primary/20 text-primary ring-1 ring-primary/40"
 												: "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
-										}`}
-									>
+										}`}>
 										<Icon name={icon} size={11} />
 										{label}
 									</button>
@@ -397,8 +417,7 @@ export default function UserDashboard() {
 									type="button"
 									onClick={handleGenerate}
 									disabled={!prompt.trim()}
-									className="inline-flex items-center gap-2 rounded-2xl bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/30 transition-all hover:brightness-110 active:scale-95 disabled:pointer-events-none disabled:opacity-40"
-								>
+									className="inline-flex items-center gap-2 rounded-2xl bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/30 transition-all hover:brightness-110 active:scale-95 disabled:pointer-events-none disabled:opacity-40">
 									<Icon name="auto_awesome" size={15} filled />
 									Generate
 									<kbd className="hidden rounded border border-primary-foreground/25 px-1.5 py-0.5 font-mono text-[10px] sm:block">
@@ -416,8 +435,7 @@ export default function UserDashboard() {
 					initial="hidden"
 					animate="show"
 					transition={{ delay: 0.33 }}
-					className="mt-5 flex flex-wrap items-center justify-center gap-2"
-				>
+					className="mt-5 flex flex-wrap items-center justify-center gap-2">
 					<span className="text-xs text-muted-foreground/60">Try:</span>
 					{QUICK_PROMPTS.map((qp) => (
 						<button
@@ -427,8 +445,7 @@ export default function UserDashboard() {
 								setPrompt(qp);
 								textareaRef.current?.focus();
 							}}
-							className="rounded-full border border-border/60 bg-card/60 px-3 py-1 text-xs text-muted-foreground transition-all hover:border-primary/40 hover:bg-primary/10 hover:text-foreground active:scale-95"
-						>
+							className="rounded-full border border-border/60 bg-card/60 px-3 py-1 text-xs text-muted-foreground transition-all hover:border-primary/40 hover:bg-primary/10 hover:text-foreground active:scale-95">
 							{qp}
 						</button>
 					))}
@@ -440,14 +457,16 @@ export default function UserDashboard() {
 					initial="hidden"
 					animate="show"
 					transition={{ delay: 0.5 }}
-					className="mt-12 flex flex-col items-center gap-1.5"
-				>
+					className="mt-12 flex flex-col items-center gap-1.5">
 					<span className="text-xs text-muted-foreground/50">scroll to explore</span>
 					<motion.div
 						animate={prefersReducedMotion ? {} : { y: [0, 5, 0] }}
-						transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
-					>
-						<Icon name="keyboard_arrow_down" size={18} className="text-muted-foreground/40" />
+						transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}>
+						<Icon
+							name="keyboard_arrow_down"
+							size={18}
+							className="text-muted-foreground/40"
+						/>
 					</motion.div>
 				</motion.div>
 			</section>
@@ -458,9 +477,10 @@ export default function UserDashboard() {
 				variants={stagger}
 				initial="hidden"
 				animate={projectsInView ? "show" : "hidden"}
-				className="mx-auto w-full max-w-7xl px-6 py-16 md:px-10"
-			>
-				<motion.div variants={safeFadeUp} className="mb-8 flex items-center justify-between">
+				className="mx-auto w-full max-w-7xl px-6 py-16 md:px-10">
+				<motion.div
+					variants={safeFadeUp}
+					className="mb-8 flex items-center justify-between">
 					<div>
 						<p className="mb-1 text-xs font-semibold uppercase tracking-widest text-primary">
 							My Projects
@@ -470,8 +490,7 @@ export default function UserDashboard() {
 					<button
 						type="button"
 						onClick={() => navigate("/editor")}
-						className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition-all hover:brightness-110 active:scale-95"
-					>
+						className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition-all hover:brightness-110 active:scale-95">
 						<Icon name="add" size={16} />
 						New Project
 					</button>
@@ -480,8 +499,7 @@ export default function UserDashboard() {
 				{/* Empty state */}
 				<motion.div
 					variants={safeFadeUp}
-					className="relative flex flex-col items-center justify-center overflow-hidden rounded-3xl border border-dashed border-border/60 bg-card/30 py-20 text-center backdrop-blur-sm"
-				>
+					className="relative flex flex-col items-center justify-center overflow-hidden rounded-3xl border border-dashed border-border/60 bg-card/30 py-20 text-center backdrop-blur-sm">
 					{/* Dot grid texture */}
 					<div
 						className="pointer-events-none absolute inset-0 opacity-[0.04]"
@@ -499,23 +517,41 @@ export default function UserDashboard() {
 						<div className="relative mx-auto mb-6 flex h-20 w-20 items-center justify-center">
 							<motion.span
 								className="absolute h-20 w-20 rounded-full border border-primary/15"
-								animate={prefersReducedMotion ? {} : { scale: [1, 1.4], opacity: [0.5, 0] }}
+								animate={
+									prefersReducedMotion
+										? {}
+										: { scale: [1, 1.4], opacity: [0.5, 0] }
+								}
 								transition={{ duration: 2.2, repeat: Infinity, ease: "easeOut" }}
 							/>
 							<motion.span
 								className="absolute h-20 w-20 rounded-full border border-primary/10"
-								animate={prefersReducedMotion ? {} : { scale: [1, 1.8], opacity: [0.4, 0] }}
-								transition={{ duration: 2.2, repeat: Infinity, ease: "easeOut", delay: 0.6 }}
+								animate={
+									prefersReducedMotion
+										? {}
+										: { scale: [1, 1.8], opacity: [0.4, 0] }
+								}
+								transition={{
+									duration: 2.2,
+									repeat: Infinity,
+									ease: "easeOut",
+									delay: 0.6,
+								}}
 							/>
 							<div className="flex h-20 w-20 items-center justify-center rounded-3xl border border-primary/20 bg-primary/10 shadow-lg shadow-primary/10">
-								<Icon name="rocket_launch" size={36} className="text-primary" filled />
+								<Icon
+									name="rocket_launch"
+									size={36}
+									className="text-primary"
+									filled
+								/>
 							</div>
 						</div>
 
 						<h3 className="mb-2 text-xl font-bold">Your canvas awaits</h3>
 						<p className="mb-8 max-w-sm text-sm leading-relaxed text-muted-foreground">
-							You haven't created any projects yet. Describe your vision above or pick a
-							template below to get started.
+							You haven't created any projects yet. Describe your vision above or pick
+							a template below to get started.
 						</p>
 
 						<div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
@@ -525,8 +561,7 @@ export default function UserDashboard() {
 									window.scrollTo({ top: 0, behavior: "smooth" });
 									setTimeout(() => textareaRef.current?.focus(), 600);
 								}}
-								className="inline-flex items-center gap-2 rounded-2xl bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition-all hover:brightness-110 active:scale-95"
-							>
+								className="inline-flex items-center gap-2 rounded-2xl bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition-all hover:brightness-110 active:scale-95">
 								<Icon name="auto_awesome" size={15} filled />
 								Start with AI
 							</button>
@@ -535,8 +570,7 @@ export default function UserDashboard() {
 								onClick={() =>
 									templatesRef.current?.scrollIntoView({ behavior: "smooth" })
 								}
-								className="inline-flex items-center gap-2 rounded-2xl border border-border/70 bg-card/60 px-6 py-2.5 text-sm font-semibold backdrop-blur transition-all hover:border-primary/40 hover:bg-primary/10"
-							>
+								className="inline-flex items-center gap-2 rounded-2xl border border-border/70 bg-card/60 px-6 py-2.5 text-sm font-semibold backdrop-blur transition-all hover:border-primary/40 hover:bg-primary/10">
 								<Icon name="grid_view" size={15} />
 								Browse Templates
 							</button>
@@ -551,8 +585,7 @@ export default function UserDashboard() {
 				variants={stagger}
 				initial="hidden"
 				animate={templatesInView ? "show" : "hidden"}
-				className="mx-auto w-full max-w-7xl px-6 py-16 md:px-10"
-			>
+				className="mx-auto w-full max-w-7xl px-6 py-16 md:px-10">
 				{/* Section header + controls */}
 				<motion.div variants={safeFadeUp} className="mb-8">
 					<div className="mb-5 flex flex-wrap items-end justify-between gap-4">
@@ -566,17 +599,17 @@ export default function UserDashboard() {
 						</div>
 						<button
 							type="button"
-							className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-card/60 px-5 py-2 text-sm font-medium text-muted-foreground backdrop-blur transition-all hover:border-primary/40 hover:bg-primary/10 hover:text-foreground"
-						>
+							onClick={() => setActiveCategory("All")}
+							className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-card/60 px-5 py-2 text-sm font-medium text-muted-foreground backdrop-blur transition-all hover:border-primary/40 hover:bg-primary/10 hover:text-foreground">
 							<Icon name="grid_view" size={14} />
-							Browse all 85+
+							Browse {templateCount.toLocaleString("en-US")}
 							<Icon name="arrow_forward" size={14} />
 						</button>
 					</div>
 
 					{/* Category filter */}
 					<div className="flex flex-wrap gap-2">
-						{TEMPLATE_CATEGORIES.map((cat) => (
+						{templateCategories.map((cat) => (
 							<button
 								key={cat}
 								type="button"
@@ -585,8 +618,7 @@ export default function UserDashboard() {
 									activeCategory === cat
 										? "bg-primary text-primary-foreground shadow-md shadow-primary/25"
 										: "border border-border/60 bg-card/50 text-muted-foreground hover:border-primary/40 hover:text-foreground"
-								}`}
-							>
+								}`}>
 								{cat}
 							</button>
 						))}
@@ -594,111 +626,123 @@ export default function UserDashboard() {
 				</motion.div>
 
 				{/* Template grid */}
-				<AnimatePresence mode="wait">
+				{isTemplatesLoading ? (
+					<div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+						{Array.from({ length: 3 }).map((_, index) => (
+							<div
+								key={index}
+								className="overflow-hidden rounded-[1.65rem] border border-slate-800/75 bg-slate-950/80 shadow-xl shadow-black/20">
+								<div className="h-24 animate-pulse bg-slate-800/85" />
+								<div className="h-72 animate-pulse bg-slate-200/90" />
+								<div className="h-12 animate-pulse border-t border-slate-700/70 bg-slate-900/85" />
+							</div>
+						))}
+					</div>
+				) : isTemplatesError ? (
 					<motion.div
-						key={activeCategory}
-						variants={stagger}
-						initial="hidden"
-						animate="show"
-						exit={{ opacity: 0, transition: { duration: 0.15 } }}
-						className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3"
-					>
-						{filteredTemplates.map(
-							(
-								{ name, category, desc, gradient, categoryClass, usageCount, pages, icon, popular },
-								i,
-							) => (
-								<motion.div
-									key={name}
-									variants={safeFadeUp}
-									custom={i}
-									whileHover={prefersReducedMotion ? {} : { y: -5, transition: { duration: 0.2 } }}
-									className="group relative flex flex-col overflow-hidden rounded-2xl border border-border/60 bg-card/60 shadow-sm backdrop-blur-sm transition-shadow hover:border-primary/30 hover:shadow-xl hover:shadow-primary/10"
-								>
-									{/* Preview thumbnail */}
-									<div
-										className={`relative h-44 w-full overflow-hidden bg-gradient-to-br ${gradient}`}
-									>
-										<div className="absolute inset-4 flex flex-col gap-2">
-											<div className="flex items-center gap-1.5">
-												<div className="h-1.5 w-1.5 rounded-full bg-card/70" />
-												<div className="h-1.5 w-8 rounded-full bg-card/60" />
-												<div className="ml-auto h-1.5 w-12 rounded-full bg-card/50" />
-											</div>
-											<div className="mt-1 h-5 w-3/4 rounded-lg bg-card/75" />
-											<div className="h-2 w-1/2 rounded-full bg-card/50" />
-											<div className="mt-1.5 flex gap-2">
-												<div className="h-6 w-14 rounded-lg bg-primary/65" />
-												<div className="h-6 w-14 rounded-lg bg-card/50" />
-											</div>
-											<div className="mt-auto grid grid-cols-3 gap-1.5">
-												<div className="h-9 rounded-lg bg-card/55" />
-												<div className="h-9 rounded-lg bg-card/45" />
-												<div className="h-9 rounded-lg bg-card/35" />
-											</div>
-										</div>
+						variants={safeFadeUp}
+						className="rounded-3xl border border-destructive/35 bg-destructive/10 px-6 py-10 text-center">
+						<p className="text-sm font-semibold text-destructive">
+							Unable to load templates.
+						</p>
+						<p className="mt-1 text-sm text-muted-foreground">
+							{templateLoadError instanceof Error
+								? templateLoadError.message
+								: "Please try again shortly."}
+						</p>
+					</motion.div>
+				) : filteredTemplates.length === 0 ? (
+					<motion.div
+						variants={safeFadeUp}
+						className="rounded-3xl border border-border/60 bg-card/40 px-6 py-12 text-center">
+						<p className="text-sm font-semibold text-foreground">
+							No templates in this category.
+						</p>
+						<p className="mt-1 text-sm text-muted-foreground">
+							Try another filter or check back later.
+						</p>
+					</motion.div>
+				) : (
+					<AnimatePresence mode="wait">
+						<motion.div
+							key={activeCategory}
+							variants={stagger}
+							initial="hidden"
+							animate="show"
+							exit={{ opacity: 0, transition: { duration: 0.15 } }}
+							className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+							{filteredTemplates.map((template, index) => {
+								const templateTheme = getTemplateTheme(template.category);
+								const description = getTemplateDescription(template);
 
-										{/* Hover overlay CTA */}
-										<div className="absolute inset-0 flex items-center justify-center bg-background/55 opacity-0 backdrop-blur-sm transition-opacity duration-300 group-hover:opacity-100">
+								return (
+									<motion.article
+										key={template.id}
+										variants={safeFadeUp}
+										custom={index}
+										whileHover={
+											prefersReducedMotion
+												? {}
+												: { y: -4, transition: { duration: 0.18 } }
+										}
+										onClick={() => navigate(`/editor/${template.id}`)}
+										className="group relative cursor-pointer overflow-hidden rounded-[1.65rem] border border-slate-800/80 bg-slate-950/80 shadow-xl shadow-black/20">
+										<div
+											className={cn(
+												"relative flex min-h-[4.5rem] items-start gap-3 px-5 pb-4 pt-4",
+												templateTheme.headerClassName,
+											)}>
+											<div className="min-w-0 flex-1">
+												<h3 className="truncate text-xl font-semibold text-white">
+													{template.name}
+												</h3>
+												<p className="mt-0.5 line-clamp-1 text-sm text-white/75">
+													{description}
+												</p>
+											</div>
 											<button
 												type="button"
-												className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/35 transition-all hover:brightness-110 active:scale-95"
-											>
-												<Icon name="content_copy" size={15} filled />
-												Use Template
+												onClick={(event) => {
+													event.stopPropagation();
+													navigate(`/view/${template.id}`);
+												}}
+												className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/25 bg-black/25 text-white/85 transition-colors hover:bg-black/40 hover:text-white"
+												aria-label={`Preview ${template.name}`}>
+												<Icon name="visibility" size={15} />
 											</button>
 										</div>
 
-										{/* Popular badge */}
-										{popular && (
-											<div className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/20 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary backdrop-blur-sm">
-												<Icon name="local_fire_department" size={10} filled />
-												Popular
+										<div
+											className={cn(
+												"relative overflow-hidden border-t border-white/10 px-3 pb-3 pt-2",
+												templateTheme.surfaceClassName,
+											)}>
+											<div className="relative h-64 overflow-hidden rounded-[1.35rem] border border-white/35 bg-white/90 shadow-[0_20px_35px_-24px_rgba(15,23,42,0.8)]">
+												<TemplatePreviewCanvas
+													thumbnail={template.thumbnail}
+													name={template.name}
+													placeholderClassName={
+														templateTheme.placeholderClassName
+													}
+												/>
+												<div className="pointer-events-none absolute inset-x-0 top-0 h-14 bg-gradient-to-b from-white/45 to-transparent" />
 											</div>
-										)}
-									</div>
-
-									{/* Card body */}
-									<div className="flex flex-1 flex-col gap-3 p-5">
-										<div className="flex items-start justify-between gap-2">
-											<div className="flex items-center gap-2">
-												<div className="flex h-8 w-8 items-center justify-center rounded-lg border border-primary/20 bg-primary/10">
-													<Icon name={icon} className="text-primary" size={16} filled />
-												</div>
-												<h3 className="font-bold text-foreground">{name}</h3>
-											</div>
-											<span
-												className={`inline-flex shrink-0 rounded-full border px-2.5 py-0.5 text-xs font-medium ${categoryClass}`}
-											>
-												{category}
-											</span>
 										</div>
-										<p className="text-sm leading-relaxed text-muted-foreground">{desc}</p>
-										<div className="mt-auto flex items-center justify-between border-t border-border/50 pt-3 text-xs text-muted-foreground">
-											<span className="flex items-center gap-1">
-												<Icon name="description" size={12} />
-												{pages} page{pages !== 1 ? "s" : ""}
-											</span>
-											<span className="flex items-center gap-1">
-												<Icon name="content_copy" size={12} />
-												{usageCount} uses
-											</span>
-										</div>
-									</div>
-								</motion.div>
-							),
-						)}
-					</motion.div>
-				</AnimatePresence>
+									</motion.article>
+								);
+							})}
+						</motion.div>
+					</AnimatePresence>
+				)}
 
 				{/* Bottom CTA */}
 				<motion.div variants={safeFadeUp} className="mt-10 flex justify-center">
 					<button
 						type="button"
-						className="inline-flex items-center gap-2.5 rounded-full border border-border/70 bg-card/60 px-7 py-3 text-sm font-semibold text-muted-foreground backdrop-blur transition-all hover:border-primary/40 hover:bg-primary/10 hover:text-foreground active:scale-95"
-					>
+						onClick={() => setActiveCategory("All")}
+						className="inline-flex items-center gap-2.5 rounded-full border border-border/70 bg-card/60 px-7 py-3 text-sm font-semibold text-muted-foreground backdrop-blur transition-all hover:border-primary/40 hover:bg-primary/10 hover:text-foreground active:scale-95">
 						<Icon name="grid_view" size={16} />
-						View all 85+ templates
+						View {templateCount.toLocaleString("en-US")} templates
 						<Icon name="arrow_forward" size={16} />
 					</button>
 				</motion.div>
