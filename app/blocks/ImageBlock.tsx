@@ -16,22 +16,32 @@ const RADIUS_MAP: Record<string, string> = {
   full: "rounded-full",
 };
 
-type TextPosition =
-  | "top-left" | "top-center" | "top-right"
-  | "mid-left" | "mid-center" | "mid-right"
-  | "bottom-left" | "bottom-center" | "bottom-right";
-
-const POSITION_CLASSES: Record<TextPosition, string> = {
-  "top-left":      "top-0 left-0 items-start justify-start text-left",
-  "top-center":    "top-0 left-0 right-0 items-start justify-center text-center",
-  "top-right":     "top-0 right-0 items-start justify-end text-right",
-  "mid-left":      "top-0 bottom-0 left-0 items-center justify-start text-left",
-  "mid-center":    "inset-0 items-center justify-center text-center",
-  "mid-right":     "top-0 bottom-0 right-0 items-center justify-end text-right",
-  "bottom-left":   "bottom-0 left-0 items-end justify-start text-left",
-  "bottom-center": "bottom-0 left-0 right-0 items-end justify-center text-center",
-  "bottom-right":  "bottom-0 right-0 items-end justify-end text-right",
+const FONT_SIZE_MAP: Record<string, string> = {
+  sm: "text-sm",
+  base: "text-base",
+  lg: "text-lg",
+  xl: "text-xl",
+  "2xl": "text-2xl",
+  "3xl": "text-3xl",
+  "4xl": "text-4xl",
+  "5xl": "text-5xl",
 };
+
+const FONT_WEIGHT_MAP: Record<string, string> = {
+  normal: "font-normal",
+  medium: "font-medium",
+  semibold: "font-semibold",
+  bold: "font-bold",
+};
+
+const TEXT_ALIGN_MAP: Record<string, string> = {
+  left: "text-left",
+  center: "text-center",
+  right: "text-right",
+};
+
+const CUSTOM_CAPTION_SIZE_MIN = 12;
+const CUSTOM_CAPTION_SIZE_MAX = 200;
 
 function toAlpha(value: number): string {
   return value.toFixed(3).replace(/0+$/, "").replace(/\.$/, "");
@@ -86,12 +96,17 @@ function getOverlayStyle(
   return null;
 }
 
+const VERTICAL_ALIGN_CLASSES: Record<string, string> = {
+  top: "top-0",
+  center: "top-1/2 -translate-y-1/2",
+  bottom: "bottom-0",
+};
+
 export function ImageBlock({ block, globalStyle }: BlockComponentProps) {
-  const { src, alt, caption, textPosition } = block.props as {
+  const { src, alt, caption } = block.props as {
     src: string;
     alt: string;
     caption?: string;
-    textPosition?: TextPosition;
   };
   const s = block.style;
 
@@ -100,7 +115,28 @@ export function ImageBlock({ block, globalStyle }: BlockComponentProps) {
   const isLightTheme = globalStyle.themeMode === "light";
   const heightStyle = s.height ? { height: s.height } : {};
   const overlayStyle = getOverlayStyle(s.overlayEffect, s.overlayIntensity ?? 40);
-  const positionClasses = POSITION_CLASSES[(textPosition as TextPosition) || "mid-center"];
+
+  // Caption styles
+  const isCustomFontSize = s.fontSize === "custom";
+  const customFontSizePx =
+    typeof s.fontSizePx === "number" && Number.isFinite(s.fontSizePx)
+      ? Math.min(CUSTOM_CAPTION_SIZE_MAX, Math.max(CUSTOM_CAPTION_SIZE_MIN, Math.round(s.fontSizePx)))
+      : undefined;
+
+  const captionClasses = [
+    isCustomFontSize ? "" : (FONT_SIZE_MAP[s.fontSize || "xl"] ?? "text-xl"),
+    FONT_WEIGHT_MAP[s.fontWeight || "bold"] ?? "font-bold",
+    TEXT_ALIGN_MAP[s.textAlign || "center"] ?? "text-center",
+  ].join(" ");
+
+  const captionStyle: React.CSSProperties = {
+    fontFamily: s.fontFamily || globalStyle.fontFamily,
+    fontStyle: s.fontStyle || "normal",
+    letterSpacing: typeof s.letterSpacing === "number" ? `${s.letterSpacing}px` : undefined,
+    fontSize: isCustomFontSize && customFontSizePx ? `${customFontSizePx}px` : undefined,
+  };
+
+  const verticalClass = VERTICAL_ALIGN_CLASSES[s.captionVerticalAlign || "center"];
 
   if (!src) {
     return (
@@ -147,8 +183,14 @@ export function ImageBlock({ block, globalStyle }: BlockComponentProps) {
       )}
 
       {caption && (
-        <div className={`absolute flex p-4 ${positionClasses}`}>
-          <p className="text-sm font-medium text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)] max-w-[80%]">
+        <div
+          className={`absolute inset-x-0 ${verticalClass}`}
+          style={{ padding: s.captionPadding ?? 16 }}
+        >
+          <p
+            className={`w-full drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)] text-white ${captionClasses}`}
+            style={captionStyle}
+          >
             {caption}
           </p>
         </div>

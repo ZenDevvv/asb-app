@@ -226,7 +226,7 @@ The right sidebar changes based on what is selected:
 
 **When a BLOCK is selected** (click a specific block on the canvas):
 1. **Block Content** - auto-generated controls based on block type (text input, image upload, etc.)
-2. **Block Style** - constrained style options for that block (size, alignment, spacing, letter spacing). `heading`, `text`, and `button` blocks also expose a **Font Family** control that opens the same Typography Settings modal used in Global Settings; selecting a font applies a block-level override.
+2. **Block Style** - constrained style options for that block (size, alignment, spacing, letter spacing). `heading`, `text`, `button`, and `image` blocks expose a **Font Family** control that opens the same Typography Settings modal used in Global Settings; selecting a font applies a block-level override (applied to the caption text for `image` blocks).
 3. **Position** - collapsible panel with:
    - **Column** — slot/column picker (shown only when the group layout has multiple slots and the block is in flow mode). Allows moving the block to a different column after it was added. Calls `moveBlockToSlot` / `moveBlockToSlotAtIndex` store actions.
    - **Flow / Absolute** toggle — choose positioning mode. Absolute blocks are positioned relative to the selected group and can be moved on the canvas by dragging.
@@ -366,7 +366,7 @@ type BlockType =
   | "text"           // Body/paragraph text
   | "button"         // CTA button — variant (solid/outline/ghost/link/text) + text + link + optional iconLeft/iconRight
   | "card"           // Surface card with title/body/button/image
-  | "image"          // Single image — editableProps: src, alt, caption (short-text), textPosition (position-picker). editableStyles: width (size-picker), opacity (0-100), height (0-800, 0=auto). Caption renders as absolutely-positioned text at the chosen grid cell (9 positions) inside the image container.
+  | "image"          // Single image — editableProps: src, alt, caption (short-text). editableStyles: width, opacity, height, fontSize (with custom), fontWeight, fontStyle, letterSpacing, textAlign (align-picker), captionVerticalAlign (top/center/bottom). Caption is full-width, absolutely positioned; horizontal alignment via textAlign, vertical via captionVerticalAlign. Supports block-level font family override applied to caption. supportsCustomTextSize = true (same as heading/text).
   | "icon"           // Material Symbol icon — plain icon only, no label
   | "spacer"         // Vertical space (height slider)
   | "badge"          // Small label/tag — variant (subtle/filled/outline/pill-dot) + text
@@ -392,7 +392,7 @@ interface Block {
 
 interface BlockStyle {
   // Text
-  fontFamily?: string;            // Optional block-level font override (heading, text, button blocks)
+  fontFamily?: string;            // Optional block-level font override (heading, text, button, image blocks)
   fontSize?: "sm" | "base" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "5xl" | "custom";
   fontSizePx?: number;            // Custom heading/text size in px when fontSize="custom"
   fontWeight?: "normal" | "medium" | "semibold" | "bold";
@@ -416,6 +416,8 @@ interface BlockStyle {
   opacity?: number;               // 0-100 slider
   overlayEffect?: "none" | "dots" | "grid" | "dim" | "vignette"; // Image block only — CSS overlay pattern
   overlayIntensity?: number;      // 0-100; controls strength of image overlay (image block only)
+  captionVerticalAlign?: "top" | "center" | "bottom"; // Image block only — vertical position of caption within image
+  captionPadding?: number;        // Image block only — uniform padding (px) around caption text (default 16, slider 0-64)
 
   // Positioning (editor controls)
   positionMode?: "flow" | "absolute";
@@ -809,7 +811,7 @@ BlockStyle.colorMode        -> "global" (default): block derives text/accent fro
                                "custom": block uses its own textColor/accentColor
 BlockStyle.textColor        â†’ custom text color (only active when colorMode="custom")
 BlockStyle.accentColor      â†’ custom accent color (only active when colorMode="custom")
-BlockStyle.fontFamily       â†’ optional block-level font override (heading, text, button blocks)
+BlockStyle.fontFamily       â†’ optional block-level font override (heading, text, button, image blocks — applies to caption on image)
 BlockStyle.fontSize         â†’ block-level size choice (heading/text support presets + "custom")
 BlockStyle.fontSizePx       â†’ heading/text custom size in px (applies when fontSize="custom")
 BlockStyle.fontWeight       â†’ block-level weight choice (where supported)
@@ -819,8 +821,10 @@ BlockStyle.textAlign        â†’ block-level alignment
 BlockStyle.width            -> block width preset ("auto" | "sm" | "md" | "lg" | "full" | "custom")
 BlockStyle.widthPx          -> custom block width in px (used when width="custom", divider supports this)
 BlockStyle.opacity          -> block opacity percentage (0-100)
-BlockStyle.overlayEffect    -> image block overlay pattern ("none" | "dots" | "grid" | "dim" | "vignette")
-BlockStyle.overlayIntensity -> image block overlay strength (0-100)
+BlockStyle.overlayEffect         -> image block overlay pattern ("none" | "dots" | "grid" | "dim" | "vignette")
+BlockStyle.overlayIntensity      -> image block overlay strength (0-100)
+BlockStyle.captionVerticalAlign  -> image block caption vertical position ("top" | "center" | "bottom")
+BlockStyle.captionPadding        -> image block caption uniform padding in px (default 16, slider 0–64 step 4)
 ```
 
 Color resolution (via `app/lib/blockColors.ts`):
@@ -1597,6 +1601,9 @@ This contract ensures AI output can be validated and loaded directly into the ed
 
 ---
 
+*Document Version: 3.62 - Added captionPadding to image block. `BlockStyle.captionPadding` (number, default 16) controls uniform padding around the caption container via inline style. `blockRegistry.ts` adds a "Text Padding" slider (0–64, step 4) to image editableStyles. `ImageBlock.tsx` replaces hardcoded `px-4 py-3` with dynamic `style={{ padding: s.captionPadding ?? 16 }}`.*
+*Document Version: 3.61 - Upgraded image block caption styling to match heading block. `BlockStyle` extended with `captionVerticalAlign` ("top"|"center"|"bottom"). `constants.ts` adds `image: 20` to `CUSTOM_TEXT_SIZE_DEFAULT_BY_BLOCK`. `StylePanel.tsx` adds `image` to `supportsCustomTextSize`. `blockRegistry.ts` image entry now has full editableStyles: fontSize (with custom), fontWeight, fontStyle, letterSpacing, textAlign (align-picker), captionVerticalAlign (size-picker Top/Mid/Bot). `textPosition` prop removed; horizontal alignment uses shared `BlockStyle.textAlign`, vertical uses new `captionVerticalAlign`. Caption container is full-width (`inset-x-0 w-full`). `ImageBlock.tsx` rewrote caption rendering with all style maps matching HeadingBlock.*
+*Document Version: 3.60 - Added block-level font family override to `image` block. `ImageBlock.tsx` now applies `s.fontFamily || globalStyle.fontFamily` as inline `fontFamily` on the caption `<p>`. `BlockSettings.tsx` and `StylePanel.tsx` updated `supportsFontOverride` to include `block.type === "image"`, exposing the Font Family picker in the Style panel for image blocks.*
 *Document Version: 3.59 - Added caption text overlay to `image` block. `ImageBlock.tsx` renders an absolutely-positioned `<p>` over the image at one of 9 grid positions. New props: `caption` (short-text) and `textPosition` (position-picker, default "mid-center"). New `ControlType` `"position-picker"` added to `editor.ts` and `FieldRenderer.tsx` — renders a 3×3 dot grid. `blockRegistry.ts` image entry updated with the two new `editableProps` and `defaultProps`.*
 *Document Version: 3.59 - Added overlay effect + intensity slider to `image` block via `ImageOverlayPanel.tsx`. `BlockStyle` extended with `overlayEffect` ("none"|"dots"|"grid"|"dim"|"vignette") and `overlayIntensity` (0-100). `BlockSettings.tsx` conditionally renders `ImageOverlayPanel` for image blocks between Spacing and Position panels.*
 *Document Version: 3.58 - Added "text" variant to button block. ButtonBlock now supports a plain-text style (no background, border, or underline) via a new "text" case in `getVariantConfig`. All button variants now include `cursor-pointer`. `blockRegistry.ts` adds the "Text" option to the button variant select.*

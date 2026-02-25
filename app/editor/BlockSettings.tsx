@@ -41,7 +41,7 @@ export function BlockSettings({
 	const blockEntry = BLOCK_REGISTRY[block.type];
 	if (!blockEntry) return null;
 
-	const supportsFontOverride = block.type === "heading" || block.type === "text" || block.type === "button";
+	const supportsFontOverride = block.type === "heading" || block.type === "text" || block.type === "button" || block.type === "image";
 	const [fontModalOpen, setFontModalOpen] = useState(false);
 	const effectiveFontValue = block.style.fontFamily || globalStyle.fontFamily;
 

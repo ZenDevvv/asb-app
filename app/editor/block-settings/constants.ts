@@ -19,6 +19,7 @@ export const FONT_SIZE_PRESET_TO_PX: Record<string, number> = {
 export const CUSTOM_TEXT_SIZE_DEFAULT_BY_BLOCK: Partial<Record<Block["type"], number>> = {
 	heading: 36,
 	text: 16,
+	image: 20,
 };
 
 export const WIDTH_PRESET_TO_PX: Record<string, number> = {

@@ -83,14 +83,14 @@ export function StylePanel({
 		return null;
 	}
 
-	const supportsFontOverride = block.type === "heading" || block.type === "text" || block.type === "button";
+	const supportsFontOverride = block.type === "heading" || block.type === "text" || block.type === "button" || block.type === "image";
 	const effectiveFontValue = block.style.fontFamily || globalFontFamily;
 	const selectedFont = resolveFontOption(effectiveFontValue);
 	const hasBlockFontOverride =
 		typeof block.style.fontFamily === "string" &&
 		block.style.fontFamily.trim().length > 0 &&
 		block.style.fontFamily !== globalFontFamily;
-	const supportsCustomTextSize = block.type === "heading" || block.type === "text";
+	const supportsCustomTextSize = block.type === "heading" || block.type === "text" || block.type === "image";
 	const supportsCustomDividerWidth = block.type === "divider";
 	const customTextSizeValue = getCustomTextSizeValue(block);
 	const customDividerWidthValue = getCustomDividerWidthValue(block);
