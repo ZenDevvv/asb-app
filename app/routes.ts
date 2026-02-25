@@ -10,6 +10,12 @@ export default [
 	index("routes/landing.tsx"),
 	layout("layouts/auth-layout.tsx", authRoutes),
 	layout(
+		"layouts/user-layout.tsx",
+		prefix("user", [
+			route("dashboard", "routes/user/dashboard.tsx"),
+		]),
+	),
+	layout(
 		"layouts/admin-layout.tsx",
 		prefix("admin", [
 			route("/", "routes/admin/dashboard.tsx"),

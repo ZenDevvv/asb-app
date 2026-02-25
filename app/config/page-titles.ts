@@ -30,4 +30,5 @@ export const PAGE_TITLES = {
 	requestList: "Request List",
 	login: "Login",
 	register: "Register",
+	userDashboard: "Dashboard — AppSiteBuilder",
 };
