@@ -169,7 +169,8 @@ export type ControlType =
   | "toggle"
   | "select"
   | "size-picker"
-  | "align-picker";
+  | "align-picker"
+  | "position-picker";
 
 export interface EditableField {
   key: string;

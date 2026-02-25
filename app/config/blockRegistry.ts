@@ -282,11 +282,13 @@ export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
     label: "Image",
     icon: "image",
     category: "media",
-    defaultProps: { src: "", alt: "" },
+    defaultProps: { src: "", alt: "", caption: "", textPosition: "mid-center" },
     defaultStyle: { width: "full" },
     editableProps: [
       { key: "src", label: "Image", type: "image" },
       { key: "alt", label: "Alt Text", type: "short-text" },
+      { key: "caption", label: "Caption Text", type: "short-text" },
+      { key: "textPosition", label: "Text Position", type: "position-picker" },
     ],
     editableStyles: [
       {

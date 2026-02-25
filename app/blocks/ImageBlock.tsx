@@ -16,6 +16,23 @@ const RADIUS_MAP: Record<string, string> = {
   full: "rounded-full",
 };
 
+type TextPosition =
+  | "top-left" | "top-center" | "top-right"
+  | "mid-left" | "mid-center" | "mid-right"
+  | "bottom-left" | "bottom-center" | "bottom-right";
+
+const POSITION_CLASSES: Record<TextPosition, string> = {
+  "top-left":      "top-0 left-0 items-start justify-start text-left",
+  "top-center":    "top-0 left-0 right-0 items-start justify-center text-center",
+  "top-right":     "top-0 right-0 items-start justify-end text-right",
+  "mid-left":      "top-0 bottom-0 left-0 items-center justify-start text-left",
+  "mid-center":    "inset-0 items-center justify-center text-center",
+  "mid-right":     "top-0 bottom-0 right-0 items-center justify-end text-right",
+  "bottom-left":   "bottom-0 left-0 items-end justify-start text-left",
+  "bottom-center": "bottom-0 left-0 right-0 items-end justify-center text-center",
+  "bottom-right":  "bottom-0 right-0 items-end justify-end text-right",
+};
+
 function toAlpha(value: number): string {
   return value.toFixed(3).replace(/0+$/, "").replace(/\.$/, "");
 }
@@ -70,7 +87,12 @@ function getOverlayStyle(
 }
 
 export function ImageBlock({ block, globalStyle }: BlockComponentProps) {
-  const { src, alt } = block.props as { src: string; alt: string };
+  const { src, alt, caption, textPosition } = block.props as {
+    src: string;
+    alt: string;
+    caption?: string;
+    textPosition?: TextPosition;
+  };
   const s = block.style;
 
   const widthClass = WIDTH_MAP[s.width || "full"] || "w-full";
@@ -78,6 +100,7 @@ export function ImageBlock({ block, globalStyle }: BlockComponentProps) {
   const isLightTheme = globalStyle.themeMode === "light";
   const heightStyle = s.height ? { height: s.height } : {};
   const overlayStyle = getOverlayStyle(s.overlayEffect, s.overlayIntensity ?? 40);
+  const positionClasses = POSITION_CLASSES[(textPosition as TextPosition) || "mid-center"];
 
   if (!src) {
     return (
@@ -115,16 +138,20 @@ export function ImageBlock({ block, globalStyle }: BlockComponentProps) {
       <img
         src={src}
         alt={alt || ""}
-        className={`object-cover w-full h-full`}
-        style={{
-          opacity: (s.opacity ?? 100) / 100,
-        }}
+        className="object-cover w-full h-full"
+        style={{ opacity: (s.opacity ?? 100) / 100 }}
       />
+
       {overlayStyle && (
-        <div
-          className={`absolute inset-0 ${radius}`}
-          style={overlayStyle}
-        />
+        <div className={`absolute inset-0 ${radius}`} style={overlayStyle} />
+      )}
+
+      {caption && (
+        <div className={`absolute flex p-4 ${positionClasses}`}>
+          <p className="text-sm font-medium text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)] max-w-[80%]">
+            {caption}
+          </p>
+        </div>
       )}
     </div>
   );

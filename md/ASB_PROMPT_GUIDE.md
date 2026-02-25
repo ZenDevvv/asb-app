@@ -366,7 +366,7 @@ type BlockType =
   | "text"           // Body/paragraph text
   | "button"         // CTA button — variant (solid/outline/ghost/link/text) + text + link + optional iconLeft/iconRight
   | "card"           // Surface card with title/body/button/image
-  | "image"          // Single image with alt text — editableStyles: width (size-picker), opacity (0-100), height (0-800, 0=auto)
+  | "image"          // Single image — editableProps: src, alt, caption (short-text), textPosition (position-picker). editableStyles: width (size-picker), opacity (0-100), height (0-800, 0=auto). Caption renders as absolutely-positioned text at the chosen grid cell (9 positions) inside the image container.
   | "icon"           // Material Symbol icon — plain icon only, no label
   | "spacer"         // Vertical space (height slider)
   | "badge"          // Small label/tag — variant (subtle/filled/outline/pill-dot) + text
@@ -913,8 +913,9 @@ type ControlType =
                       //   (grid grid-cols-2) via groupEditableFields() in editor/block-settings/utils.ts
   | "toggle"          // Radix Switch (boolean)
   | "select"          // shadcn Select dropdown (implemented in FieldRenderer; used by block prop/style option fields)
-  | "size-picker"     // Segmented control for size choices (sm/md/lg/xl)
-  | "align-picker";   // Segmented control for alignment (left/center/right)
+  | "size-picker"       // Segmented control for size choices (sm/md/lg/xl)
+  | "align-picker"      // Segmented control for alignment (left/center/right)
+  | "position-picker";  // 3×3 grid — values: "top-left" | "top-center" | "top-right" | "mid-left" | "mid-center" | "mid-right" | "bottom-left" | "bottom-center" | "bottom-right"
 ```
 
 ### Background Control (composite)
@@ -1596,6 +1597,8 @@ This contract ensures AI output can be validated and loaded directly into the ed
 
 ---
 
+*Document Version: 3.59 - Added caption text overlay to `image` block. `ImageBlock.tsx` renders an absolutely-positioned `<p>` over the image at one of 9 grid positions. New props: `caption` (short-text) and `textPosition` (position-picker, default "mid-center"). New `ControlType` `"position-picker"` added to `editor.ts` and `FieldRenderer.tsx` — renders a 3×3 dot grid. `blockRegistry.ts` image entry updated with the two new `editableProps` and `defaultProps`.*
+*Document Version: 3.59 - Added overlay effect + intensity slider to `image` block via `ImageOverlayPanel.tsx`. `BlockStyle` extended with `overlayEffect` ("none"|"dots"|"grid"|"dim"|"vignette") and `overlayIntensity` (0-100). `BlockSettings.tsx` conditionally renders `ImageOverlayPanel` for image blocks between Spacing and Position panels.*
 *Document Version: 3.58 - Added "text" variant to button block. ButtonBlock now supports a plain-text style (no background, border, or underline) via a new "text" case in `getVariantConfig`. All button variants now include `cursor-pointer`. `blockRegistry.ts` adds the "Text" option to the button variant select.*
 *Document Version: 3.58 - Added block-level font override to `button` block. `ButtonBlock.tsx` now applies `s.fontFamily || globalStyle.fontFamily` as an inline `fontFamily` on the `<a>` element. `BlockSettings.tsx` and `StylePanel.tsx` updated `supportsFontOverride` to include `block.type === "button"`, exposing the Font Family picker in the Style panel for button blocks the same way as `heading` and `text`.*
 *Document Version: 3.57 - Fixed Group Mode delete action in `SettingsPanel.tsx`. The header Delete button now calls `removeGroup(sectionId, groupId)` when `isGroupMode && activeGroup` is true (previously always called `removeSection`, deleting the whole section). `removeGroup` is now imported from `editorStore`. Duplicate was already correct.*

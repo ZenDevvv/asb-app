@@ -100,6 +100,49 @@ export function FieldRenderer({ field, value, onChange }: FieldRendererProps) {
 					</button>
 				</div>
 			);
+		case "position-picker": {
+			const positions = [
+				"top-left", "top-center", "top-right",
+				"mid-left", "mid-center", "mid-right",
+				"bottom-left", "bottom-center", "bottom-right",
+			] as const;
+			const current = (value as string) || "mid-center";
+			const label = current.replace("-", " ").replace(/\b\w/g, (c) => c.toUpperCase());
+			return (
+				<div className="flex items-center justify-between">
+					<div>
+						<p className="text-xs font-medium text-muted-foreground">{field.label}</p>
+						<p className="text-[10px] text-muted-foreground/50">{label}</p>
+					</div>
+					<div
+						className="grid grid-cols-3 overflow-hidden rounded-lg border border-border"
+						style={{ width: 66, height: 66 }}>
+						{positions.map((pos) => {
+							const active = current === pos;
+							return (
+								<button
+									key={pos}
+									title={pos.replace("-", " ")}
+									onClick={() => onChange(pos)}
+									className={`flex items-center justify-center transition-colors ${
+										active
+											? "bg-primary/15"
+											: "hover:bg-muted/40"
+									}`}>
+									<span
+										className={`block rounded-sm transition-all ${
+											active
+												? "size-2 bg-primary"
+												: "size-1 bg-border"
+										}`}
+									/>
+								</button>
+							);
+						})}
+					</div>
+				</div>
+			);
+		}
 		default:
 			return null;
 	}
