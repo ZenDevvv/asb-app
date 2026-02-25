@@ -264,7 +264,7 @@ export default function EditorPage() {
 		return () => window.removeEventListener("keydown", handleKeyDown);
 	}, [debouncedSave, updateTemplate, setLastSaved]);
 
-	if (templateId && !isTemplateLoading) {
+	if (templateId && isTemplateLoading) {
 		return <SplashScreen mode="editor" />;
 	}
 

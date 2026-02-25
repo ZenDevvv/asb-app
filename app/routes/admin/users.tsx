@@ -248,8 +248,8 @@ export default function AdminUsersRoute() {
 
 			<section className="px-5 pb-5 lg:px-6">
 				<div className="overflow-hidden rounded-2xl border border-border bg-card/70 shadow-sm">
-					<div className="overflow-x-auto minimal-scrollbar">
-						<table className="w-full min-w-[1040px] border-separate border-spacing-0">
+					<div className="overflow-x-auto">
+						<table className="w-full min-w-[960px] border-separate border-spacing-0">
 							<thead className="bg-sidebar-accent/65">
 								<tr className="text-left text-[11px] uppercase tracking-[0.08em] text-muted-foreground">
 									<th className="px-5 py-3.5 font-semibold">User</th>
@@ -421,7 +421,7 @@ export default function AdminUsersRoute() {
 						</table>
 					</div>
 
-					<footer className="flex flex-wrap items-center justify-between gap-3 border-t border-border px-5 py-4">
+					<footer className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
 						<p className="text-sm text-muted-foreground">
 							Showing{" "}
 							<span className="font-semibold text-foreground">{rangeStart}</span> to{" "}
@@ -435,31 +435,16 @@ export default function AdminUsersRoute() {
 						<div className="flex items-center gap-2">
 							<button
 								type="button"
-								disabled={currentPage <= 1}
 								onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
-								className={cn(
-									"rounded-full border border-border px-3.5 py-1.5 text-sm transition-colors",
-									currentPage <= 1
-										? "cursor-not-allowed text-muted-foreground/55"
-										: "text-muted-foreground hover:text-foreground",
-								)}>
+								className="rounded-full border border-border px-3.5 py-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground">
 								Previous
 							</button>
-							<span className="rounded-full border border-border bg-background px-3.5 py-1.5 text-sm text-foreground">
-								Page {currentPage} / {totalPages}
-							</span>
 							<button
 								type="button"
-								disabled={currentPage >= totalPages}
 								onClick={() =>
 									setCurrentPage((page) => Math.min(totalPages, page + 1))
 								}
-								className={cn(
-									"rounded-full border border-border px-3.5 py-1.5 text-sm transition-colors",
-									currentPage >= totalPages
-										? "cursor-not-allowed text-muted-foreground/55"
-										: "text-muted-foreground hover:text-foreground",
-								)}>
+								className="rounded-full border border-border bg-card px-3.5 py-1.5 text-sm text-foreground transition-colors hover:bg-card/80">
 								Next
 							</button>
 						</div>

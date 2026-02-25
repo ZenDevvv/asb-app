@@ -345,6 +345,52 @@ Use uppercase, tracked labels with primary color:
 </Button>
 ```
 
+### Admin Table + Pagination (Templates/Users)
+
+Use this exact shell for admin listing pages to keep `templates` and `users` consistent.
+
+```tsx
+<section className="overflow-hidden rounded-2xl border border-border bg-card/70 shadow-sm">
+  <div className="overflow-x-auto">
+    <table className="w-full min-w-[960px] border-separate border-spacing-0">
+      <thead className="bg-sidebar-accent/65">
+        <tr className="text-left text-[11px] uppercase tracking-[0.08em] text-muted-foreground">
+          {/* th cells */}
+        </tr>
+      </thead>
+      <tbody>
+        {/* rows */}
+      </tbody>
+    </table>
+  </div>
+</section>
+```
+
+```tsx
+<footer className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
+  <p className="text-sm text-muted-foreground">
+    Showing <span className="font-semibold text-foreground">1</span> to{" "}
+    <span className="font-semibold text-foreground">10</span> of{" "}
+    <span className="font-semibold text-foreground">100</span> items
+  </p>
+
+  <div className="flex items-center gap-2">
+    <button
+      type="button"
+      className="rounded-full border border-border px-3.5 py-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+    >
+      Previous
+    </button>
+    <button
+      type="button"
+      className="rounded-full border border-border bg-card px-3.5 py-1.5 text-sm text-foreground transition-colors hover:bg-card/80"
+    >
+      Next
+    </button>
+  </div>
+</footer>
+```
+
 ---
 
 ## Layout Patterns
