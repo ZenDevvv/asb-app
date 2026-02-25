@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { Bell, MoreHorizontal, Plus, Search, SlidersHorizontal, Sparkles } from "lucide-react";
@@ -100,6 +101,11 @@ const tabs: Array<{ key: TemplateTab; label: string }> = [
 	{ key: "archived", label: "Archived" },
 ];
 
+const sectionVariants = {
+	hidden: { opacity: 0, y: 14 },
+	visible: { opacity: 1, y: 0 },
+};
+
 export default function AdminTemplatesRoute() {
 	const navigate = useNavigate();
 	const [selectedTab, setSelectedTab] = useState<TemplateTab>("all");
@@ -148,8 +154,14 @@ export default function AdminTemplatesRoute() {
 	}, [selectedTab, templateProjects]);
 
 	return (
-		<div className="min-h-full overflow-hidden rounded-2xl border border-border bg-gradient-to-b from-card via-background to-background text-foreground shadow-xl">
-			<header className="flex flex-wrap items-start justify-between gap-4 border-b border-border px-5 py-4 lg:px-6">
+		<motion.div
+			initial="hidden"
+			animate="visible"
+			className="min-h-full overflow-hidden rounded-2xl border border-border bg-gradient-to-b from-card via-background to-background text-foreground shadow-xl">
+			<motion.header
+				variants={sectionVariants}
+				transition={{ duration: 0.28, ease: "easeOut" }}
+				className="flex flex-wrap items-start justify-between gap-4 border-b border-border px-5 py-4 lg:px-6">
 				<div>
 					<h1 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
 						Template Library
@@ -174,10 +186,13 @@ export default function AdminTemplatesRoute() {
 						Create New Template
 					</button>
 				</div>
-			</header>
+			</motion.header>
 
 			<div className="space-y-4 px-5 py-5 lg:px-6">
-				<section className="rounded-2xl border border-border bg-card/65 p-3 shadow-sm">
+				<motion.section
+					variants={sectionVariants}
+					transition={{ duration: 0.28, delay: 0.08, ease: "easeOut" }}
+					className="rounded-2xl border border-border bg-card/65 p-3 shadow-sm">
 					<div className="flex flex-col gap-3 xl:flex-row xl:items-center">
 						<label className="relative flex-1">
 							<Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -235,9 +250,12 @@ export default function AdminTemplatesRoute() {
 							</button>
 						</div>
 					</div>
-				</section>
+				</motion.section>
 
-				<section className="overflow-hidden rounded-2xl border border-border bg-card/70 shadow-sm">
+				<motion.section
+					variants={sectionVariants}
+					transition={{ duration: 0.3, delay: 0.14, ease: "easeOut" }}
+					className="overflow-hidden rounded-2xl border border-border bg-card/70 shadow-sm">
 					<div className="overflow-x-auto">
 						<table className="w-full min-w-[960px] border-separate border-spacing-0">
 							<thead className="bg-sidebar-accent/65">
@@ -271,7 +289,7 @@ export default function AdminTemplatesRoute() {
 										</td>
 									</tr>
 								) : filteredTemplates.length > 0 ? (
-									filteredTemplates.map((template) => {
+									filteredTemplates.map((template, index) => {
 										const status = statusClassName[getTemplateStatus(template)];
 										const categoryClasses = getCategoryClassName(
 											template.category,
@@ -290,8 +308,15 @@ export default function AdminTemplatesRoute() {
 													: undefined;
 
 										return (
-											<tr
+											<motion.tr
 												key={template.id}
+												initial={{ opacity: 0, y: 10 }}
+												animate={{ opacity: 1, y: 0 }}
+												transition={{
+													duration: 0.24,
+													delay: 0.18 + Math.min(index, 10) * 0.03,
+													ease: "easeOut",
+												}}
 												onClick={() => navigate(`/editor/${template.id}`)}
 												className="cursor-pointer border-t border-border/80 text-sm text-foreground transition hover:bg-background/45">
 												<td className="px-5 py-4">
@@ -371,7 +396,7 @@ export default function AdminTemplatesRoute() {
 														<MoreHorizontal className="h-4 w-4" />
 													</button>
 												</td>
-											</tr>
+											</motion.tr>
 										);
 									})
 								) : (
@@ -386,9 +411,12 @@ export default function AdminTemplatesRoute() {
 							</tbody>
 						</table>
 					</div>
-				</section>
+				</motion.section>
 
-				<footer className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
+				<motion.footer
+					variants={sectionVariants}
+					transition={{ duration: 0.26, delay: 0.2, ease: "easeOut" }}
+					className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
 					<p className="text-sm text-muted-foreground">
 						Showing{" "}
 						<span className="font-semibold text-foreground">
@@ -413,7 +441,7 @@ export default function AdminTemplatesRoute() {
 							Next
 						</button>
 					</div>
-				</footer>
+				</motion.footer>
 			</div>
 
 			<CreateTemplateModal
@@ -421,6 +449,6 @@ export default function AdminTemplatesRoute() {
 				onOpenChange={setCreateTemplateModalOpen}
 				fallbackCreatedById={templateProjects[0]?.createdById}
 			/>
-		</div>
+		</motion.div>
 	);
 }
