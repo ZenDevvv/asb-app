@@ -3,15 +3,13 @@ import { useNavigate } from "react-router";
 import { motion, useReducedMotion, useInView, AnimatePresence, type Variants } from "framer-motion";
 import { useAuth } from "~/hooks/use-auth";
 import { Icon } from "~/components/ui/icon";
+import { TemplateCard } from "~/components/user/TemplateCard";
 import { useGetTemplateProjects } from "~/hooks/use-template-project";
 import {
 	TEMPLATE_PROJECT_FIELDS,
 	getTemplateCategories,
 	getTemplateCategoryLabel,
-	getTemplateDescription,
-	getTemplateTheme,
 } from "~/lib/template-project-utils";
-import { cn } from "~/lib/utils";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 function getGreeting() {
@@ -64,48 +62,6 @@ const QUICK_PROMPTS = [
 	"A bold agency showcase with dark theme",
 	"A blog for a tech writer",
 ];
-
-function TemplatePreviewCanvas({
-	thumbnail,
-	name,
-	placeholderClassName,
-}: {
-	thumbnail?: string;
-	name: string;
-	placeholderClassName: string;
-}) {
-	const [imageFailed, setImageFailed] = useState(false);
-
-	if (thumbnail && !imageFailed) {
-		return (
-			<img
-				src={thumbnail}
-				alt={`${name} preview`}
-				className="h-full w-full object-cover"
-				onError={() => setImageFailed(true)}
-			/>
-		);
-	}
-
-	return (
-		<div className={cn("relative h-full w-full", placeholderClassName)}>
-			<div className="absolute left-5 right-5 top-6 rounded-2xl bg-white/90 p-4 shadow-xl shadow-slate-900/20">
-				<div className="mb-3 flex items-center gap-1.5">
-					<div className="h-2 w-2 rounded-full bg-slate-300" />
-					<div className="h-2 w-2 rounded-full bg-slate-200" />
-					<div className="h-2 w-2 rounded-full bg-slate-200" />
-				</div>
-				<div className="h-2 w-2/3 rounded-full bg-slate-200" />
-				<div className="mt-2 h-2 w-1/2 rounded-full bg-slate-200" />
-				<div className="mt-5 grid grid-cols-6 gap-1">
-					{Array.from({ length: 24 }).map((_, index) => (
-						<span key={index} className="h-2 rounded-full bg-slate-200/90" />
-					))}
-				</div>
-			</div>
-		</div>
-	);
-}
 
 export function meta() {
 	return [{ title: "Dashboard — AppSiteBuilder" }];
@@ -672,63 +628,16 @@ export default function UserDashboard() {
 							exit={{ opacity: 0, transition: { duration: 0.15 } }}
 							className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
 							{filteredTemplates.map((template, index) => {
-								const templateTheme = getTemplateTheme(template.category);
-								const description = getTemplateDescription(template);
-
 								return (
-									<motion.article
+									<TemplateCard
 										key={template.id}
+										template={template}
 										variants={safeFadeUp}
 										custom={index}
-										whileHover={
-											prefersReducedMotion
-												? {}
-												: { y: -4, transition: { duration: 0.18 } }
-										}
-										onClick={() => navigate(`/editor/${template.id}`)}
-										className="group relative cursor-pointer overflow-hidden rounded-[1.65rem] border border-slate-800/80 bg-slate-950/80 shadow-xl shadow-black/20">
-										<div
-											className={cn(
-												"relative flex min-h-[4.5rem] items-start gap-3 px-5 pb-4 pt-4",
-												templateTheme.headerClassName,
-											)}>
-											<div className="min-w-0 flex-1">
-												<h3 className="truncate text-xl font-semibold text-white">
-													{template.name}
-												</h3>
-												<p className="mt-0.5 line-clamp-1 text-sm text-white/75">
-													{description}
-												</p>
-											</div>
-											<button
-												type="button"
-												onClick={(event) => {
-													event.stopPropagation();
-													navigate(`/view/${template.id}`);
-												}}
-												className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/25 bg-black/25 text-white/85 transition-colors hover:bg-black/40 hover:text-white"
-												aria-label={`Preview ${template.name}`}>
-												<Icon name="visibility" size={15} />
-											</button>
-										</div>
-
-										<div
-											className={cn(
-												"relative overflow-hidden border-t border-white/10 px-3 pb-3 pt-2",
-												templateTheme.surfaceClassName,
-											)}>
-											<div className="relative h-64 overflow-hidden rounded-[1.35rem] border border-white/35 bg-white/90 shadow-[0_20px_35px_-24px_rgba(15,23,42,0.8)]">
-												<TemplatePreviewCanvas
-													thumbnail={template.thumbnail}
-													name={template.name}
-													placeholderClassName={
-														templateTheme.placeholderClassName
-													}
-												/>
-												<div className="pointer-events-none absolute inset-x-0 top-0 h-14 bg-gradient-to-b from-white/45 to-transparent" />
-											</div>
-										</div>
-									</motion.article>
+										shouldLiftOnHover={!prefersReducedMotion}
+										onClick={(id) => navigate(`/user/templates/${id}`)}
+										onPreviewClick={(id) => navigate(`/view/${id}`)}
+									/>
 								);
 							})}
 						</motion.div>

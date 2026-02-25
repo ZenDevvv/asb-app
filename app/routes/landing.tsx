@@ -372,7 +372,7 @@ export default function LandingPage() {
 			</motion.header>
 
 			{/* ── HERO ─────────────────────────────────────────────────── */}
-			<section className="relative mx-auto flex w-full max-w-7xl flex-col items-center px-6 pb-24 pt-20 text-center md:px-10 md:pt-28">
+			<section className="relative mx-auto flex w-full max-w-7xl flex-col items-center px-6 pb-24 pt-20 text-center md:px-10">
 				{/* Decorative floating cards */}
 				<motion.div
 					className="pointer-events-none absolute left-0 top-16 hidden w-56 rounded-2xl border border-border/60 bg-card/50 p-4 shadow-xl backdrop-blur-xl lg:block xl:-left-6"

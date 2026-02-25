@@ -13,6 +13,7 @@ export default [
 		"layouts/user-layout.tsx",
 		prefix("user", [
 			route("dashboard", "routes/user/dashboard.tsx"),
+			route("templates/:templateId", "routes/user/template-details.tsx"),
 		]),
 	),
 	layout(
