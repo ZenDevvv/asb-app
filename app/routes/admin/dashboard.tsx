@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import type { LucideIcon } from "lucide-react";
 import {
 	AlertTriangle,
@@ -121,11 +122,21 @@ const chartSecondaryPoints =
 	"0,286 70,278 140,268 210,254 280,240 350,226 420,214 490,206 560,198 630,186 700,168 770,142 840,128";
 
 const panelClass = "rounded-3xl border border-border bg-card/90 p-5 shadow-sm";
+const sectionVariants = {
+	hidden: { opacity: 0, y: 14 },
+	visible: { opacity: 1, y: 0 },
+};
 
 export default function OrgAdminDashboard() {
 	return (
-		<div className="min-h-full overflow-hidden rounded-2xl border border-border bg-gradient-to-b from-card via-background to-background text-foreground shadow-xl">
-			<header className="flex flex-wrap items-start justify-between gap-4 border-b border-border px-5 py-4 lg:px-6">
+		<motion.div
+			initial="hidden"
+			animate="visible"
+			className="min-h-full overflow-hidden rounded-2xl border border-border bg-gradient-to-b from-card via-background to-background text-foreground shadow-xl">
+			<motion.header
+				variants={sectionVariants}
+				transition={{ duration: 0.28, ease: "easeOut" }}
+				className="flex flex-wrap items-start justify-between gap-4 border-b border-border px-5 py-4 lg:px-6">
 				<div>
 					<h1 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
 						Dashboard Overview
@@ -148,13 +159,19 @@ export default function OrgAdminDashboard() {
 						<span className="absolute right-[9px] top-[9px] h-1.5 w-1.5 rounded-full bg-destructive" />
 					</button>
 				</div>
-			</header>
+			</motion.header>
 
 			<div className="space-y-5 px-5 py-5 lg:px-6">
 				<div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-					{statCards.map((stat) => (
-						<div
+					{statCards.map((stat, index) => (
+						<motion.div
 							key={stat.title}
+							variants={sectionVariants}
+							transition={{
+								duration: 0.28,
+								delay: index * 0.05,
+								ease: "easeOut",
+							}}
 							className="rounded-3xl border border-border bg-card/95 p-4 shadow-sm">
 							<div className="flex items-start justify-between">
 								<div className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-background/70">
@@ -185,13 +202,19 @@ export default function OrgAdminDashboard() {
 									{stat.subtitle}
 								</p>
 							</div>
-						</div>
+						</motion.div>
 					))}
 				</div>
 
 				<div className="grid gap-5 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-					<div className="space-y-5">
-						<section className={panelClass}>
+					<motion.div
+						variants={sectionVariants}
+						transition={{ duration: 0.3, delay: 0.16, ease: "easeOut" }}
+						className="space-y-5">
+						<motion.section
+							whileHover={{ y: -2 }}
+							transition={{ duration: 0.2 }}
+							className={panelClass}>
 							<div className="flex flex-wrap items-center justify-between gap-3">
 								<div>
 									<h2 className="text-base font-semibold text-foreground sm:text-lg">
@@ -249,7 +272,7 @@ export default function OrgAdminDashboard() {
 											/>
 										</filter>
 									</defs>
-									<polyline
+									<motion.polyline
 										points={chartPrimaryPoints}
 										fill="none"
 										stroke="var(--primary)"
@@ -257,8 +280,11 @@ export default function OrgAdminDashboard() {
 										strokeLinecap="round"
 										strokeLinejoin="round"
 										filter="url(#line-glow-admin)"
+										initial={{ pathLength: 0, opacity: 0.2 }}
+										animate={{ pathLength: 1, opacity: 1 }}
+										transition={{ duration: 1.1, delay: 0.28, ease: "easeOut" }}
 									/>
-									<polyline
+									<motion.polyline
 										points={chartSecondaryPoints}
 										fill="none"
 										stroke="var(--chart-5)"
@@ -266,19 +292,29 @@ export default function OrgAdminDashboard() {
 										strokeLinecap="round"
 										strokeLinejoin="round"
 										strokeDasharray="9 7"
+										initial={{ pathLength: 0, opacity: 0.15 }}
+										animate={{ pathLength: 1, opacity: 0.9 }}
+										transition={{ duration: 1, delay: 0.4, ease: "easeOut" }}
 									/>
 								</svg>
-								<div className="absolute left-[48%] top-[39%] rounded-lg border border-border bg-popover px-3 py-2 text-xs shadow-md">
+								<motion.div
+									initial={{ opacity: 0, scale: 0.92, y: 8 }}
+									animate={{ opacity: 1, scale: 1, y: 0 }}
+									transition={{ duration: 0.3, delay: 0.9, ease: "easeOut" }}
+									className="absolute left-[48%] top-[39%] rounded-lg border border-border bg-popover px-3 py-2 text-xs shadow-md">
 									<p className="text-muted-foreground">Feb 14</p>
 									<p className="mt-1 font-semibold text-popover-foreground">
 										<span className="mr-2 inline-block h-2 w-2 rounded-full bg-primary" />
 										1,240 Users
 									</p>
-								</div>
+								</motion.div>
 							</div>
-						</section>
+						</motion.section>
 
-						<section className={panelClass}>
+						<motion.section
+							whileHover={{ y: -2 }}
+							transition={{ duration: 0.2 }}
+							className={panelClass}>
 							<div className="mb-4 flex items-center justify-between gap-3">
 								<h2 className="text-base font-semibold text-foreground sm:text-lg">
 									Template Performance
@@ -290,9 +326,16 @@ export default function OrgAdminDashboard() {
 								</button>
 							</div>
 							<div className="space-y-3">
-								{templatePerformance.map((template) => (
-									<div
+								{templatePerformance.map((template, index) => (
+									<motion.div
 										key={template.name}
+										initial={{ opacity: 0, x: -12 }}
+										animate={{ opacity: 1, x: 0 }}
+										transition={{
+											duration: 0.25,
+											delay: 0.26 + index * 0.05,
+											ease: "easeOut",
+										}}
 										className="grid grid-cols-[minmax(0,1fr)_minmax(0,2.5fr)_auto] items-center gap-3 text-sm">
 										<span className="text-sm text-muted-foreground">
 											{template.name}
@@ -306,13 +349,16 @@ export default function OrgAdminDashboard() {
 										<span className="text-sm font-semibold text-foreground">
 											{template.value}%
 										</span>
-									</div>
+									</motion.div>
 								))}
 							</div>
-						</section>
-					</div>
+						</motion.section>
+					</motion.div>
 
-					<aside className={`${panelClass} relative`}>
+					<motion.aside
+						variants={sectionVariants}
+						transition={{ duration: 0.3, delay: 0.24, ease: "easeOut" }}
+						className={`${panelClass} relative`}>
 						<div className="mb-5 flex items-center justify-between">
 							<h2 className="text-base font-semibold text-foreground sm:text-lg">
 								Recent Activity
@@ -328,8 +374,17 @@ export default function OrgAdminDashboard() {
 						<div className="pointer-events-none absolute bottom-20 left-[35px] top-[72px] border-l border-border" />
 
 						<div className="space-y-6">
-							{recentActivity.map((item) => (
-								<div key={item.title} className="relative pl-12">
+							{recentActivity.map((item, index) => (
+								<motion.div
+									key={item.title}
+									initial={{ opacity: 0, y: 10 }}
+									animate={{ opacity: 1, y: 0 }}
+									transition={{
+										duration: 0.24,
+										delay: 0.3 + index * 0.05,
+										ease: "easeOut",
+									}}
+									className="relative pl-12">
 									<div className="absolute left-0 top-0 flex h-9 w-9 items-center justify-center rounded-full border border-border bg-background">
 										<item.icon className={`h-4 w-4 ${item.iconStyle}`} />
 									</div>
@@ -346,7 +401,7 @@ export default function OrgAdminDashboard() {
 									<p className="mt-2 text-[11px] text-muted-foreground">
 										{item.time}
 									</p>
-								</div>
+								</motion.div>
 							))}
 						</div>
 
@@ -355,9 +410,9 @@ export default function OrgAdminDashboard() {
 							className="mt-7 w-full text-center text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
 							View All Activity
 						</button>
-					</aside>
+					</motion.aside>
 				</div>
 			</div>
-		</div>
+		</motion.div>
 	);
 }
