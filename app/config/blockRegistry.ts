@@ -10,6 +10,7 @@ import { BadgeBlock } from "~/blocks/BadgeBlock";
 import { DividerBlock } from "~/blocks/DividerBlock";
 import { ListBlock } from "~/blocks/ListBlock";
 import { QuoteBlock } from "~/blocks/QuoteBlock";
+import { DateBlock } from "~/blocks/DateBlock";
 import { RsvpBlock } from "~/blocks/RsvpBlock";
 
 export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
@@ -612,6 +613,33 @@ export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
     ],
     inlineEditable: false,
     colorOptions: { hasText: true, hasAccent: true },
+  },
+
+  date: {
+    component: DateBlock,
+    label: "Date",
+    icon: "calendar_month",
+    category: "content",
+    defaultProps: {
+      eventDate: "2024-08-08",
+      eventTime: "15:00",
+    },
+    defaultStyle: {
+      widthPx: 920,
+      dateSectionGap: 24,
+      scale: 100,
+    },
+    editableProps: [
+      { key: "eventDate", label: "Date", type: "date" },
+      { key: "eventTime", label: "Time", type: "time" },
+    ],
+    editableStyles: [
+      { key: "widthPx", label: "Width", type: "slider", min: 320, max: 1600, step: 10 },
+      { key: "dateSectionGap", label: "Section Spacing", type: "slider", min: 0, max: 160, step: 2 },
+      { key: "scale", label: "Scale", type: "slider", min: 25, max: 300, step: 5 },
+    ],
+    inlineEditable: false,
+    colorOptions: { hasText: true, hasAccent: false },
   },
 
   rsvp: {

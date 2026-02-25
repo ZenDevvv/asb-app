@@ -383,6 +383,7 @@ type BlockType =
   | "divider"        // Horizontal line
   | "list"           // Bulleted or numbered list of text items
   | "quote"          // Blockquote with attribution
+  | "date"           // Event date/time display — editableProps: eventDate (date input) + eventTime (time input); editableStyles: width slider (320-1600px), section spacing slider (0-160px), and scale slider (25-300)
   | "rsvp"           // Event RSVP form — full self-contained form with name, email, attendance toggle, guest count, song request, and submit button
   // Post-MVP:
   | "video"          // Embedded video (YouTube/Vimeo URL)
@@ -421,6 +422,7 @@ interface BlockStyle {
   // Size (for images, icons, spacers)
   width?: "auto" | "sm" | "md" | "lg" | "full" | "custom";
   widthPx?: number;               // Custom divider width in px when width="custom"
+  dateSectionGap?: number;        // Date block only â€” vertical gap between top/middle/bottom sections
   height?: number;                // For spacers (8-128) and images (0-800, 0 = auto); slider
 
   // Appearance
@@ -435,7 +437,7 @@ interface BlockStyle {
   positionX?: number;             // px from group container left
   positionY?: number;             // px from group container top
   zIndex?: number;                // Layer order for absolute blocks
-  scale?: number;                 // Absolute block scale percentage (default 100)
+  scale?: number;                 // Block scale percentage (date block style slider; also used by absolute positioning)
 }
 
 // â”€â”€â”€ Layout Template â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -961,6 +963,8 @@ When a specific block is selected (click a block on the canvas):
 type ControlType =
   | "short-text"      // Single-line input (button text, titles, headings)
   | "long-text"       // Textarea (descriptions, paragraphs)
+  | "date"            // Native date input (YYYY-MM-DD)
+  | "time"            // Native time input (HH:mm, 24h)
   | "rich-text"       // Handled INLINE on canvas via Tiptap (not in sidebar)
   | "url"             // URL input with link icon validation
   | "image"           // Upload button + preview (Cloudinary)
@@ -1515,7 +1519,7 @@ These decisions are final. Don't revisit or suggest alternatives:
 - Email/password + Google OAuth signup/login
 - User dashboard (project list)
 - Template gallery (8-12 templates as section+block presets)
-- Block-based editor with section presets (including blank) and 11 block types
+- Block-based editor with section presets (including blank) and 12 block types
 - Three-panel editor: left sections list, center canvas, right settings
 - Drag-to-reorder sections (left sidebar), groups (left sidebar tree), and blocks (right sidebar + focused canvas drag)
 - Layout templates (1-col, 2-col, 3-col) with visual picker
@@ -1663,6 +1667,14 @@ This contract ensures AI output can be validated and loaded directly into the ed
 
 ---
 
+*Document Version: 3.71 - Added vertical section spacing control to `date` block. `blockRegistry.ts` date entry now includes `defaultStyle.dateSectionGap = 24` and a Section Spacing slider (`dateSectionGap`, 0–160, step 2). `DateBlock.tsx` now applies this value as the gap between the weekday, center row, and year sections (scale-aware), so users can tighten or expand vertical spacing.*
+*Document Version: 3.70 - Added width control to `date` block. `blockRegistry.ts` date entry now includes `defaultStyle.widthPx = 920` and a Width slider (`widthPx`, 320–1600, step 10). `DateBlock.tsx` now applies `style.maxWidth` from `block.style.widthPx`, allowing the month/time parallel lines to shrink instead of always stretching full width.*
+*Document Version: 3.69 - Updated `date` block day-number blur treatment to use the block's selected text color as the blur/halo source (not global accent), ensuring the duplicated blurred background always matches the block color choice.*
+*Document Version: 3.68 - Replaced `date` block day-number neon shadow with a duplicated blurred background treatment. `DateBlock.tsx` now renders layered blurred clones and a soft radial halo behind the foreground day number, creating a richer cinematic depth effect while still honoring theme mode and scale.*
+*Document Version: 3.67 - Increased neon glow intensity for the `date` block day number. `DateBlock.tsx` now uses stronger alpha values, wider blur radii, and an additional outer glow layer for a brighter, more pronounced neon effect while retaining theme-aware and scale-aware behavior.*
+*Document Version: 3.66 - Added neon glow styling to the `date` block day number. `DateBlock.tsx` now derives glow color from block accent/global primary (via `resolveAccentColor`) and applies a layered `textShadow` on the large day value, with theme-aware intensity and scale-aware blur sizing.*
+*Document Version: 3.65 - Added whole-block scale control for `date` block. `blockRegistry.ts` date entry now includes `defaultStyle.scale = 100` and editableStyles `scale` slider (25–300, step 5). `DateBlock.tsx` now applies this scale in flow mode by multiplying internal typography and spacing sizes, so the block resizes as a whole in normal group flow. Absolute mode keeps using the existing Position panel scale behavior.*
+*Document Version: 3.64 - Added new `date` block (timeline-style event date display). `BlockType` now includes `"date"`. New block component `DateBlock.tsx` renders weekday/month/day/time/year layout from props. `blockRegistry.ts` adds the `date` entry with editable props `eventDate` and `eventTime` and defaults (`2024-08-08`, `15:00`). `ControlType` now includes `"date"` and `"time"` with new `DateControl.tsx` and `TimeControl.tsx`, wired in `FieldRenderer.tsx`. `sectionRegistry.ts` allowed block lists were updated to include `date` across section profiles.*
 *Document Version: 3.63 - Added block copy/paste via Ctrl/Cmd+C and Ctrl/Cmd+V. `EditorState` extended with `clipboard: Block | null` (initialised to `null`). Two new store actions added to `editorStore.ts` and `EditorActions` interface: `copyBlock(sectionId, groupId, blockId)` — deep-copies the block into `state.clipboard`; `pasteBlock(targetSectionId, targetGroupId, targetBlockId?)` — clones the clipboard block with a fresh `nanoid(10)` id and inserts it after `targetBlockId` (same slot, next order) when a block is focused, or at the end of the group's first slot when only a group is focused. Clipboard persists across selections and paste can be repeated. Both shortcuts are skipped when focus is in a text input/textarea/contentEditable.*
 
 *Document Version: 3.62 - Added captionPadding to image block. `BlockStyle.captionPadding` (number, default 16) controls uniform padding around the caption container via inline style. `blockRegistry.ts` adds a "Text Padding" slider (0–64, step 4) to image editableStyles. `ImageBlock.tsx` replaces hardcoded `px-4 py-3` with dynamic `style={{ padding: s.captionPadding ?? 16 }}`.*

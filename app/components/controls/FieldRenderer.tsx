@@ -1,6 +1,8 @@
 import type { EditableField } from "~/types/editor";
 import { ShortTextControl } from "./ShortTextControl";
 import { LongTextControl } from "./LongTextControl";
+import { DateControl } from "./DateControl";
+import { TimeControl } from "./TimeControl";
 import { UrlControl } from "./UrlControl";
 import { ColorControl } from "./ColorControl";
 import { ImageControl } from "./ImageControl";
@@ -30,6 +32,10 @@ export function FieldRenderer({ field, value, onChange }: FieldRendererProps) {
 			return (
 				<LongTextControl label={field.label} value={value as string} onChange={onChange} />
 			);
+		case "date":
+			return <DateControl label={field.label} value={value as string} onChange={onChange} />;
+		case "time":
+			return <TimeControl label={field.label} value={value as string} onChange={onChange} />;
 		case "url":
 			return <UrlControl label={field.label} value={value as string} onChange={onChange} />;
 		case "color":

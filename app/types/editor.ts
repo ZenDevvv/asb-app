@@ -12,6 +12,7 @@ export type BlockType =
   | "divider"
   | "list"
   | "quote"
+  | "date"
   | "rsvp";
 
 export type BlockCategory = "basic" | "media" | "layout" | "content";
@@ -37,6 +38,7 @@ export interface BlockStyle {
   overlayIntensity?: number;
   captionVerticalAlign?: "top" | "center" | "bottom";
   captionPadding?: number;
+  dateSectionGap?: number;
   positionMode?: "flow" | "absolute";
   positionX?: number;
   positionY?: number;
@@ -162,6 +164,8 @@ export interface BlockComponentProps {
 export type ControlType =
   | "short-text"
   | "long-text"
+  | "date"
+  | "time"
   | "url"
   | "image"
   | "color"
