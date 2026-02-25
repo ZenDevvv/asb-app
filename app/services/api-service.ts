@@ -10,6 +10,7 @@ export interface ApiQueryParams {
 	count?: boolean;
 	document?: boolean;
 	pagination?: boolean;
+	isPublic?: boolean;
 }
 
 export interface PaginationParams {
@@ -28,6 +29,7 @@ export interface SortParams {
 
 export abstract class APIService {
 	protected queryParams: Record<string, string> = {};
+	protected requestHeaders: Record<string, string> = {};
 
 	// Default parameters
 	protected defaults = {
@@ -265,6 +267,24 @@ export abstract class APIService {
 	clearQueryParams(): this {
 		this.queryParams = {};
 		return this;
+	}
+
+	/**
+	 * Mark the next request as publicly accessible (no auth required).
+	 * Adds the X-Public-Access: true header consumed by the backend conditionalAuth middleware.
+	 */
+	publicAccess(): this {
+		this.requestHeaders["X-Public-Access"] = "true";
+		return this;
+	}
+
+	/**
+	 * Returns accumulated request headers and clears them for the next call.
+	 */
+	protected getRequestHeaders(): Record<string, string> {
+		const headers = { ...this.requestHeaders };
+		this.requestHeaders = {};
+		return headers;
 	}
 
 	/**

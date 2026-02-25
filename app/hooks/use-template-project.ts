@@ -29,9 +29,9 @@ export const useGetTemplateProjectById = (
 	return useQuery({
 		queryKey: ["template-project-by-id", templateProjectId, apiParams],
 		queryFn: () => {
-			return templateProjectService
-				.select(apiParams?.fields || "")
-				.getTemplateProjectById({ templateProjectId });
+			const service = templateProjectService.select(apiParams?.fields || "");
+			if (apiParams?.isPublic) service.publicAccess();
+			return service.getTemplateProjectById({ templateProjectId });
 		},
 		enabled: !!templateProjectId,
 	});

@@ -9,6 +9,7 @@ export default function PublicTemplateViewRoute() {
 
 	const { data: templateData, isLoading, isError } = useGetTemplateProjectById(templateId ?? "", {
 		fields: "id,pages,globalStyle",
+		isPublic: true,
 	});
 
 	if (isLoading) {

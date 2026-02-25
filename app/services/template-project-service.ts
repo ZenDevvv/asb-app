@@ -28,6 +28,7 @@ class TemplateProjectService extends APIService {
 		try {
 			const response: ApiResponse<TemplateProject> = await apiClient.get(
 				`${TEMPLATE_PROJECT.GET_BY_ID.replace(":id", templateProjectId)}${this.getQueryString()}`,
+				{ headers: this.getRequestHeaders() },
 			);
 			return response.data;
 		} catch (error: any) {
