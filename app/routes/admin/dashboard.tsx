@@ -343,12 +343,6 @@ export default function OrgAdminDashboard() {
 										) : null}
 										{item.descriptionTail ?? ""}
 									</p>
-									{item.showPreview ? (
-										<div className="relative mt-3 h-20 overflow-hidden rounded-xl border border-border bg-gradient-to-r from-primary/35 via-chart-5/25 to-chart-2/35">
-											<div className="absolute -right-3 -top-4 h-24 w-10 rounded-full bg-card/85" />
-											<div className="absolute right-8 top-0 h-16 w-7 rounded-full bg-card/80" />
-										</div>
-									) : null}
 									<p className="mt-2 text-[11px] text-muted-foreground">
 										{item.time}
 									</p>
