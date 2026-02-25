@@ -24,7 +24,6 @@ const DEV_LOGIN_PRESETS = {
 export function LoginForm() {
 	const { login, error } = useAuth();
 	const navigate = useNavigate();
-	const isDevMode = import.meta.env.DEV;
 
 	const [identifier, setIdentifier] = useState("");
 	const [password, setPassword] = useState("");
@@ -94,37 +93,35 @@ export function LoginForm() {
 				<div className="flex-1 border-t border-border" />
 			</div>
 
-			{/* {isDevMode && ( */}
-				<div className="space-y-2 rounded-lg border border-dashed border-border/80 bg-secondary/20 p-3">
-					<p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-						Dev quick login
-					</p>
-					<div className="grid grid-cols-2 gap-2">
-						<Button
-							type="button"
-							size="sm"
-							variant="secondary"
-							disabled={isLoading}
-							onClick={() => {
-								setIdentifier(DEV_LOGIN_PRESETS.admin.identifier);
-								setPassword(DEV_LOGIN_PRESETS.admin.password);
-							}}>
-							{DEV_LOGIN_PRESETS.admin.label}
-						</Button>
-						<Button
-							type="button"
-							size="sm"
-							variant="secondary"
-							disabled={isLoading}
-							onClick={() => {
-								setIdentifier(DEV_LOGIN_PRESETS.user.identifier);
-								setPassword(DEV_LOGIN_PRESETS.user.password);
-							}}>
-							{DEV_LOGIN_PRESETS.user.label}
-						</Button>
-					</div>
+			<div className="space-y-2 rounded-lg border border-dashed border-border/80 bg-secondary/20 p-3">
+				<p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+					Dev quick login
+				</p>
+				<div className="grid grid-cols-2 gap-2">
+					<Button
+						type="button"
+						size="sm"
+						variant="secondary"
+						disabled={isLoading}
+						onClick={() => {
+							setIdentifier(DEV_LOGIN_PRESETS.admin.identifier);
+							setPassword(DEV_LOGIN_PRESETS.admin.password);
+						}}>
+						{DEV_LOGIN_PRESETS.admin.label}
+					</Button>
+					<Button
+						type="button"
+						size="sm"
+						variant="secondary"
+						disabled={isLoading}
+						onClick={() => {
+							setIdentifier(DEV_LOGIN_PRESETS.user.identifier);
+							setPassword(DEV_LOGIN_PRESETS.user.password);
+						}}>
+						{DEV_LOGIN_PRESETS.user.label}
+					</Button>
 				</div>
-			{/* )} */}
+			</div>
 
 			<form onSubmit={handleLogin} className="space-y-4">
 				{error && (
