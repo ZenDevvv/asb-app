@@ -195,6 +195,47 @@ body {
 	@apply [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-thumb]:rounded [&::-webkit-scrollbar-thumb]:hover:bg-gray-400;
 }
 
+@keyframes landing-radial-drift-a {
+	0% {
+		transform: translate3d(-50%, 0, 0) scale(1);
+	}
+	50% {
+		transform: translate3d(-47%, -2%, 0) scale(1.04);
+	}
+	100% {
+		transform: translate3d(-52%, 1.5%, 0) scale(0.98);
+	}
+}
+
+@keyframes landing-radial-drift-b {
+	0% {
+		transform: translate3d(0, 0, 0) scale(1);
+	}
+	50% {
+		transform: translate3d(1.4%, -1.2%, 0) scale(1.02);
+	}
+	100% {
+		transform: translate3d(-1.2%, 1.1%, 0) scale(0.99);
+	}
+}
+
+.landing-radial-glow-a {
+	animation: landing-radial-drift-a 26s ease-in-out infinite alternate;
+	will-change: transform;
+}
+
+.landing-radial-glow-b {
+	animation: landing-radial-drift-b 32s ease-in-out infinite alternate;
+	will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.landing-radial-glow-a,
+	.landing-radial-glow-b {
+		animation: none;
+	}
+}
+
 @layer base {
 	* {
 		@apply border-border outline-ring/50;

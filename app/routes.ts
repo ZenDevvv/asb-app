@@ -14,6 +14,7 @@ export default [
 		prefix("admin", [
 			route("/", "routes/admin/dashboard.tsx"),
 			route("templates", "routes/admin/templates.tsx"),
+			route("users", "routes/admin/users.tsx"),
 		]),
 	),
 	route("/editor/:templateId", "routes/editor/template.tsx"),

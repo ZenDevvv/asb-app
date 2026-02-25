@@ -5,7 +5,7 @@ import { useAuth } from "~/hooks/use-auth";
 
 export default function AdminLayout() {
 	const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-	const { user } = useAuth();
+	const { user, isLoading } = useAuth();
 	const navigate = useNavigate();
 	if (!user) {
 		navigate("/login");
