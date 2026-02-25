@@ -200,6 +200,75 @@ const STATS = [
 	{ value: 99, suffix: "%", label: "Uptime" },
 ];
 
+const TEMPLATES = [
+	{
+		name: "SaaS Launch",
+		category: "Marketing",
+		desc: "High-converting launch page with hero, feature grid, pricing table, and waitlist CTA.",
+		gradient: "from-chart-1/55 via-chart-5/35 to-chart-1/20",
+		categoryClass: "border-chart-1/50 bg-chart-1/12 text-chart-1",
+		usageCount: "4.1k",
+		pages: 4,
+		icon: "rocket_launch",
+		popular: true,
+	},
+	{
+		name: "Designer Portfolio",
+		category: "Personal",
+		desc: "Minimal and elegant showcase for creatives. Works pages, about section, and contact form.",
+		gradient: "from-card via-chart-5/20 to-card",
+		categoryClass: "border-chart-5/50 bg-chart-5/12 text-chart-5",
+		usageCount: "2.8k",
+		pages: 3,
+		icon: "palette",
+		popular: false,
+	},
+	{
+		name: "Agency Showcase",
+		category: "Marketing",
+		desc: "Bold, dynamic layout built to impress. Ideal for creative studios and digital agencies.",
+		gradient: "from-primary/40 via-cyan-400/20 to-primary/10",
+		categoryClass: "border-chart-1/50 bg-chart-1/12 text-chart-1",
+		usageCount: "3.2k",
+		pages: 5,
+		icon: "auto_awesome",
+		popular: false,
+	},
+	{
+		name: "Coffee & Co.",
+		category: "Retail",
+		desc: "Warm, inviting storefront for cafés, bakeries, and local shops. Menu and hours included.",
+		gradient: "from-chart-4/40 via-muted to-card",
+		categoryClass: "border-chart-4/50 bg-chart-4/12 text-chart-4",
+		usageCount: "1.6k",
+		pages: 2,
+		icon: "storefront",
+		popular: false,
+	},
+	{
+		name: "Blog & Journal",
+		category: "Content",
+		desc: "Clean editorial layout with article cards, featured posts, and a newsletter signup.",
+		gradient: "from-card via-card to-muted",
+		categoryClass: "border-destructive/45 bg-destructive/12 text-destructive",
+		usageCount: "1.1k",
+		pages: 3,
+		icon: "article",
+		popular: false,
+	},
+	{
+		name: "Startup MVP",
+		category: "Marketing",
+		desc: "Ship your idea page in minutes. Waitlist capture, social proof, and FAQ ready to go.",
+		gradient: "from-emerald-400/30 via-primary/15 to-card",
+		categoryClass: "border-chart-1/50 bg-chart-1/12 text-chart-1",
+		usageCount: "5.0k",
+		pages: 2,
+		icon: "bolt",
+		popular: true,
+	},
+];
+
 const NAV_LINKS = ["Showcase", "Templates", "Pricing", "Docs"];
 
 // ─── Page Component ───────────────────────────────────────────────────────────
@@ -211,6 +280,7 @@ export default function LandingPage() {
 	const featuresRef = useRef<HTMLElement>(null);
 	const stepsRef = useRef<HTMLElement>(null);
 	const blocksRef = useRef<HTMLElement>(null);
+	const templatesRef = useRef<HTMLElement>(null);
 	const testimonialsRef = useRef<HTMLElement>(null);
 	const statsRef = useRef<HTMLElement>(null);
 	const ctaRef = useRef<HTMLElement>(null);
@@ -218,6 +288,7 @@ export default function LandingPage() {
 	const featuresInView = useInView(featuresRef, { once: true, margin: "-80px" });
 	const stepsInView = useInView(stepsRef, { once: true, margin: "-80px" });
 	const blocksInView = useInView(blocksRef, { once: true, margin: "-80px" });
+	const templatesInView = useInView(templatesRef, { once: true, margin: "-80px" });
 	const testimonialsInView = useInView(testimonialsRef, { once: true, margin: "-80px" });
 	const statsInView = useInView(statsRef, { once: true, margin: "-80px" });
 	const ctaInView = useInView(ctaRef, { once: true, margin: "-80px" });
@@ -610,6 +681,117 @@ export default function LandingPage() {
 							</span>
 						</motion.div>
 					))}
+				</motion.div>
+			</motion.section>
+
+			{/* ── TEMPLATES ────────────────────────────────────────────── */}
+			<motion.section
+				ref={templatesRef}
+				variants={stagger}
+				initial="hidden"
+				animate={templatesInView ? "show" : "hidden"}
+				className="mx-auto w-full max-w-7xl px-6 py-20 md:px-10">
+				<motion.div variants={safeFadeUp} className="mb-14 text-center">
+					<p className="mb-2 text-xs font-semibold uppercase tracking-widest text-primary">
+						Templates
+					</p>
+					<h2 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
+						Start with something
+						<br />
+						<span className="text-muted-foreground">beautiful.</span>
+					</h2>
+					<p className="mx-auto mt-4 max-w-xl text-muted-foreground">
+						Pick a professionally designed template, fork it with one click, and make it yours.
+						Your copy is fully independent — template updates never touch your project.
+					</p>
+				</motion.div>
+
+				<div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+					{TEMPLATES.map(({ name, category, desc, gradient, categoryClass, usageCount, pages, icon, popular }, i) => (
+						<motion.div
+							key={name}
+							variants={safeFadeUp}
+							custom={i}
+							whileHover={prefersReducedMotion ? {} : { y: -5, transition: { duration: 0.2 } }}
+							className="group relative flex flex-col overflow-hidden rounded-2xl border border-border/60 bg-card/60 shadow-sm backdrop-blur-sm transition-shadow hover:border-primary/30 hover:shadow-xl hover:shadow-primary/10">
+							{/* Preview area */}
+							<div className={`relative h-44 w-full overflow-hidden bg-gradient-to-br ${gradient}`}>
+								{/* Mini page skeleton mockup */}
+								<div className="absolute inset-4 flex flex-col gap-2">
+									<div className="flex items-center gap-1.5">
+										<div className="h-1.5 w-1.5 rounded-full bg-card/70" />
+										<div className="h-1.5 w-8 rounded-full bg-card/60" />
+										<div className="ml-auto h-1.5 w-12 rounded-full bg-card/50" />
+									</div>
+									<div className="mt-1 h-5 w-3/4 rounded-lg bg-card/75" />
+									<div className="h-2 w-1/2 rounded-full bg-card/50" />
+									<div className="mt-1.5 flex gap-2">
+										<div className="h-6 w-14 rounded-lg bg-primary/65" />
+										<div className="h-6 w-14 rounded-lg bg-card/50" />
+									</div>
+									<div className="mt-auto grid grid-cols-3 gap-1.5">
+										<div className="h-9 rounded-lg bg-card/55" />
+										<div className="h-9 rounded-lg bg-card/45" />
+										<div className="h-9 rounded-lg bg-card/35" />
+									</div>
+								</div>
+								{/* Hover overlay CTA */}
+								<div className="absolute inset-0 flex items-center justify-center bg-background/55 opacity-0 backdrop-blur-sm transition-opacity duration-300 group-hover:opacity-100">
+									<button
+										type="button"
+										className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/35 transition-all hover:brightness-110 active:scale-95">
+										<Icon name="content_copy" size={15} filled />
+										Use Template
+									</button>
+								</div>
+								{/* Popular badge */}
+								{popular && (
+									<div className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/20 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary backdrop-blur-sm">
+										<Icon name="local_fire_department" size={10} filled />
+										Popular
+									</div>
+								)}
+							</div>
+
+							{/* Card body */}
+							<div className="flex flex-1 flex-col gap-3 p-5">
+								<div className="flex items-start justify-between gap-2">
+									<div className="flex items-center gap-2">
+										<div className="flex h-8 w-8 items-center justify-center rounded-lg border border-primary/20 bg-primary/10">
+											<Icon name={icon} className="text-primary" size={16} filled />
+										</div>
+										<h3 className="font-bold text-foreground">{name}</h3>
+									</div>
+									<span
+										className={`inline-flex shrink-0 rounded-full border px-2.5 py-0.5 text-xs font-medium ${categoryClass}`}>
+										{category}
+									</span>
+								</div>
+								<p className="text-sm leading-relaxed text-muted-foreground">{desc}</p>
+								<div className="mt-auto flex items-center justify-between border-t border-border/50 pt-3 text-xs text-muted-foreground">
+									<span className="flex items-center gap-1">
+										<Icon name="description" size={12} />
+										{pages} page{pages !== 1 ? "s" : ""}
+									</span>
+									<span className="flex items-center gap-1">
+										<Icon name="content_copy" size={12} />
+										{usageCount} uses
+									</span>
+								</div>
+							</div>
+						</motion.div>
+					))}
+				</div>
+
+				{/* Browse all CTA */}
+				<motion.div variants={safeFadeUp} className="mt-12 flex justify-center">
+					<button
+						type="button"
+						className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-card/60 px-7 py-3 text-sm font-semibold backdrop-blur transition-all hover:border-primary/40 hover:bg-primary/10 hover:text-foreground active:scale-95">
+						<Icon name="grid_view" size={16} />
+						Browse all 85+ templates
+						<Icon name="arrow_forward" size={16} />
+					</button>
 				</motion.div>
 			</motion.section>
 
