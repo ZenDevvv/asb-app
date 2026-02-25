@@ -11,6 +11,7 @@ import {
 	UserRound,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "~/hooks/use-auth";
 
 interface AdminSidebarProps {
 	isOpen: boolean;
@@ -40,6 +41,11 @@ const systemNavItems = [
 ];
 
 export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
+	const { logout } = useAuth();
+	const handleLogout = () => {
+		void logout();
+	};
+
 	return (
 		<>
 			<div
@@ -125,12 +131,13 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
 				</nav>
 
 				<div className="px-4 pb-4 pt-2">
-					<a
-						href="/login"
+					<button
+						type="button"
+						onClick={handleLogout}
 						className="flex w-full items-center justify-center gap-2.5 rounded-xl bg-sidebar-accent px-3 py-2.5 text-sm font-medium text-sidebar-foreground/80 transition-colors hover:bg-sidebar-accent/80 hover:text-sidebar-accent-foreground">
 						<LogOut className="h-4 w-4 shrink-0" />
 						Log Out
-					</a>
+					</button>
 				</div>
 			</aside>
 		</>
