@@ -6,6 +6,7 @@ import type { Block, BlockStyle } from "~/types/editor";
 import { BlockSettingsHeader } from "./block-settings/BlockSettingsHeader";
 import { ColorsPanel } from "./block-settings/ColorsPanel";
 import { ContentPanel } from "./block-settings/ContentPanel";
+import { ImageOverlayPanel } from "./block-settings/ImageOverlayPanel";
 import { PositionPanel } from "./block-settings/PositionPanel";
 import { SpacingPanel } from "./block-settings/SpacingPanel";
 import { StylePanel } from "./block-settings/StylePanel";
@@ -90,6 +91,13 @@ export function BlockSettings({
 					/>
 
 					<SpacingPanel blockStyle={block.style} onStyleChange={handleStyleChange} />
+
+					{block.type === "image" && (
+						<ImageOverlayPanel
+							blockStyle={block.style}
+							onStyleChange={handleStyleChange}
+						/>
+					)}
 
 					<PositionPanel
 						block={block}

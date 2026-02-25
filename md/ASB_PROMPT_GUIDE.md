@@ -414,6 +414,8 @@ interface BlockStyle {
 
   // Appearance
   opacity?: number;               // 0-100 slider
+  overlayEffect?: "none" | "dots" | "grid" | "dim" | "vignette"; // Image block only — CSS overlay pattern
+  overlayIntensity?: number;      // 0-100; controls strength of image overlay (image block only)
 
   // Positioning (editor controls)
   positionMode?: "flow" | "absolute";
@@ -817,6 +819,8 @@ BlockStyle.textAlign        â†’ block-level alignment
 BlockStyle.width            -> block width preset ("auto" | "sm" | "md" | "lg" | "full" | "custom")
 BlockStyle.widthPx          -> custom block width in px (used when width="custom", divider supports this)
 BlockStyle.opacity          -> block opacity percentage (0-100)
+BlockStyle.overlayEffect    -> image block overlay pattern ("none" | "dots" | "grid" | "dim" | "vignette")
+BlockStyle.overlayIntensity -> image block overlay strength (0-100)
 ```
 
 Color resolution (via `app/lib/blockColors.ts`):
@@ -868,6 +872,7 @@ When a specific block is selected (click a block on the canvas):
 - Header includes block actions: **Duplicate** (`content_copy`) and **Delete** (`delete`).
 - `heading` and `text` block Size controls now include an icon-only **Custom Size** option (`tune`). When selected, Block Mode shows a px slider + numeric input (12-200px) and stores the value in `BlockStyle.fontSizePx`.
 - `divider` Width control also includes an icon-only **Custom Width** option (`tune`). When selected, Block Mode shows a px slider + numeric input (40-1600px) and stores the value in `BlockStyle.widthPx` with `BlockStyle.width="custom"`.
+- `image` blocks have an **Overlay** panel (rendered by `ImageOverlayPanel.tsx`) — 5 effect buttons (none/dots/grid/dim/vignette) identical to the section background overlay, plus an **Intensity** slider (0–100). The overlay is rendered as an absolutely positioned `<div>` layered over the `<img>` inside a `relative overflow-hidden` wrapper. State stored in `BlockStyle.overlayEffect` and `BlockStyle.overlayIntensity`.
 - Block Mode UI is componentized under `app/editor/block-settings/` (header, per-panel components, and shared helpers/constants), while `BlockSettings.tsx` remains the store-wiring/orchestration layer.
 
 ```

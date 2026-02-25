@@ -32,6 +32,8 @@ export interface BlockStyle {
   widthPx?: number;
   height?: number;
   opacity?: number;
+  overlayEffect?: "none" | "dots" | "grid" | "dim" | "vignette";
+  overlayIntensity?: number;
   positionMode?: "flow" | "absolute";
   positionX?: number;
   positionY?: number;
