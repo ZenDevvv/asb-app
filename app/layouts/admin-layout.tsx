@@ -1,9 +1,15 @@
-import { Outlet } from "react-router";
+import { Outlet, useNavigate } from "react-router";
 import { useState } from "react";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
+import { useAuth } from "~/hooks/use-auth";
 
 export default function AdminLayout() {
 	const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+	const { user } = useAuth();
+	const navigate = useNavigate();
+	if (!user) {
+		navigate("/login");
+	}
 
 	return (
 		<div className="flex h-screen overflow-hidden bg-muted/40 dark:bg-muted/10">

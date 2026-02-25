@@ -238,7 +238,7 @@ The right sidebar changes based on what is selected:
 
 ### Toolbar
 
-- **Left**: hamburger menu (collapse left sidebar) + page name (editable dropdown)
+- **Left**: hamburger menu (collapse left sidebar) + template name (click-to-edit inline input — only active on `/editor/:templateId`; clicking the name swaps it for a borderless `border-b`-only input pre-filled with the current name; blur or Enter commits the rename via `useUpdateTemplateProject({ name })`; Escape cancels without saving; no-op if name is unchanged or empty)
 - **Center**: device preview toggle (desktop/mobile icons) + undo/redo buttons
 - **Right**: Keyboard Shortcuts button (opens shortcut list modal), Preview button (opens live preview in new tab), Publish button, save status indicator ("Saving..." spinner while server save is in-flight, "Last saved: X min ago" once confirmed, "Not saved yet" otherwise)
 - **Debug Backdoor (params)**: when URL includes `?debug=true` (or `?debugMode=true`), toolbar shows **Import**/**Export** buttons for editor-state JSON roundtrip
@@ -1622,7 +1622,8 @@ This contract ensures AI output can be validated and loaded directly into the ed
 *Document Version: 3.33 - Added `SectionStyle.fullHeight` boolean. When true, the section renders with `min-height: 100vh`. Exposed in the right sidebar under a new "Layout" collapsible panel (above Background) as a Radix Switch labeled "Fill screen height" with sub-label "Section takes up the full screen". `SectionModeSettings` now has `layout` and `background` panels.*
 *Document Version: 3.32 - Section background color pickers now use `globalStyle` as initial defaults. `BackgroundControl` accepts an optional `globalStyle` prop; solid color falls back to `globalStyle.primaryColor` (or theme-appropriate dark/light neutral), gradient "From" defaults to `globalStyle.primaryColor` and "To" to a neutral based on `themeMode`. `SectionModeSettings` reads `globalStyle` from store and passes it to `BackgroundControl`. Users can still set fully custom background colors — saved values always take precedence over these defaults.*
 *Document Version: 3.31 - Moved color settings from section level to block level. Removed `textColor`, `accentColor`, `colorMode` from `SectionStyle`. Added `textColor`, `accentColor`, `colorMode` to `BlockStyle`. Each block now has a dedicated Colors panel (Global Palette / Custom) in the right sidebar. Added `colorOptions: { hasText, hasAccent }` to `BlockRegistryEntry` to control which color pickers are shown per block type. Added `app/lib/blockColors.ts` with `resolveTextColor` and `resolveAccentColor` helpers used by all block components.*
-*Last Updated: February 24, 2026*
+*Document Version: 3.56 - `EditorToolbar` now accepts `templateName` and `onRenameTemplate` props from `EditorPage`. On `/editor/:templateId`, clicking the template name activates an inline `border-b`-only input; blur or Enter commits the rename via `useUpdateTemplateProject({ name })`; Escape cancels; noop if unchanged or empty. Guest `/editor` shows a static fallback name.*
+*Last Updated: February 25, 2026*
 *Keep this document updated as architecture decisions change.*
 *For colors and theming, always reference the separate Style Guide file.*
 

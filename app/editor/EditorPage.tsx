@@ -239,7 +239,14 @@ export default function EditorPage() {
 
 	return (
 		<div className="flex h-screen flex-col overflow-hidden bg-background">
-			<EditorToolbar />
+			<EditorToolbar
+				templateName={templateData?.name}
+				onRenameTemplate={(name) => {
+					const ctx = activeTemplateRef.current;
+					if (!ctx) return;
+					updateTemplate({ templateProjectId: ctx.templateId, data: { name } });
+				}}
+			/>
 
 			<div className="flex flex-1 overflow-hidden">
 				<SectionsListPanel onAddSection={() => setAddSectionModalOpen(true)} />

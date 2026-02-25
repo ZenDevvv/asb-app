@@ -1,6 +1,6 @@
 import { useEditorStore } from "~/stores/editorStore";
 import { cn } from "~/lib/utils";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useRef, useEffect } from "react";
 import { useParams, useNavigate } from "react-router";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "~/components/ui/dialog";
 import { EditorDebugBackdoor } from "./EditorDebugBackdoor";
@@ -33,7 +33,12 @@ const SHORTCUTS = [
 	},
 ] as const;
 
-export function EditorToolbar() {
+type EditorToolbarProps = {
+	templateName?: string;
+	onRenameTemplate?: (name: string) => void;
+};
+
+export function EditorToolbar({ templateName, onRenameTemplate }: EditorToolbarProps) {
 	const device = useEditorStore((s) => s.device);
 	const setDevice = useEditorStore((s) => s.setDevice);
 	const undo = useEditorStore((s) => s.undo);
@@ -46,6 +51,37 @@ export function EditorToolbar() {
 	const { templateId } = useParams<{ templateId?: string }>();
 	const navigate = useNavigate();
 	const [shortcutsOpen, setShortcutsOpen] = useState(false);
+	const [isEditingName, setIsEditingName] = useState(false);
+	const [nameInputValue, setNameInputValue] = useState("");
+	const nameInputRef = useRef<HTMLInputElement>(null);
+
+	useEffect(() => {
+		if (isEditingName) {
+			nameInputRef.current?.select();
+		}
+	}, [isEditingName]);
+
+	function handleNameClick() {
+		if (!templateId || !onRenameTemplate) return;
+		setNameInputValue(templateName ?? "");
+		setIsEditingName(true);
+	}
+
+	function handleNameBlur() {
+		setIsEditingName(false);
+		const trimmed = nameInputValue.trim();
+		if (trimmed && trimmed !== templateName) {
+			onRenameTemplate?.(trimmed);
+		}
+	}
+
+	function handleNameKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+		if (e.key === "Enter") {
+			nameInputRef.current?.blur();
+		} else if (e.key === "Escape") {
+			setIsEditingName(false);
+		}
+	}
 
 	const savedAgo = useMemo(() => {
 		if (!lastSaved) return null;
@@ -78,9 +114,27 @@ export function EditorToolbar() {
 					</span>
 				</div>
 				<div>
-					<div className="text-sm font-semibold text-sidebar-foreground">
-						Landing Page V1
-					</div>
+					{isEditingName ? (
+						<input
+							ref={nameInputRef}
+							value={nameInputValue}
+							onChange={(e) => setNameInputValue(e.target.value)}
+							onBlur={handleNameBlur}
+							onKeyDown={handleNameKeyDown}
+							className="w-40 border-b border-sidebar-foreground bg-transparent text-sm font-semibold text-sidebar-foreground outline-none"
+						/>
+					) : (
+						<div
+							className={cn(
+								"text-sm font-semibold text-sidebar-foreground",
+								templateId && onRenameTemplate
+									? "cursor-pointer hover:opacity-70"
+									: "",
+							)}
+							onClick={handleNameClick}>
+							{templateName ?? "Landing Page V1"}
+						</div>
+					)}
 					<div className="flex items-center gap-1 text-[10px] text-muted-foreground">
 						{isSaving ? (
 							<>
