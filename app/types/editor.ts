@@ -11,7 +11,8 @@ export type BlockType =
   | "badge"
   | "divider"
   | "list"
-  | "quote";
+  | "quote"
+  | "rsvp";
 
 export type BlockCategory = "basic" | "media" | "layout" | "content";
 

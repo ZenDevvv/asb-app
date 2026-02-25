@@ -10,6 +10,7 @@ import { BadgeBlock } from "~/blocks/BadgeBlock";
 import { DividerBlock } from "~/blocks/DividerBlock";
 import { ListBlock } from "~/blocks/ListBlock";
 import { QuoteBlock } from "~/blocks/QuoteBlock";
+import { RsvpBlock } from "~/blocks/RsvpBlock";
 
 export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
   heading: {
@@ -611,5 +612,60 @@ export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
     ],
     inlineEditable: false,
     colorOptions: { hasText: true, hasAccent: true },
+  },
+
+  rsvp: {
+    component: RsvpBlock,
+    label: "RSVP Form",
+    icon: "event_available",
+    category: "content",
+    defaultProps: {
+      nameLabel: "Full Name",
+      namePlaceholder: "Guest Name",
+      emailLabel: "Email Address",
+      emailPlaceholder: "email@example.com",
+      attendanceLabel: "Will You Be Attending?",
+      acceptText: "Joyfully Accept",
+      declineText: "Regretfully Decline",
+      guestsLabel: "Number of Guests",
+      maxGuests: "10",
+      submitText: "Confirm Attendance",
+      submitUrl: "#",
+      bgColor: "",
+      fgColor: "",
+    },
+    defaultStyle: {},
+    editableProps: [
+      { key: "nameLabel", label: "Full Name Label", type: "short-text" },
+      { key: "namePlaceholder", label: "Name Placeholder", type: "short-text" },
+      { key: "emailLabel", label: "Email Label", type: "short-text" },
+      { key: "emailPlaceholder", label: "Email Placeholder", type: "short-text" },
+      { key: "attendanceLabel", label: "Attendance Label", type: "short-text" },
+      { key: "acceptText", label: "Accept Button", type: "short-text" },
+      { key: "declineText", label: "Decline Button", type: "short-text" },
+      { key: "guestsLabel", label: "Guests Label", type: "short-text" },
+      {
+        key: "maxGuests",
+        label: "Max Guests",
+        type: "select",
+        options: [
+          { label: "5", value: "5" },
+          { label: "10", value: "10" },
+          { label: "15", value: "15" },
+          { label: "20", value: "20" },
+        ],
+      },
+      { key: "submitText", label: "Submit Button Text", type: "short-text" },
+      { key: "submitUrl", label: "Submit URL", type: "url" },
+      // Two color settings — all other colors are derived from these
+      { key: "bgColor", label: "Background Color", type: "color" },
+      { key: "fgColor", label: "Text Color", type: "color" },
+    ],
+    editableStyles: [
+      { key: "marginTop", label: "Top Spacing", type: "slider", min: 0, max: 64, step: 4 },
+      { key: "marginBottom", label: "Bottom Spacing", type: "slider", min: 0, max: 64, step: 4 },
+    ],
+    inlineEditable: false,
+    colorOptions: { hasText: false, hasAccent: false },
   },
 };

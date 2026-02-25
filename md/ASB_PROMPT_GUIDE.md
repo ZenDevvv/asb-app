@@ -383,6 +383,7 @@ type BlockType =
   | "divider"        // Horizontal line
   | "list"           // Bulleted or numbered list of text items
   | "quote"          // Blockquote with attribution
+  | "rsvp"           // Event RSVP form — full self-contained form with name, email, attendance toggle, guest count, song request, and submit button
   // Post-MVP:
   | "video"          // Embedded video (YouTube/Vimeo URL)
   | "form"           // Lead capture form
@@ -754,6 +755,52 @@ Rules for block components:
 //   - custom width applies inline `width: ${block.style.widthPx}px` (clamped) + `max-width: 100%`
 //   - line color comes from resolveTextColor(block.style, globalStyle)
 //   - opacity applies as (block.style.opacity ?? 20) / 100
+```
+
+**RSVP block props (implemented):**
+```typescript
+// rsvp block.props shape
+{
+  nameLabel?: string;           // "Full Name" — field label (uppercase, accent color)
+  namePlaceholder?: string;     // "Guest Name" — input placeholder
+  emailLabel?: string;          // "Email Address"
+  emailPlaceholder?: string;    // "email@example.com"
+  attendanceLabel?: string;     // "Will You Be Attending?"
+  acceptText?: string;          // "Joyfully Accept" — first toggle button text
+  declineText?: string;         // "Regretfully Decline" — second toggle button text
+  guestsLabel?: string;         // "Number of Guests"
+  maxGuests?: string;           // "10" — max options in guest dropdown (select, values: "5"|"10"|"15"|"20")
+  songLabel?: string;           // "Song Request"
+  songPlaceholder?: string;     // "What song will get you on the dance floor?"
+  submitText?: string;          // "Confirm Attendance" — submit button label
+  submitUrl?: string;           // "#" — submit href (mailto: or external form URL)
+  // Custom color overrides — empty string = use theme-aware default
+  blockBgColor?: string;        // Block container background hex
+  blockBorderColor?: string;    // Block container border hex
+  inputBgColor?: string;        // Input/select/textarea background hex
+  inputBorderColor?: string;    // Input/select/textarea border hex
+  labelColor?: string;          // Field label color hex (defaults to accentColor)
+  buttonBgColor?: string;       // Submit button background hex (defaults to accentColor)
+  buttonTextColor?: string;     // Submit button text hex (defaults to black in dark mode)
+}
+// Color resolution: each color prop overrides only when non-empty; otherwise falls back to:
+//   blockBg: dark="#0d1526", light="#f4f4f5"
+//   blockBorder: dark="#1e2d4a", light="#e4e4e7"
+//   inputBg: dark="#132040", light="#ffffff"
+//   inputBorder: dark="#243656", light="#d4d4d8"
+//   labelColor: resolveAccentColor (follows block.style.colorMode)
+//   buttonBg: resolveAccentColor
+//   buttonText: "#000000" (dark), "#ffffff" (light)
+// Block layout: 2-column grid (Name/Email, Attendance toggle/Guest count) + full-width Song textarea
+// Attendance: two toggle buttons (accept / decline) — interactive in preview, read-only in editor
+// Guest dropdown: styled <select> with expand_more arrow icon
+// Submit button: pill-shaped (borderRadius: 999px), uppercase, arrow_forward icon, full accentColor
+// colorOptions: { hasText: true, hasAccent: true }
+//   hasText=true → text color (form text, placeholders)
+//   hasAccent=true → accent/primary color (label defaults, button defaults in global mode)
+// editableStyles: marginTop, marginBottom
+// inlineEditable: false
+// category: "content"
 ```
 
 ### Section Renderer
