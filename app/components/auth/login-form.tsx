@@ -94,7 +94,7 @@ export function LoginForm() {
 				<div className="flex-1 border-t border-border" />
 			</div>
 
-			{isDevMode && (
+			{/* {isDevMode && ( */}
 				<div className="space-y-2 rounded-lg border border-dashed border-border/80 bg-secondary/20 p-3">
 					<p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
 						Dev quick login
@@ -124,7 +124,7 @@ export function LoginForm() {
 						</Button>
 					</div>
 				</div>
-			)}
+			{/* )} */}
 
 			<form onSubmit={handleLogin} className="space-y-4">
 				{error && (
