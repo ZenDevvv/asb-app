@@ -146,16 +146,8 @@ function getRenderSectionStyle(
 		style.accentColor || globalStyle.primaryColor || "#00e5a0",
 	);
 
-	if (style.backgroundColor) {
-		style.backgroundColor = lightenForLightMode(style.backgroundColor);
-	}
-
-	if (style.gradientFrom) {
-		style.gradientFrom = lightenForLightMode(style.gradientFrom);
-	}
-	if (style.gradientTo) {
-		style.gradientTo = lightenForLightMode(style.gradientTo);
-	}
+	// Custom background colors are used exactly as chosen — no light-mode transformation.
+	// Only transform background colors when in global mode (handled above).
 
 	return style;
 }

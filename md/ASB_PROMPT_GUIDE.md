@@ -204,8 +204,11 @@ The right sidebar changes based on what is selected:
    - **Fill screen height** toggle — makes the section fill the full viewport height (`min-height: 100vh`). User-facing label: "Fill screen height" / sub-label: "Section takes up the full screen". Implemented as a Radix Switch. Stored as `SectionStyle.fullHeight`.
    - **Group Alignment** buttons — top/center/bottom segmented icon buttons (same icon language as group alignment) that vertically align stacked groups inside the section's available height. Stored as `SectionStyle.groupVerticalAlign`.
 3. **Background** — section background options (solid/gradient/image + overlay effect + padding slider).
-   - In `colorMode: "global"`, section background picker defaults are derived from the active global palette (`primaryColor`, `themeMode`, `colorScheme`) plus section index.
-   - When a user changes solid/gradient colors via the picker, section style is promoted to `colorMode: "custom"` so the selected colors render immediately and persist as section overrides.
+   - A **Color Source** toggle (`Global Palette` | `Custom`) is shown for solid and gradient background types. Stored as `SectionStyle.colorMode`.
+   - In `colorMode: "global"` (default), the section background is derived from the active global palette (`primaryColor`, `themeMode`, `colorScheme`) plus section index. No color pickers are shown.
+   - In `colorMode: "custom"`, color pickers appear and the exact user-chosen color is used as-is — no light-mode transformation is applied to background colors. Text/accent colors are still adapted for light-mode readability.
+   - When a user edits solid/gradient colors directly, `colorMode` is automatically promoted to `"custom"`. The user can switch back to `"global"` via the Color Source toggle.
+   - `SectionModeSettings.handleBackgroundChange` respects explicit `colorMode` changes without auto-overriding them.
 4. **Group Management Location** — groups are listed and reordered from the LEFT sidebar section tree.
 
 **When a GROUP is selected** (click group container on the canvas or from the left sidebar section tree):
@@ -932,12 +935,17 @@ type ControlType =
 ### Background Control (composite)
 
 The Background section in the right sidebar is a **composite control** with:
-1. **Type selector** â€” icon buttons in a row: Solid Color | Gradient | Image (| Video post-MVP)
-2. **Type-specific controls**:
-   - **Solid**: single color picker — defaults to `globalStyle.primaryColor` when `section.style.backgroundColor` is not set
-   - **Gradient**: two color pickers + direction selector (shadcn Select) — "From" defaults to `globalStyle.primaryColor`, "To" defaults to a neutral dark/light based on `themeMode`; users can change freely
-   - **Image**: upload button + optional overlay color/opacity
-3. **Overlay Effect selector** â€” 5-button icon row: None | Dots | Grid | Dim | Vignette
+1. **Type selector** — icon buttons in a row: Solid Color | Gradient | Image (| Video post-MVP)
+2. **Color Source toggle** — shown for Solid and Gradient types (hidden for Image):
+   - `Global Palette` (default): background color is derived from the active global palette + section index; no color pickers shown
+   - `Custom`: color pickers appear; the user's exact selected color is used without any light-mode transformation
+   - Stored as `SectionStyle.colorMode: “global” | “custom”`
+   - Selecting a color automatically promotes to `”custom”`; clicking `Global Palette` resets to `”global”`
+3. **Type-specific color controls** (shown only when `colorMode === “custom”`):
+   - **Solid**: single color picker — falls back to scheme color as initial value if none saved
+   - **Gradient**: two color pickers (“From” / “To”) + direction selector (shadcn Select, always visible for gradient type)
+   - **Image**: URL input (always visible; not affected by Color Source toggle)
+4. **Overlay Effect selector** — 5-button icon row: None | Dots | Grid | Dim | Vignette
    - Implemented via `SectionStyle.backgroundEffect`
    - Rendered as CSS multiple background layers (no extra DOM elements, no z-index issues)
    - `none` â†' no overlay (default)
@@ -1646,6 +1654,7 @@ This contract ensures AI output can be validated and loaded directly into the ed
 *Document Version: 3.33 - Added `SectionStyle.fullHeight` boolean. When true, the section renders with `min-height: 100vh`. Exposed in the right sidebar under a new "Layout" collapsible panel (above Background) as a Radix Switch labeled "Fill screen height" with sub-label "Section takes up the full screen". `SectionModeSettings` now has `layout` and `background` panels.*
 *Document Version: 3.32 - Section background color pickers now use `globalStyle` as initial defaults. `BackgroundControl` accepts an optional `globalStyle` prop; solid color falls back to `globalStyle.primaryColor` (or theme-appropriate dark/light neutral), gradient "From" defaults to `globalStyle.primaryColor` and "To" to a neutral based on `themeMode`. `SectionModeSettings` reads `globalStyle` from store and passes it to `BackgroundControl`. Users can still set fully custom background colors — saved values always take precedence over these defaults.*
 *Document Version: 3.31 - Moved color settings from section level to block level. Removed `textColor`, `accentColor`, `colorMode` from `SectionStyle`. Added `textColor`, `accentColor`, `colorMode` to `BlockStyle`. Each block now has a dedicated Colors panel (Global Palette / Custom) in the right sidebar. Added `colorOptions: { hasText, hasAccent }` to `BlockRegistryEntry` to control which color pickers are shown per block type. Added `app/lib/blockColors.ts` with `resolveTextColor` and `resolveAccentColor` helpers used by all block components.*
+*Document Version: 3.57 - Added Global/Custom Color Source toggle to `BackgroundControl` for Solid and Gradient background types. `SectionStyle.colorMode` now controls whether the section uses the global palette (`"global"`) or the user's exact picked color (`"custom"`). Color pickers are only shown in `"custom"` mode. Fixed `SectionRenderer.getRenderSectionStyle` to no longer apply `lightenForLightMode` to custom background colors in light mode — custom colors are used exactly as chosen. Text/accent colors are still adapted for light-mode readability. `SectionModeSettings.handleBackgroundChange` now respects explicit `colorMode` changes without overriding them.*
 *Document Version: 3.56 - `EditorToolbar` now accepts `templateName` and `onRenameTemplate` props from `EditorPage`. On `/editor/:templateId`, clicking the template name activates an inline `border-b`-only input; blur or Enter commits the rename via `useUpdateTemplateProject({ name })`; Escape cancels; noop if unchanged or empty. Guest `/editor` shows a static fallback name.*
 *Last Updated: February 25, 2026*
 *Keep this document updated as architecture decisions change.*

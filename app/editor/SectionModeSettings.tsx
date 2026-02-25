@@ -29,6 +29,12 @@ export function SectionModeSettings({ section }: SectionModeSettingsProps) {
 	};
 
 	const handleBackgroundChange = (style: Partial<SectionStyle>) => {
+		// If user explicitly sets colorMode, respect it without overriding.
+		if ("colorMode" in style) {
+			updateSectionStyle(section.id, style);
+			return;
+		}
+		// Auto-switch to custom when a color value is directly edited.
 		const isColorEdit =
 			"backgroundColor" in style || "gradientFrom" in style || "gradientTo" in style;
 		updateSectionStyle(section.id, isColorEdit ? { ...style, colorMode: "custom" } : style);

@@ -41,6 +41,7 @@ export function BackgroundControl({
 	sectionIndex = 0,
 }: BackgroundControlProps) {
 	const bgType = style.backgroundType || "solid";
+	const colorMode = style.colorMode ?? "global";
 	const effectIntensity = style.backgroundEffectIntensity ?? DEFAULT_EFFECT_INTENSITY;
 	const scheme = resolveSectionColorScheme({
 		primaryColor: globalStyle?.primaryColor || "#00e5a0",
@@ -48,16 +49,6 @@ export function BackgroundControl({
 		colorScheme: globalStyle?.colorScheme ?? "monochromatic",
 		sectionIndex,
 	});
-	const solidColorValue =
-		style.colorMode === "global"
-			? scheme.backgroundColor
-			: style.backgroundColor || scheme.backgroundColor;
-	const gradientFromValue =
-		style.colorMode === "global"
-			? scheme.gradientFrom
-			: style.gradientFrom || scheme.gradientFrom;
-	const gradientToValue =
-		style.colorMode === "global" ? scheme.gradientTo : style.gradientTo || scheme.gradientTo;
 
 	return (
 		<div className="space-y-4">
@@ -80,44 +71,80 @@ export function BackgroundControl({
 				))}
 			</div>
 
-			{bgType === "solid" && (
+			{bgType !== "image" && (
+				<div className="space-y-1.5">
+					<label className="text-xs font-medium text-muted-foreground">
+						Color Source
+					</label>
+					<div className="grid grid-cols-2 gap-1.5">
+						{(
+							[
+								{ value: "global" as const, label: "Global Palette" },
+								{ value: "custom" as const, label: "Custom" },
+							] as const
+						).map((option) => (
+							<button
+								key={option.value}
+								onClick={() => onChange({ colorMode: option.value })}
+								className={cn(
+									"rounded-lg border py-2 text-[11px] font-medium transition-colors",
+									colorMode === option.value
+										? "border-primary bg-primary/10 text-primary"
+										: "border-border text-muted-foreground hover:border-primary/30",
+								)}>
+								{option.label}
+							</button>
+						))}
+					</div>
+					<p className="text-[11px] text-muted-foreground">
+						{colorMode === "global"
+							? "Follows Global Settings color scheme."
+							: "Uses your exact selected color."}
+					</p>
+				</div>
+			)}
+
+			{bgType === "solid" && colorMode === "custom" && (
 				<ColorControl
 					label="Color"
-					value={solidColorValue}
+					value={style.backgroundColor || scheme.backgroundColor}
 					onChange={(v) => onChange({ backgroundColor: v })}
 				/>
 			)}
 
-			{bgType === "gradient" && (
+			{bgType === "gradient" && colorMode === "custom" && (
 				<div className="space-y-3">
 					<ColorControl
 						label="From"
-						value={gradientFromValue}
+						value={style.gradientFrom || scheme.gradientFrom}
 						onChange={(v) => onChange({ gradientFrom: v })}
 					/>
 					<ColorControl
 						label="To"
-						value={gradientToValue}
+						value={style.gradientTo || scheme.gradientTo}
 						onChange={(v) => onChange({ gradientTo: v })}
 					/>
-					<div className="space-y-1.5">
-						<label className="text-xs font-medium text-muted-foreground">
-							Direction
-						</label>
-						<Select
-							value={style.gradientDirection || "to bottom"}
-							onValueChange={(value) => onChange({ gradientDirection: value })}>
-							<SelectTrigger className="w-full rounded-xl border-border bg-input/50 text-sm text-foreground">
-								<SelectValue />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="to bottom">Top → Bottom</SelectItem>
-								<SelectItem value="to right">Left → Right</SelectItem>
-								<SelectItem value="to bottom right">Diagonal ↘</SelectItem>
-								<SelectItem value="to bottom left">Diagonal ↙</SelectItem>
-							</SelectContent>
-						</Select>
-					</div>
+				</div>
+			)}
+
+			{bgType === "gradient" && (
+				<div className="space-y-1.5">
+					<label className="text-xs font-medium text-muted-foreground">
+						Direction
+					</label>
+					<Select
+						value={style.gradientDirection || "to bottom"}
+						onValueChange={(value) => onChange({ gradientDirection: value })}>
+						<SelectTrigger className="w-full rounded-xl border-border bg-input/50 text-sm text-foreground">
+							<SelectValue />
+						</SelectTrigger>
+						<SelectContent>
+							<SelectItem value="to bottom">Top → Bottom</SelectItem>
+							<SelectItem value="to right">Left → Right</SelectItem>
+							<SelectItem value="to bottom right">Diagonal ↘</SelectItem>
+							<SelectItem value="to bottom left">Diagonal ↙</SelectItem>
+						</SelectContent>
+					</Select>
 				</div>
 			)}
 
