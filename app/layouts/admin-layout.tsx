@@ -2,6 +2,7 @@ import { Outlet, useNavigate } from "react-router";
 import { useState } from "react";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
 import { useAuth } from "~/hooks/use-auth";
+import { SplashScreen } from "@/components/admin/splash-screen";
 
 export default function AdminLayout() {
 	const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -9,6 +10,10 @@ export default function AdminLayout() {
 	const navigate = useNavigate();
 	if (!user) {
 		navigate("/login");
+	}
+
+	if (isLoading) {
+		return <SplashScreen />;
 	}
 
 	return (

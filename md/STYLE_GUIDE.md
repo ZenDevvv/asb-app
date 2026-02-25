@@ -539,6 +539,52 @@ const defaultTransition = { duration: 0.3, ease: "easeOut" };
 </motion.div>
 ```
 
+### Admin Data Surfaces (Users Page Pattern)
+
+For dense admin views (stats + table), use lightweight staggered reveals instead of heavy choreography:
+
+- **Summary cards:** `y: 12`, `duration: 0.28`, `delay: index * 0.05`
+- **Table rows:** `y: 10`, `duration: 0.24`, `delay: index * 0.03`
+- Keep easing `easeOut` for both
+
+```tsx
+{summaryCards.map((card, index) => (
+  <motion.article
+    key={card.title}
+    initial={{ opacity: 0, y: 12 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.28, delay: index * 0.05, ease: "easeOut" }}
+  >
+    {/* card */}
+  </motion.article>
+))}
+```
+
+```tsx
+{pagedUsers.map((user, index) => (
+  <motion.tr
+    key={user.id}
+    initial={{ opacity: 0, y: 10 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.24, delay: index * 0.03, ease: "easeOut" }}
+  >
+    {/* row cells */}
+  </motion.tr>
+))}
+```
+
+### Async Feedback Motion
+
+For fetch/reload affordances (like Users page `Sync`), use icon spin tied directly to network state.
+
+```tsx
+<Icon
+  name="refresh"
+  size={16}
+  className={cn(isFetching ? "animate-spin" : undefined)}
+/>
+```
+
 ### Hover scale (interactive cards)
 
 ```tsx

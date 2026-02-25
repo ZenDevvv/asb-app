@@ -1,5 +1,6 @@
 import { useEffect, useCallback, useState, useRef } from "react";
 import { useLocation, useNavigate, useParams } from "react-router";
+import { SplashScreen } from "~/components/admin/splash-screen";
 import { DEFAULT_GLOBAL_STYLE, EDITOR_STORAGE_KEY, useEditorStore } from "~/stores/editorStore";
 import { useGetTemplateProjectById, useUpdateTemplateProject } from "~/hooks/use-template-project";
 import { EditorToolbar } from "./EditorToolbar";
@@ -263,12 +264,8 @@ export default function EditorPage() {
 		return () => window.removeEventListener("keydown", handleKeyDown);
 	}, [debouncedSave, updateTemplate, setLastSaved]);
 
-	if (templateId && isTemplateLoading) {
-		return (
-			<div className="flex h-screen items-center justify-center bg-background text-sm text-muted-foreground">
-				Loading template...
-			</div>
-		);
+	if (templateId && !isTemplateLoading) {
+		return <SplashScreen mode="editor" />;
 	}
 
 	return (
