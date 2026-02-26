@@ -87,7 +87,8 @@ export function ButtonBlock({
 
   const s = block.style;
   const accentColor = resolveAccentColor(s, globalStyle);
-  const radius = RADIUS_MAP[globalStyle.borderRadius || "md"] || "rounded-lg";
+  const radiusKey = s.borderRadius || globalStyle.borderRadius || "md";
+  const radius = RADIUS_MAP[radiusKey] || "rounded-lg";
   const sizeClass = FONT_SIZE_MAP[s.fontSize || "base"] || FONT_SIZE_MAP.base;
   const alignClass = TEXT_ALIGN_MAP[s.textAlign || "left"] || "justify-start";
   const iconSize = ICON_SIZE_MAP[s.fontSize || "base"] || 18;

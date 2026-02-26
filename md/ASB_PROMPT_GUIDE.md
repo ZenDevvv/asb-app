@@ -229,7 +229,7 @@ The right sidebar changes based on what is selected:
 
 **When a BLOCK is selected** (click a specific block on the canvas):
 1. **Block Content** - auto-generated controls based on block type (text input, image upload, etc.)
-2. **Block Style** - constrained style options for that block (size, alignment, spacing, letter spacing). `heading`, `text`, `button`, `image`, and `date` blocks expose a **Font Family** control that opens the same Typography Settings modal used in Global Settings; selecting a font applies a block-level override (applied to the caption text for `image` blocks).
+2. **Block Style** - constrained style options for that block (size, alignment, spacing, letter spacing, and per-block corners where supported). `heading`, `text`, `button`, `image`, and `date` blocks expose a **Font Family** control that opens the same Typography Settings modal used in Global Settings; selecting a font applies a block-level override (applied to the caption text for `image` blocks). `button` blocks also expose **Corner Style** (Sharp/S/M/L/Full) which defaults to the global corner style until explicitly overridden on that block.
 3. **Position** - collapsible panel with:
    - **Column** — slot/column picker (shown only when the group layout has multiple slots and the block is in flow mode). Allows moving the block to a different column after it was added. Calls `moveBlockToSlot` / `moveBlockToSlotAtIndex` store actions.
    - **Flow / Absolute** toggle — choose positioning mode. Absolute blocks are positioned relative to the selected group and can be moved on the canvas by dragging.
@@ -422,6 +422,7 @@ interface BlockStyle {
   // Size (for images, icons, spacers)
   width?: "auto" | "sm" | "md" | "lg" | "full" | "custom";
   widthPx?: number;               // Custom divider width in px when width="custom"
+  borderRadius?: "none" | "sm" | "md" | "lg" | "full"; // Button block corner override; falls back to GlobalStyle.borderRadius when unset
   dateSectionGap?: number;        // Date block only â€” vertical gap between top/middle/bottom sections
   height?: number;                // For spacers (8-128) and images (0-800, 0 = auto); slider
 
@@ -662,7 +663,7 @@ interface BlockComponentProps {
 Rules for block components:
 - Use `block.props.*` for content, `block.style.*` for visual options
 - Inherit `sectionStyle.textColor` and `sectionStyle.accentColor` unless overridden by `block.style.*`
-- Use `globalStyle.borderRadius` for buttons and cards
+- Use global corner style by default (`globalStyle.borderRadius`), and allow `button` blocks to override with `block.style.borderRadius`
 - Use inline `style={{}}` for dynamic values (colors, sizes)
 - Use Tailwind classes for structural layout
 - Support `isEditing` flag: disable links, show placeholder states when editing
@@ -675,13 +676,14 @@ Rules for block components:
 {
   text: string;
   url: string;
-  variant: “solid” | “outline” | “ghost” | “link”;  // default: “solid”
+  variant: "solid" | "outline" | "ghost" | "link" | "text";  // default: "solid"
   iconLeft?: string;   // Material Symbol name, set via icon-picker modal â€” empty string = no icon
   iconRight?: string;  // Material Symbol name, set via icon-picker modal â€” empty string = no icon
 }
 // variant drives className/style branching in ButtonBlock.tsx
 // all variants except "text" inherit accentColor from sectionStyle (or globalStyle.primaryColor)
-// globalStyle.borderRadius applies to solid, outline, ghost â€” NOT link
+// block.style.borderRadius (if set) overrides globalStyle.borderRadius for solid/outline/ghost
+// link/text variants do not render rounded corners
 // iconLeft/iconRight use "icon-picker" control in editableProps; render as <span class="material-symbols-outlined"> inside the <a>
 // icon size tracks block.style.fontSize: sm=16, base=18, lg=20, xl=22px
 ```
@@ -874,7 +876,7 @@ Styles cascade from global â†’ block (sections only control background, not
 GlobalStyle.primaryColor    -> default accent color for all blocks in "global" colorMode
 GlobalStyle.colorScheme     -> resolves palette tokens (currently monochromatic)
 GlobalStyle.fontFamily      â†’ default font for all text
-GlobalStyle.borderRadius    â†’ applied to buttons, cards, images
+GlobalStyle.borderRadius    â†’ default corner style for buttons and cards
 GlobalStyle.themeMode       â†’ light/dark website rendering; drives default textColor in "global" mode
                               (dark â†’ #ffffff, light â†’ #111111)
 
@@ -892,6 +894,7 @@ BlockStyle.fontWeight       â†’ block-level weight choice (where supported)
 BlockStyle.fontStyle        â†’ block-level style choice ("normal" or "italic" for heading/text)
 BlockStyle.letterSpacing    â†’ block-level letter spacing in px (heading/text only)
 BlockStyle.textAlign        â†’ block-level alignment
+BlockStyle.borderRadius     -> optional button corner override ("none" | "sm" | "md" | "lg" | "full"); falls back to GlobalStyle.borderRadius when unset
 BlockStyle.width            -> block width preset ("auto" | "sm" | "md" | "lg" | "full" | "custom")
 BlockStyle.widthPx          -> custom block width in px (used when width="custom", divider supports this)
 BlockStyle.opacity          -> block opacity percentage (0-100)
@@ -1189,6 +1192,7 @@ POST /api/projects/:id/publish
     - "md"   â†’ rounded-lg
     - "lg"   â†’ rounded-xl
     - "full" â†’ rounded-full
+    - Button blocks can override this with `block.style.borderRadius`; when unset, they use the global map above
 11. Block fontSize map (block.style.fontSize):
     - "sm"   â†’ text-sm
     - "base" â†’ text-base
@@ -1663,7 +1667,7 @@ This contract ensures AI output can be validated and loaded directly into the ed
 | **Section Registry** | Central config mapping section profiles/presets to allowed layouts, default groups/default blocks fallback, and constraints. |
 | **Section Label** | Editable display name saved on each section instance. Starts from preset label but is user-controlled in Section Settings. |
 | **Block Registry** | Central config mapping block types to components, default props/styles, and editable fields. |
-| **Block Style** | Constrained visual options for a block (fontFamily override, fontSize, optional heading/text `fontSizePx` for custom size, fontWeight, fontStyle, letterSpacing, textAlign, width, optional `widthPx` for custom divider width, opacity, spacing, positioning mode, scale). Never raw CSS. |
+| **Block Style** | Constrained visual options for a block (fontFamily override, fontSize, optional heading/text `fontSizePx` for custom size, fontWeight, fontStyle, letterSpacing, textAlign, optional button `borderRadius` override, width, optional `widthPx` for custom divider width, opacity, spacing, positioning mode, scale). Never raw CSS. |
 | **Section Style** | Design data for a section (backgroundColor/backgroundType/gradient fields, backgroundEffect, backgroundEffectIntensity, backgroundEffectColor, paddingY, fullHeight, groupVerticalAlign). |
 | **Global Style** | Page-wide design settings (themeMode, fontFamily, primaryColor, colorScheme, borderRadius). `fontFamily` is the default text font across the page and can be overridden by supported blocks. |
 | **Style Inheritance** | The cascade: Global â†’ Section â†’ Block. Each level can override the parent. |
@@ -1685,6 +1689,7 @@ This contract ensures AI output can be validated and loaded directly into the ed
 
 ---
 
+*Document Version: 3.75 - Added block-level Corner Style control for `button` blocks. `blockRegistry.ts` now exposes `borderRadius` options (Sharp/S/M/L/Full) in Button Block Style. `ButtonBlock.tsx` now resolves corner radius as `block.style.borderRadius ?? globalStyle.borderRadius`, so button-level corner choices override global settings while unset buttons continue inheriting global corners.*
 *Document Version: 3.74 - Added left/right icon support to `text` blocks. `blockRegistry.ts` text entry now includes `defaultProps.iconLeft` and `defaultProps.iconRight` (empty-string defaults) plus two `icon-picker` fields in `editableProps` (`Left Icon`, `Right Icon`). `TextBlock.tsx` now renders Material Symbols before/after the text and scales icon size with the block font size (including custom px size).*
 *Document Version: 3.73 - Replaced section `Dim` overlay with a colorable `Overlay` effect in `BackgroundControl`. Added `SectionStyle.backgroundEffectColor` and updated `SectionRenderer` so legacy `backgroundEffect: "dim"` still renders as the same black overlay by default.*
 *Document Version: 3.72 - Added block-level Font Family selector support to `date` block. `BlockSettings.tsx` and `StylePanel.tsx` updated `supportsFontOverride` to include `block.type === "date"`, so date blocks can override `globalStyle.fontFamily` using the same Typography Settings modal as heading/text/button/image blocks.*

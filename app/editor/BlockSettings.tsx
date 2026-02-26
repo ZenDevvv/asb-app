@@ -84,6 +84,7 @@ export function BlockSettings({
 						editableStyles={blockEntry.editableStyles}
 						defaultStyle={blockEntry.defaultStyle}
 						globalFontFamily={globalStyle.fontFamily}
+						globalBorderRadius={globalStyle.borderRadius}
 						onStyleChange={handleStyleChange}
 						onOpenFontModal={() => setFontModalOpen(true)}
 					/>

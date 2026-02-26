@@ -1,7 +1,7 @@
 import { FieldRenderer } from "~/components/controls/FieldRenderer";
 import { resolveFontOption } from "~/editor/fontFamilyOptions";
 import { cn } from "~/lib/utils";
-import type { Block, BlockStyle, EditableStyleField } from "~/types/editor";
+import type { Block, BlockStyle, EditableStyleField, GlobalStyle } from "~/types/editor";
 import {
 	CUSTOM_DIVIDER_WIDTH_MAX,
 	CUSTOM_DIVIDER_WIDTH_MIN,
@@ -21,6 +21,7 @@ interface StylePanelProps {
 	editableStyles: EditableStyleField[];
 	defaultStyle: BlockStyle;
 	globalFontFamily: string;
+	globalBorderRadius: GlobalStyle["borderRadius"];
 	onStyleChange: (style: Partial<BlockStyle>) => void;
 	onOpenFontModal: () => void;
 }
@@ -76,6 +77,7 @@ export function StylePanel({
 	editableStyles,
 	defaultStyle,
 	globalFontFamily,
+	globalBorderRadius,
 	onStyleChange,
 	onOpenFontModal,
 }: StylePanelProps) {
@@ -132,7 +134,14 @@ export function StylePanel({
 				)}
 
 				{editableStyles.map((styleField) => {
-					const value = block.style[styleField.key] ?? defaultStyle[styleField.key];
+					const globalFallbackValue =
+						block.type === "button" && styleField.key === "borderRadius"
+							? globalBorderRadius
+							: undefined;
+					const value =
+						block.style[styleField.key] ??
+						defaultStyle[styleField.key] ??
+						globalFallbackValue;
 
 					if (styleField.type === "size-picker" || styleField.type === "align-picker") {
 						const isCustomTextSizeField =

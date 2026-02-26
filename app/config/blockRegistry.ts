@@ -210,6 +210,18 @@ export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
         ],
       },
       {
+        key: "borderRadius",
+        label: "Corner Style",
+        type: "size-picker",
+        options: [
+          { label: "Sharp", value: "none" },
+          { label: "S", value: "sm" },
+          { label: "M", value: "md" },
+          { label: "L", value: "lg" },
+          { label: "Full", value: "full" },
+        ],
+      },
+      {
         key: "textAlign",
         label: "Align",
         type: "align-picker",

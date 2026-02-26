@@ -32,6 +32,7 @@ export interface BlockStyle {
   marginBottom?: number;
   width?: "auto" | "sm" | "md" | "lg" | "full" | "custom";
   widthPx?: number;
+  borderRadius?: "none" | "sm" | "md" | "lg" | "full";
   height?: number;
   opacity?: number;
   overlayEffect?: "none" | "dots" | "grid" | "dim" | "vignette";
