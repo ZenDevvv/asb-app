@@ -380,7 +380,7 @@ type BlockType =
   | "icon"           // Material Symbol icon — plain icon only, no label
   | "spacer"         // Vertical space (height slider)
   | "badge"          // Small label/tag — variant (subtle/filled/outline/pill-dot) + text
-  | "divider"        // Horizontal line
+  | "divider"        // Horizontal line — editableStyles: width, lineWeight, opacity, top/bottom spacing
   | "list"           // Bulleted or numbered list of text items
   | "quote"          // Blockquote with attribution
   | "date"           // Event date/time display — editableProps: eventDate (date input) + eventTime (time input); editableStyles: width slider (320-1600px), section spacing slider (0-160px), and scale slider (25-300)
@@ -409,6 +409,7 @@ interface BlockStyle {
   fontSize?: "sm" | "base" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "5xl" | "custom";
   fontSizePx?: number;            // Custom heading/text size in px when fontSize="custom"
   fontWeight?: "normal" | "medium" | "semibold" | "bold";
+  lineWeight?: "thin" | "medium" | "thick"; // Divider block line thickness preset
   fontStyle?: "normal" | "italic";
   letterSpacing?: number;         // 0-12, slider (px, heading/text blocks)
   textAlign?: "left" | "center" | "right";
@@ -764,6 +765,7 @@ Rules for block components:
 // width: size-picker options S/M/L/Full/Custom (maps to block.style.width)
 // custom width uses the tune option and stores px value in block.style.widthPx
 // custom width range: 40-1600px via slider + numeric input in Block Mode
+// lineWeight: size-picker options Thin/Medium/Thick (maps to block.style.lineWeight)
 // opacity: 0-100 slider (maps to block.style.opacity)
 // renderer behavior in DividerBlock.tsx:
 //   - width presets use percentage-based inline widths relative to the parent container:
@@ -773,6 +775,10 @@ Rules for block components:
 //       "full" → width: 100%
 //   - all presets also set max-width: 100% to prevent overflow in narrow columns (e.g. group 3x3)
 //   - custom width applies inline `width: ${block.style.widthPx}px` (clamped) + `max-width: 100%`
+//   - lineWeight controls hr thickness:
+//       "thin"   -> height: 1px
+//       "medium" -> height: 2px
+//       "thick"  -> height: 4px
 //   - line color comes from resolveTextColor(block.style, globalStyle)
 //   - opacity applies as (block.style.opacity ?? 20) / 100
 ```
@@ -892,6 +898,7 @@ BlockStyle.fontFamily       â†’ optional block-level font override (heading
 BlockStyle.fontSize         â†’ block-level size choice (heading/text support presets + "custom")
 BlockStyle.fontSizePx       â†’ heading/text custom size in px (applies when fontSize="custom")
 BlockStyle.fontWeight       â†’ block-level weight choice (where supported)
+BlockStyle.lineWeight       -> divider line thickness preset ("thin" | "medium" | "thick")
 BlockStyle.fontStyle        â†’ block-level style choice ("normal" or "italic" for heading/text)
 BlockStyle.letterSpacing    â†’ block-level letter spacing in px (heading/text only)
 BlockStyle.textAlign        â†’ block-level alignment
@@ -1211,6 +1218,10 @@ POST /api/projects/:id/publish
     - "lg"   â†’ max-w-lg
     - "full" â†’ w-full
     - "custom" â†’ divider block uses inline `width: ${block.style.widthPx}px` (clamped) + `max-width: 100%`
+13. Divider lineWeight map (block.style.lineWeight):
+    - "thin"   -> inline `height: 1`
+    - "medium" -> inline `height: 2`
+    - "thick"  -> inline `height: 4`
 ```
     NOTE: DividerBlock does NOT use the Tailwind class map above. Divider width presets
     are percentage-based relative to the parent column: sm=25%, md=50%, lg=75%, full=100%,
@@ -1668,7 +1679,7 @@ This contract ensures AI output can be validated and loaded directly into the ed
 | **Section Registry** | Central config mapping section profiles/presets to allowed layouts, default groups/default blocks fallback, and constraints. |
 | **Section Label** | Editable display name saved on each section instance. Starts from preset label but is user-controlled in Section Settings. |
 | **Block Registry** | Central config mapping block types to components, default props/styles, and editable fields. |
-| **Block Style** | Constrained visual options for a block (fontFamily override, fontSize, optional heading/text `fontSizePx` for custom size, fontWeight, fontStyle, letterSpacing, textAlign, optional button `borderRadius` override, width, optional `widthPx` for custom divider width, opacity, spacing, positioning mode, scale). Never raw CSS. |
+| **Block Style** | Constrained visual options for a block (fontFamily override, fontSize, optional heading/text `fontSizePx` for custom size, fontWeight, divider `lineWeight`, fontStyle, letterSpacing, textAlign, optional button `borderRadius` override, width, optional `widthPx` for custom divider width, opacity, spacing, positioning mode, scale). Never raw CSS. |
 | **Section Style** | Design data for a section (backgroundColor/backgroundType/gradient fields, backgroundEffect, backgroundEffectIntensity, backgroundEffectColor, paddingY, fullHeight, groupVerticalAlign). |
 | **Global Style** | Page-wide design settings (themeMode, fontFamily, primaryColor, colorScheme, borderRadius). `fontFamily` is the default text font across the page and can be overridden by supported blocks. |
 | **Style Inheritance** | The cascade: Global â†’ Section â†’ Block. Each level can override the parent. |
@@ -1690,6 +1701,7 @@ This contract ensures AI output can be validated and loaded directly into the ed
 
 ---
 
+*Document Version: 3.77 - Added divider line weight control. `BlockStyle` now includes `lineWeight` (`"thin" | "medium" | "thick"`). `blockRegistry.ts` divider entry now includes a Weight size-picker (Thin/Medium/Thick) with default `lineWeight: "thin"`. `DividerBlock.tsx` now maps this to inline `<hr>` thickness (`1px`, `2px`, `4px`) while preserving existing width/custom-width and opacity behavior.*
 *Document Version: 3.76 - Added new `countdown` block. `BlockType` now includes `"countdown"`. New block component `CountdownBlock.tsx` renders a live countdown using `eventDate` + `eventTime`, supports per-unit toggles (`showDays`, `showHours`, `showMinutes`, `showSeconds`), and supports block-scale control via `editableStyles.scale` (25–300, step 5). `blockRegistry.ts` now includes the `countdown` entry and `sectionRegistry.ts` allowed block lists now include `countdown` across section profiles. `BlockSettings.tsx` and `StylePanel.tsx` now include `countdown` in block-level Font Family override support. New countdown blocks prefill date/time from an existing `date` block in the current group/section when available (`editorStore.ts` addBlock flow).*
 *Document Version: 3.75 - Added block-level Corner Style control for `button` blocks. `blockRegistry.ts` now exposes `borderRadius` options (Sharp/S/M/L/Full) in Button Block Style. `ButtonBlock.tsx` now resolves corner radius as `block.style.borderRadius ?? globalStyle.borderRadius`, so button-level corner choices override global settings while unset buttons continue inheriting global corners.*
 *Document Version: 3.74 - Added left/right icon support to `text` blocks. `blockRegistry.ts` text entry now includes `defaultProps.iconLeft` and `defaultProps.iconRight` (empty-string defaults) plus two `icon-picker` fields in `editableProps` (`Left Icon`, `Right Icon`). `TextBlock.tsx` now renders Material Symbols before/after the text and scales icon size with the block font size (including custom px size).*

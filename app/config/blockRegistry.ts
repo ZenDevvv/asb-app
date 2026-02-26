@@ -517,7 +517,13 @@ export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
     icon: "horizontal_rule",
     category: "layout",
     defaultProps: {},
-    defaultStyle: { width: "full", opacity: 20, marginTop: 16, marginBottom: 16 },
+    defaultStyle: {
+      width: "full",
+      lineWeight: "thin",
+      opacity: 20,
+      marginTop: 16,
+      marginBottom: 16,
+    },
     editableProps: [],
     editableStyles: [
       {
@@ -530,6 +536,16 @@ export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
           { label: "L", value: "lg" },
           { label: "Full", value: "full" },
           { label: "Custom", value: "custom" },
+        ],
+      },
+      {
+        key: "lineWeight",
+        label: "Weight",
+        type: "size-picker",
+        options: [
+          { label: "Thin", value: "thin" },
+          { label: "Medium", value: "medium" },
+          { label: "Thick", value: "thick" },
         ],
       },
       { key: "opacity", label: "Opacity", type: "slider", min: 0, max: 100, step: 5 },

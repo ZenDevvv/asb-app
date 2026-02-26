@@ -7,6 +7,11 @@ const RELATIVE_WIDTH_MAP: Record<string, string> = {
 	lg: "75%",
 	full: "100%",
 };
+const WEIGHT_HEIGHT_MAP: Record<string, number> = {
+	thin: 1,
+	medium: 2,
+	thick: 4,
+};
 const CUSTOM_WIDTH_MIN = 40;
 const CUSTOM_WIDTH_MAX = 1600;
 const CUSTOM_WIDTH_DEFAULT = 448;
@@ -28,12 +33,13 @@ export function DividerBlock({ block, globalStyle }: BlockComponentProps) {
 	const relativeWidth = isCustomWidth
 		? undefined
 		: (RELATIVE_WIDTH_MAP[s.width || "full"] ?? "100%");
+	const lineHeight = WEIGHT_HEIGHT_MAP[s.lineWeight || "thin"] ?? 1;
 
 	return (
 		<hr
 			className="border-0"
 			style={{
-				height: 1,
+				height: lineHeight,
 				width: isCustomWidth ? `${customWidthPx}px` : relativeWidth,
 				maxWidth: "100%",
 				backgroundColor: color,

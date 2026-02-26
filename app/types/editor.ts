@@ -23,6 +23,7 @@ export interface BlockStyle {
   fontSize?: "sm" | "base" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "5xl" | "custom";
   fontSizePx?: number;
   fontWeight?: "normal" | "medium" | "semibold" | "bold";
+  lineWeight?: "thin" | "medium" | "thick";
   fontStyle?: "normal" | "italic";
   letterSpacing?: number;
   textAlign?: "left" | "center" | "right";
