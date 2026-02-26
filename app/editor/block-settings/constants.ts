@@ -20,6 +20,7 @@ export const CUSTOM_TEXT_SIZE_DEFAULT_BY_BLOCK: Partial<Record<Block["type"], nu
 	heading: 36,
 	text: 16,
 	image: 20,
+	video: 20,
 };
 
 export const WIDTH_PRESET_TO_PX: Record<string, number> = {

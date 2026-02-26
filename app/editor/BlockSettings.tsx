@@ -49,15 +49,16 @@ export function BlockSettings({
 		block.type === "text" ||
 		block.type === "button" ||
 		block.type === "image" ||
+		block.type === "video" ||
 		block.type === "date" ||
 		block.type === "countdown" ||
 		block.type === "timeline";
 	const isTimelineBlock = block.type === "timeline";
-	const isImageBlock = block.type === "image";
-	const imageStyles = isImageBlock
+	const isMediaVisualBlock = block.type === "image" || block.type === "video";
+	const imageStyles = isMediaVisualBlock
 		? blockEntry.editableStyles.filter((styleField) => styleField.group !== "caption")
 		: blockEntry.editableStyles;
-	const captionStyles = isImageBlock
+	const captionStyles = isMediaVisualBlock
 		? blockEntry.editableStyles.filter((styleField) => styleField.group === "caption")
 		: [];
 	const [fontModalOpen, setFontModalOpen] = useState(false);
@@ -112,7 +113,7 @@ export function BlockSettings({
 						onPropChange={handlePropChange}
 					/>
 
-					{isImageBlock ? (
+					{isMediaVisualBlock ? (
 						<>
 							<StylePanel
 								block={block}
@@ -159,7 +160,7 @@ export function BlockSettings({
 
 					<SpacingPanel blockStyle={block.style} onStyleChange={handleStyleChange} />
 
-					{isImageBlock && (
+					{isMediaVisualBlock && (
 						<ImageOverlayPanel
 							blockStyle={block.style}
 							onStyleChange={handleStyleChange}

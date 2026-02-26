@@ -6,6 +6,7 @@ import { TimeControl } from "./TimeControl";
 import { UrlControl } from "./UrlControl";
 import { ColorControl } from "./ColorControl";
 import { ImageControl } from "./ImageControl";
+import { VideoControl } from "./VideoControl";
 import { RepeaterControl } from "./RepeaterControl";
 import { IconPickerControl } from "./IconPickerControl";
 import {
@@ -42,6 +43,8 @@ export function FieldRenderer({ field, value, onChange }: FieldRendererProps) {
 			return <ColorControl label={field.label} value={value as string} onChange={onChange} />;
 		case "image":
 			return <ImageControl label={field.label} value={value as string} onChange={onChange} />;
+		case "video":
+			return <VideoControl label={field.label} value={value as string} onChange={onChange} />;
 		case "repeater":
 			return (
 				<RepeaterControl
@@ -108,9 +111,15 @@ export function FieldRenderer({ field, value, onChange }: FieldRendererProps) {
 			);
 		case "position-picker": {
 			const positions = [
-				"top-left", "top-center", "top-right",
-				"mid-left", "mid-center", "mid-right",
-				"bottom-left", "bottom-center", "bottom-right",
+				"top-left",
+				"top-center",
+				"top-right",
+				"mid-left",
+				"mid-center",
+				"mid-right",
+				"bottom-left",
+				"bottom-center",
+				"bottom-right",
 			] as const;
 			const current = (value as string) || "mid-center";
 			const label = current.replace("-", " ").replace(/\b\w/g, (c) => c.toUpperCase());
@@ -131,15 +140,11 @@ export function FieldRenderer({ field, value, onChange }: FieldRendererProps) {
 									title={pos.replace("-", " ")}
 									onClick={() => onChange(pos)}
 									className={`flex items-center justify-center transition-colors ${
-										active
-											? "bg-primary/15"
-											: "hover:bg-muted/40"
+										active ? "bg-primary/15" : "hover:bg-muted/40"
 									}`}>
 									<span
 										className={`block rounded-sm transition-all ${
-											active
-												? "size-2 bg-primary"
-												: "size-1 bg-border"
+											active ? "size-2 bg-primary" : "size-1 bg-border"
 										}`}
 									/>
 								</button>

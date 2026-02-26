@@ -4,6 +4,7 @@ import { TextBlock } from "~/blocks/TextBlock";
 import { ButtonBlock } from "~/blocks/ButtonBlock";
 import { CardBlock } from "~/blocks/CardBlock";
 import { ImageBlock } from "~/blocks/ImageBlock";
+import { VideoBlock } from "~/blocks/VideoBlock";
 import { IconBlock } from "~/blocks/IconBlock";
 import { SpacerBlock } from "~/blocks/SpacerBlock";
 import { BadgeBlock } from "~/blocks/BadgeBlock";
@@ -325,6 +326,150 @@ export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
     },
     editableProps: [
       { key: "src", label: "Image", type: "image" },
+      { key: "alt", label: "Alt Text", type: "short-text" },
+      { key: "caption", label: "Caption Text", type: "short-text" },
+    ],
+    editableStyles: [
+      {
+        key: "width",
+        label: "Width",
+        type: "size-picker",
+        options: [
+          { label: "S", value: "sm" },
+          { label: "M", value: "md" },
+          { label: "L", value: "lg" },
+          { label: "Full", value: "full" },
+        ],
+      },
+      {
+        key: "borderRadius",
+        label: "Corner Style",
+        type: "size-picker",
+        options: [
+          { label: "Sharp", value: "none" },
+          { label: "S", value: "sm" },
+          { label: "M", value: "md" },
+          { label: "L", value: "lg" },
+          { label: "Full", value: "full" },
+        ],
+      },
+      { key: "borderWidth", label: "Border Width", type: "slider", min: 0, max: 24, step: 1 },
+      { key: "borderColor", label: "Border Color", type: "color" },
+      { key: "opacity", label: "Opacity", type: "slider", min: 0, max: 100, step: 5 },
+      { key: "height", label: "Height", type: "slider", min: 0, max: 800, step: 8 },
+      { key: "tilt", label: "Tilt", type: "slider", min: -180, max: 180, step: 1 },
+      {
+        key: "shadowSize",
+        label: "Shadow",
+        type: "size-picker",
+        options: [
+          { label: "None", value: "none" },
+          { label: "S", value: "sm" },
+          { label: "M", value: "md" },
+          { label: "L", value: "lg" },
+        ],
+      },
+      { key: "shadowColor", label: "Shadow Color", type: "color" },
+      {
+        key: "fontSize",
+        label: "Text Size",
+        type: "size-picker",
+        group: "caption",
+        options: [
+          { label: "S", value: "sm" },
+          { label: "M", value: "base" },
+          { label: "L", value: "lg" },
+          { label: "XL", value: "xl" },
+          { label: "2XL", value: "2xl" },
+          { label: "Custom", value: "custom" },
+        ],
+      },
+      {
+        key: "fontWeight",
+        label: "Weight",
+        type: "size-picker",
+        group: "caption",
+        options: [
+          { label: "Normal", value: "normal" },
+          { label: "Medium", value: "medium" },
+          { label: "Bold", value: "bold" },
+        ],
+      },
+      {
+        key: "fontStyle",
+        label: "Style",
+        type: "size-picker",
+        group: "caption",
+        options: [
+          { label: "Normal", value: "normal" },
+          { label: "Italic", value: "italic" },
+        ],
+      },
+      {
+        key: "letterSpacing",
+        label: "Letter Spacing",
+        type: "slider",
+        group: "caption",
+        min: 0,
+        max: 12,
+        step: 0.5,
+      },
+      {
+        key: "textAlign",
+        label: "Align",
+        type: "align-picker",
+        group: "caption",
+        options: [
+          { label: "Left", value: "left" },
+          { label: "Center", value: "center" },
+          { label: "Right", value: "right" },
+        ],
+      },
+      {
+        key: "captionVerticalAlign",
+        label: "Vertical",
+        type: "size-picker",
+        group: "caption",
+        options: [
+          { label: "Top", value: "top" },
+          { label: "Mid", value: "center" },
+          { label: "Bot", value: "bottom" },
+        ],
+      },
+      {
+        key: "captionPadding",
+        label: "Text Padding",
+        type: "slider",
+        group: "caption",
+        min: 0,
+        max: 64,
+        step: 4,
+      },
+    ],
+    inlineEditable: false,
+    colorOptions: { hasText: false, hasAccent: false },
+  },
+
+  video: {
+    component: VideoBlock,
+    label: "Video",
+    icon: "video_library",
+    category: "media",
+    defaultProps: { src: "", alt: "", caption: "" },
+    defaultStyle: {
+      width: "full",
+      borderWidth: 0,
+      tilt: 0,
+      fontSize: "xl",
+      fontWeight: "bold",
+      fontStyle: "normal",
+      letterSpacing: 0,
+      textAlign: "center",
+      shadowSize: "none",
+      captionVerticalAlign: "center",
+    },
+    editableProps: [
+      { key: "src", label: "Video", type: "video" },
       { key: "alt", label: "Alt Text", type: "short-text" },
       { key: "caption", label: "Caption Text", type: "short-text" },
     ],

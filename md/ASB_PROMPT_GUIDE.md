@@ -43,7 +43,7 @@ CORE PHILOSOPHY:
 ARCHITECTURE MODEL:
 - Section = full-width container with section style + vertically stacked groups
 - Group = sub-container inside a section with its own layout template and blocks
-- Block = individual content piece (heading, text, button, image, etc.)
+- Block = individual content piece (heading, text, button, image, video, etc.)
 - Layout Template = defines how blocks are arranged in a group (spans[], alignment, reversed)
 - Groups contain blocks placed into named slots defined by the chosen layout
 - Users can add/remove/reorder blocks within a section â€” not just edit fixed fields
@@ -228,8 +228,8 @@ The right sidebar changes based on what is selected:
 4. **Canvas Selection Border** - selected group uses a solid highlight border while Group Mode is active.
 
 **When a BLOCK is selected** (click a specific block on the canvas):
-1. **Block Content** - auto-generated controls based on block type (text input, image upload, etc.)
-2. **Block Style** - constrained style options for that block (size, alignment, spacing, letter spacing, and per-block corners where supported). `heading`, `text`, `button`, `image`, `date`, `countdown`, and `timeline` blocks expose a **Font Family** control that opens the same Typography Settings modal used in Global Settings; selecting a font applies a block-level override (applied to the caption text for `image` blocks). `timeline` blocks provide two selectors: one for title text and one for subtitle+description text. `button` blocks also expose **Corner Style** (Sharp/S/M/L/Full) which defaults to the global corner style until explicitly overridden on that block. For `image` blocks, style controls are split into two collapsibles: **Style** (Width, Corner Style, Border Width, Border Color, Opacity, Height, Tilt, Shadow, Shadow Color) and **Caption** (collapsed by default; Font Family, Text Size, Weight, Style, Letter Spacing, Align, Vertical, Text Padding).
+1. **Block Content** - auto-generated controls based on block type (text input, image/video upload, etc.)
+2. **Block Style** - constrained style options for that block (size, alignment, spacing, letter spacing, and per-block corners where supported). `heading`, `text`, `button`, `image`, `video`, `date`, `countdown`, and `timeline` blocks expose a **Font Family** control that opens the same Typography Settings modal used in Global Settings; selecting a font applies a block-level override (applied to caption text for `image` and `video` blocks). `timeline` blocks provide two selectors: one for title text and one for subtitle+description text. `button` blocks also expose **Corner Style** (Sharp/S/M/L/Full) which defaults to the global corner style until explicitly overridden on that block. For `image` and `video` blocks, style controls are split into two collapsibles: **Style** (Width, Corner Style, Border Width, Border Color, Opacity, Height, Tilt, Shadow, Shadow Color) and **Caption** (collapsed by default; Font Family, Text Size, Weight, Style, Letter Spacing, Align, Vertical, Text Padding).
 3. **Position** - collapsible panel with:
    - **Column** — slot/column picker (shown only when the group layout has multiple slots and the block is in flow mode). Allows moving the block to a different column after it was added. Calls `moveBlockToSlot` / `moveBlockToSlotAtIndex` store actions.
    - **Flow / Absolute** toggle — choose positioning mode. Absolute blocks are positioned relative to the selected group and can be moved on the canvas by dragging.
@@ -381,6 +381,7 @@ type BlockType =
   | "card"           // Surface card with title/body/button/image
   | "image"          // Single image — editableProps: src, alt, caption (short-text). editableStyles are grouped in Block Mode: Style panel -> width, borderRadius, borderWidth, borderColor, opacity, height, tilt (-180 to +180, default 0), shadowSize, shadowColor; Caption panel (collapsed by default) -> fontSize (with custom), fontWeight, fontStyle, letterSpacing, textAlign (align-picker), captionVerticalAlign (top/center/bottom), captionPadding. Caption is full-width, absolutely positioned; horizontal alignment via textAlign, vertical via captionVerticalAlign. Supports block-level font family override applied to caption (shown in Caption panel). supportsCustomTextSize = true (same as heading/text).
   | "icon"           // Material Symbol icon — plain icon only, no label
+  | "video"          // Single video - editableProps: src, alt, caption (short-text). Uses the same grouped editableStyles as image blocks: Style panel -> width, borderRadius, borderWidth, borderColor, opacity, height, tilt (-180 to +180, default 0), shadowSize, shadowColor; Caption panel (collapsed by default) -> fontSize (with custom), fontWeight, fontStyle, letterSpacing, textAlign (align-picker), captionVerticalAlign (top/center/bottom), captionPadding. Supports the same caption font override + overlay controls as image.
   | "spacer"         // Vertical space (height slider)
   | "badge"          // Small label/tag — variant + appearance + text
   | "divider"        // Horizontal line — editableStyles: width, lineWeight, opacity, top/bottom spacing
@@ -391,7 +392,6 @@ type BlockType =
   | "timeline"       // Alternating timeline display — editableProps: timeline[] repeater (title, subtitle, icon, description) + title/subtitle/description color pickers; editableStyles: scale slider (25-300)
   | "rsvp"           // Event RSVP form — full self-contained form with name, email, attendance toggle, guest count, song request, and submit button
   // Post-MVP:
-  | "video"          // Embedded video (YouTube/Vimeo URL)
   | "form"           // Lead capture form
   | "social-links"   // Row of social media icons
   | "map";           // Embedded map
@@ -409,7 +409,7 @@ interface Block {
 
 interface BlockStyle {
   // Text
-  fontFamily?: string;            // Optional block-level font override (heading, text, button, image, date, countdown, timeline blocks); timeline uses this for title text
+  fontFamily?: string;            // Optional block-level font override (heading, text, button, image, video, date, countdown, timeline blocks); timeline uses this for title text
   secondaryFontFamily?: string;   // Timeline block only — optional font override for subtitle + description text
   fontSize?: "sm" | "base" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "5xl" | "custom";
   fontSizePx?: number;            // Custom heading/text size in px when fontSize="custom"
@@ -426,12 +426,12 @@ interface BlockStyle {
   marginTop?: number;             // 0-64, slider
   marginBottom?: number;          // 0-64, slider
 
-  // Size (for images, icons, spacers)
+  // Size (for image/video blocks, icons, spacers)
   width?: "auto" | "sm" | "md" | "lg" | "full" | "custom";
   widthPx?: number;               // Custom divider width in px when width="custom"
   borderRadius?: "none" | "sm" | "md" | "lg" | "full"; // Button block corner override; falls back to GlobalStyle.borderRadius when unset
   dateSectionGap?: number;        // Date block only â€” vertical gap between top/middle/bottom sections
-  height?: number;                // For spacers (8-128) and images (0-800, 0 = auto); slider
+  height?: number;                // For spacers (8-128) and image/video blocks (0-800, 0 = auto); slider
 
   // Appearance
   opacity?: number;               // 0-100 slider
@@ -440,6 +440,7 @@ interface BlockStyle {
   captionVerticalAlign?: "top" | "center" | "bottom"; // Image block only — vertical position of caption within image
   captionPadding?: number;        // Image block only — uniform padding (px) around caption text (default 16, slider 0-64)
 
+  // Video block parity: overlayEffect, overlayIntensity, captionVerticalAlign, and captionPadding use the same semantics as image.
   // Positioning (editor controls)
   positionMode?: "flow" | "absolute";
   positionAnchor?: "top-left" | "center"; // Anchor for absolute coords (center is default for new absolute blocks)
@@ -659,7 +660,7 @@ BLOCK_REGISTRY[blockType] = {
 // - if the selected variant has only one appearance option, hide the Appearance selection UI
 // hasText=true → shows Text Color picker; hasAccent=true → shows Accent Color picker.
 // textColor and accentColor are NO LONGER in editableStyles — they are handled by the Colors panel.
-// image block uses style field grouping: group === "caption" renders in a separate collapsed Caption panel.
+// image/video blocks use style field grouping: group === "caption" renders in a separate collapsed Caption panel.
 ```
 
 ### Block Component Contract
@@ -977,6 +978,7 @@ BlockStyle.colorMode        -> "global" (default): block derives text/accent fro
 BlockStyle.textColor        â†’ custom text color (only active when colorMode="custom")
 BlockStyle.accentColor      â†’ custom accent color (only active when colorMode="custom")
 BlockStyle.fontFamily       â†’ optional block-level font override (heading, text, button, image, date, countdown, timeline blocks — applies to caption on image; for timeline this targets title text)
+For `video` blocks, `BlockStyle.fontFamily` also applies to caption text (same behavior as `image`).
 BlockStyle.secondaryFontFamily -> timeline-only font override for subtitle + description text
 BlockStyle.fontSize         â†’ block-level size choice (heading/text support presets + "custom")
 BlockStyle.fontSizePx       â†’ heading/text custom size in px (applies when fontSize="custom")
@@ -988,6 +990,7 @@ BlockStyle.textAlign        â†’ block-level alignment
 BlockStyle.borderRadius     -> optional button corner override ("none" | "sm" | "md" | "lg" | "full"); falls back to GlobalStyle.borderRadius when unset
 BlockStyle.width            -> block width preset ("auto" | "sm" | "md" | "lg" | "full" | "custom")
 BlockStyle.widthPx          -> custom block width in px (used when width="custom", divider supports this)
+Video blocks use the same border/tilt/shadow/overlay/caption style fields listed below for image blocks.
 BlockStyle.borderWidth      -> image block border width base in px (0-24 slider)
 BlockStyle.borderColor      -> image block border color (hex)
 BlockStyle.opacity          -> block opacity percentage (0-100)
@@ -1050,8 +1053,9 @@ When a specific block is selected (click a block on the canvas):
 - Header includes block actions: **Duplicate** (`content_copy`) and **Delete** (`delete`).
 - `heading` and `text` block Size controls now include an icon-only **Custom Size** option (`tune`). When selected, Block Mode shows a px slider + numeric input (12-200px) and stores the value in `BlockStyle.fontSizePx`.
 - `divider` Width control also includes an icon-only **Custom Width** option (`tune`). When selected, Block Mode shows a px slider + numeric input (40-1600px) and stores the value in `BlockStyle.widthPx` with `BlockStyle.width="custom"`.
-- `image` blocks split style controls into **Style** and **Caption** collapsibles. **Style** contains Width/Corner Style/Border Width/Border Color/Opacity/Height/Tilt/Shadow/Shadow Color and does not show Font Family. **Caption** is collapsed by default and contains Font Family + caption typography/alignment/padding controls.
+- `image` and `video` blocks split style controls into **Style** and **Caption** collapsibles. **Style** contains Width/Corner Style/Border Width/Border Color/Opacity/Height/Tilt/Shadow/Shadow Color and does not show Font Family. **Caption** is collapsed by default and contains Font Family + caption typography/alignment/padding controls.
 - `image` blocks have an **Overlay** panel (rendered by `ImageOverlayPanel.tsx`) — 5 effect buttons (none/dots/grid/dim/vignette) plus an **Intensity** slider (0–100). The overlay is rendered as an absolutely positioned `<div>` layered over the `<img>` inside a `relative overflow-hidden` wrapper. State stored in `BlockStyle.overlayEffect` and `BlockStyle.overlayIntensity`.
+- `video` blocks share the same Overlay panel and style fields (`overlayEffect`, `overlayIntensity`) as `image` blocks.
 - Block Mode UI is componentized under `app/editor/block-settings/` (header, per-panel components, and shared helpers/constants), while `BlockSettings.tsx` remains the store-wiring/orchestration layer.
 - Variant/Appearance pattern is handled in a dedicated **Variant** accordion (separate from **Content**): `variant` is the style collection key and `appearance` is the concrete look within that collection. Both are shown as preview cards; hide Appearance cards when the selected variant has only one appearance.
 
@@ -1085,6 +1089,7 @@ type ControlType =
   | "rich-text"       // Handled INLINE on canvas via Tiptap (not in sidebar)
   | "url"             // URL input with link icon validation
   | "image"           // Upload button + preview (Cloudinary)
+  | "video"           // Video URL input + inline preview
   | "color"           // react-colorful HexColorPicker in Radix Popover
   | "slider"          // Continuous slider (Radix Slider) for padding, spacing, etc.
   | "background"      // Composite: type selector + color/gradient/image controls
@@ -1291,7 +1296,7 @@ POST /api/projects/:id/publish
     - "md"   â†’ rounded-lg
     - "lg"   â†’ rounded-xl
     - "full" â†’ rounded-full
-    - Button and image blocks can override this with `block.style.borderRadius`; when unset, they use the global map above
+    - Button, image, and video blocks can override this with `block.style.borderRadius`; when unset, they use the global map above
 11. Block fontSize map (block.style.fontSize):
     - "sm"   â†’ text-sm
     - "base" â†’ text-base
@@ -1763,14 +1768,14 @@ This contract ensures AI output can be validated and loaded directly into the ed
 |------|-----------|
 | **Section** | A full-width container with section style and vertically stacked groups. The top-level building unit of a page. |
 | **Group** | A sub-container inside a section with its own layout and block list. Groups are stacked vertically. |
-| **Block** | An individual content piece within a group (heading, text, button, image, icon, etc.). The atomic unit of content. |
-| **Block Type** | The kind of content a block represents (heading, text, button, image, etc.). Determines what controls appear in the sidebar. |
+| **Block** | An individual content piece within a group (heading, text, button, image, video, icon, etc.). The atomic unit of content. |
+| **Block Type** | The kind of content a block represents (heading, text, button, image, video, etc.). Determines what controls appear in the sidebar. |
 | **Layout Template** | A pre-defined spatial arrangement for blocks within a group. Defined by `spans[]` (6-unit grid), `alignment`, and `reversed`. Users pick from visual thumbnails — never configure numbers directly. |
 | **Slot** | A named position within a layout template where blocks are placed ("main", "left", "right", "col-1", etc.). |
 | **Section Registry** | Central config mapping section profiles/presets to allowed layouts, default groups/default blocks fallback, and constraints. |
 | **Section Label** | Editable display name saved on each section instance. Starts from preset label but is user-controlled in Section Settings. |
 | **Block Registry** | Central config mapping block types to components, default props/styles, and editable fields. |
-| **Block Style** | Constrained visual options for a block (fontFamily override, fontSize, optional heading/text `fontSizePx` for custom size, fontWeight, divider `lineWeight`, fontStyle, letterSpacing, textAlign, optional button `borderRadius` override, width, optional `widthPx` for custom divider width, image `borderWidth`/`borderColor`, image `tilt`, image `shadowSize`/`shadowColor`, opacity, spacing, positioning mode, scale). Never raw CSS. |
+| **Block Style** | Constrained visual options for a block (fontFamily override, fontSize, optional heading/text `fontSizePx` for custom size, fontWeight, divider `lineWeight`, fontStyle, letterSpacing, textAlign, optional button/image/video `borderRadius` override, width, optional `widthPx` for custom divider width, image/video `borderWidth`/`borderColor`, image/video `tilt`, image/video `shadowSize`/`shadowColor`, opacity, spacing, positioning mode, scale). Never raw CSS. |
 | **Section Style** | Design data for a section (backgroundColor/backgroundType/gradient fields, backgroundEffect, backgroundEffectIntensity, backgroundEffectColor, paddingY, fullHeight, groupVerticalAlign). |
 | **Global Style** | Page-wide design settings (themeMode, fontFamily, primaryColor, colorScheme, borderRadius). `fontFamily` is the default text font across the page and can be overridden by supported blocks. |
 | **Style Inheritance** | The cascade: Global â†’ Section â†’ Block. Each level can override the parent. |
@@ -1792,6 +1797,7 @@ This contract ensures AI output can be validated and loaded directly into the ed
 
 ---
 
+*Document Version: 3.88 - Added new `video` block with Image-parity settings and rendering model. `BlockType` now includes `"video"` and `blockRegistry.ts` adds a media-category video entry with the same Style + Caption control groups used by `image` (`width`, `borderRadius`, `borderWidth`, `borderColor`, `opacity`, `height`, `tilt`, `shadowSize`, `shadowColor`, caption typography/alignment/padding, and overlay effect/intensity). Added `VideoBlock.tsx` renderer (`<video>` + overlay + caption). Added `ControlType` `"video"` with `VideoControl.tsx` and `FieldRenderer.tsx` wiring. `BlockSettings.tsx` and `StylePanel.tsx` now treat `video` the same as `image` for split Style/Caption panels, font override support, custom text-size support, border-radius global fallback, and overlay panel visibility. `sectionRegistry.ts` allowed block lists now include `video` wherever `image` is allowed.*
 *Document Version: 3.87 - Moved block `variant`/`appearance` controls into a dedicated **Variant** accordion in Block Mode (`VariantPanel.tsx`). Variants and appearances are now selected through preview cards instead of Content select fields. Appearance cards are hidden when the selected variant has only one appearance. `ContentPanel.tsx` now renders only block `editableProps` fields.*
 *Document Version: 3.86 - Added RSVP variant expansion and postcard-style renderer. `rsvp` now has `variant`/`appearance` config with two variants (`default`, `postcard`) and one appearance each (`classic`, `postal-card`). Updated Block Mode Content rule: hide Appearance selector when the active variant has only one appearance. RSVP Block Style now includes **Tilt** (`-180..180`) and `RsvpBlock.tsx` applies a clamped rotate transform similar to image tilt.*
 *Document Version: 3.85 - Simplified image border controls by removing Border Weight. Image blocks now use a single **Border Width** slider (0-24px) plus **Border Color**. `blockRegistry.ts` no longer exposes `lineWeight` for image styles, and `ImageBlock.tsx` now applies border thickness directly from `BlockStyle.borderWidth` (no multiplier). Prompt guide sections were updated to reflect the simplified UI.*
@@ -1859,10 +1865,3 @@ This contract ensures AI output can be validated and loaded directly into the ed
 *Last Updated: February 26, 2026*
 *Keep this document updated as architecture decisions change.*
 *For colors and theming, always reference the separate Style Guide file.*
-
-
-
-
-
-
-

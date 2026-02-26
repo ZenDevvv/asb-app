@@ -96,6 +96,7 @@ export function StylePanel({
 		block.type === "text" ||
 		block.type === "button" ||
 		block.type === "image" ||
+		block.type === "video" ||
 		block.type === "date" ||
 		block.type === "countdown" ||
 		block.type === "timeline";
@@ -114,7 +115,10 @@ export function StylePanel({
 	const primaryFontState = getFontState("fontFamily");
 	const secondaryFontState = getFontState("secondaryFontFamily");
 	const supportsCustomTextSize =
-		block.type === "heading" || block.type === "text" || block.type === "image";
+		block.type === "heading" ||
+		block.type === "text" ||
+		block.type === "image" ||
+		block.type === "video";
 	const supportsCustomDividerWidth = block.type === "divider";
 	const customTextSizeValue = getCustomTextSizeValue(block);
 	const customDividerWidthValue = getCustomDividerWidthValue(block);
@@ -237,7 +241,9 @@ export function StylePanel({
 					}
 
 					const globalFallbackValue =
-						(block.type === "button" || block.type === "image") &&
+						(block.type === "button" ||
+							block.type === "image" ||
+							block.type === "video") &&
 						styleField.key === "borderRadius"
 							? globalBorderRadius
 							: undefined;

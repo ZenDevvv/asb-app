@@ -18,6 +18,7 @@ const ALL_BLOCK_TYPES: SectionRegistryEntry["allowedBlockTypes"] = [
   "button",
   "card",
   "image",
+  "video",
   "icon",
   "spacer",
   "badge",
@@ -94,7 +95,7 @@ export const SECTION_REGISTRY: Record<SectionType, SectionRegistryEntry> = {
       paddingY: 20,
       backgroundType: "solid",
     },
-    allowedBlockTypes: ["heading", "text", "button", "icon", "list", "image", "badge", "divider", "date", "countdown", "timeline", "spacer"],
+    allowedBlockTypes: ["heading", "text", "button", "icon", "list", "image", "video", "badge", "divider", "date", "countdown", "timeline", "spacer"],
     maxBlocksPerSlot: 6,
   },
 
@@ -146,7 +147,7 @@ export const SECTION_REGISTRY: Record<SectionType, SectionRegistryEntry> = {
       paddingY: 80,
       backgroundType: "solid",
     },
-    allowedBlockTypes: ["heading", "text", "button", "card", "image", "icon", "spacer", "badge", "divider", "date", "countdown", "timeline", "rsvp"],
+    allowedBlockTypes: ["heading", "text", "button", "card", "image", "video", "icon", "spacer", "badge", "divider", "date", "countdown", "timeline", "rsvp"],
   },
 
   features: {
@@ -225,7 +226,7 @@ export const SECTION_REGISTRY: Record<SectionType, SectionRegistryEntry> = {
       paddingY: 80,
       backgroundType: "solid",
     },
-    allowedBlockTypes: ["heading", "text", "button", "card", "image", "icon", "spacer", "badge", "divider", "date", "countdown", "timeline", "rsvp"],
+    allowedBlockTypes: ["heading", "text", "button", "card", "image", "video", "icon", "spacer", "badge", "divider", "date", "countdown", "timeline", "rsvp"],
   },
 
   cta: {
@@ -262,7 +263,7 @@ export const SECTION_REGISTRY: Record<SectionType, SectionRegistryEntry> = {
       paddingY: 80,
       backgroundType: "solid",
     },
-    allowedBlockTypes: ["heading", "text", "button", "card", "image", "icon", "spacer", "badge", "divider", "date", "countdown", "timeline", "rsvp"],
+    allowedBlockTypes: ["heading", "text", "button", "card", "image", "video", "icon", "spacer", "badge", "divider", "date", "countdown", "timeline", "rsvp"],
   },
 
   testimonials: {
@@ -308,7 +309,7 @@ export const SECTION_REGISTRY: Record<SectionType, SectionRegistryEntry> = {
       paddingY: 80,
       backgroundType: "solid",
     },
-    allowedBlockTypes: ["heading", "text", "quote", "card", "image", "icon", "spacer", "badge", "divider", "date", "countdown", "timeline"],
+    allowedBlockTypes: ["heading", "text", "quote", "card", "image", "video", "icon", "spacer", "badge", "divider", "date", "countdown", "timeline"],
   },
 
   faq: {
@@ -373,7 +374,7 @@ export const SECTION_REGISTRY: Record<SectionType, SectionRegistryEntry> = {
       paddingY: 80,
       backgroundType: "solid",
     },
-    allowedBlockTypes: ["heading", "text", "card", "image", "spacer", "divider", "badge", "date", "countdown", "timeline"],
+    allowedBlockTypes: ["heading", "text", "card", "image", "video", "spacer", "divider", "badge", "date", "countdown", "timeline"],
   },
 
   footer: {
@@ -452,7 +453,7 @@ export const SECTION_REGISTRY: Record<SectionType, SectionRegistryEntry> = {
       paddingY: 60,
       backgroundType: "solid",
     },
-    allowedBlockTypes: ["heading", "text", "button", "card", "icon", "list", "divider", "badge", "image", "date", "countdown", "timeline"],
+    allowedBlockTypes: ["heading", "text", "button", "card", "icon", "list", "divider", "badge", "image", "video", "date", "countdown", "timeline"],
   },
 
   custom: {
