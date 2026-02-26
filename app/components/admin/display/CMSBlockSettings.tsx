@@ -423,8 +423,17 @@ export function CMSBlockSettings({ block, className }: CMSBlockSettingsProps) {
 	return (
 		<section className={cn("flex h-full flex-col", className)}>
 			<div className="flex items-center justify-between border-b border-sidebar-border px-4 py-3">
-				<div className="min-w-0">
-					<div>
+				<div className="flex min-w-0 items-center gap-2">
+					<Button
+						type="button"
+						variant="outline"
+						size="sm"
+						onClick={() => selectBlock(null)}
+						className="h-8 w-8 shrink-0 p-0"
+						aria-label="Back to CMS Library">
+						<ChevronLeft className="h-3.5 w-3.5" />
+					</Button>
+					<div className="min-w-0">
 						<p className="truncate text-sm font-semibold text-sidebar-foreground">
 							{entry.label} Settings
 						</p>
@@ -433,26 +442,15 @@ export function CMSBlockSettings({ block, className }: CMSBlockSettingsProps) {
 						</p>
 					</div>
 				</div>
-				<div className="flex items-center gap-1">
-					<Button
-						type="button"
-						variant="outline"
-						size="sm"
-						onClick={() => selectBlock(null)}
-						className="h-8 px-2">
-						<ChevronLeft className="h-3.5 w-3.5" />
-						CMS Library
-					</Button>
-					<Button
-						type="button"
-						variant="destructive"
-						size="sm"
-						onClick={() => removeBlock(block.id)}
-						className="h-8 px-2.5">
-						<Trash2 className="h-3.5 w-3.5" />
-						Delete
-					</Button>
-				</div>
+				<Button
+					type="button"
+					variant="destructive"
+					size="sm"
+					onClick={() => removeBlock(block.id)}
+					className="h-8 px-2.5">
+					<Trash2 className="h-3.5 w-3.5" />
+					Delete
+				</Button>
 			</div>
 
 			<div className="minimal-scrollbar flex-1 space-y-3 overflow-y-auto px-4 py-3">

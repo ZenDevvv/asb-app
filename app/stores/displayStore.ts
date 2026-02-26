@@ -419,7 +419,7 @@ const DEFAULT_GLOBAL_STYLE: GlobalStyle = {
 
 const DEFAULT_CANVAS_BACKGROUND: CMSCanvasBackground = {
 	type: "color",
-	color: "#050505",
+	color: "#2f2f2f",
 	imageUrl: "",
 	videoUrl: "",
 };

@@ -79,7 +79,7 @@ export function CMSCanvas({ className }: CMSCanvasProps) {
 	const resolvedBackgroundColor =
 		typeof canvasBackground.color === "string" && canvasBackground.color.trim().length > 0
 			? canvasBackground.color
-			: "#050505";
+			: "#2f2f2f";
 	const hasImageBackground =
 		canvasBackground.type === "image" && canvasBackground.imageUrl.trim().length > 0;
 	const hasVideoBackground =
