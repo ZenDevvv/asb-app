@@ -4,6 +4,7 @@ import { useMemo, useState, useRef, useEffect } from "react";
 import { useParams, useNavigate } from "react-router";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "~/components/ui/dialog";
 import { EditorDebugBackdoor } from "./EditorDebugBackdoor";
+import { useAuth } from "~/hooks/use-auth";
 
 const SHORTCUTS = [
 	{
@@ -54,6 +55,7 @@ export function EditorToolbar({ templateName, onRenameTemplate }: EditorToolbarP
 	const [isEditingName, setIsEditingName] = useState(false);
 	const [nameInputValue, setNameInputValue] = useState("");
 	const nameInputRef = useRef<HTMLInputElement>(null);
+	const { user } = useAuth();
 
 	useEffect(() => {
 		if (isEditingName) {
@@ -91,15 +93,21 @@ export function EditorToolbar({ templateName, onRenameTemplate }: EditorToolbarP
 		return `${mins} min${mins > 1 ? "s" : ""} ago`;
 	}, [lastSaved]);
 
+	function handleBackNavigation() {
+		saveToLocalStorage();
+		if (user?.role === "admin") {
+			navigate("/admin/templates");
+			return;
+		}
+		navigate("/user/dashboard");
+	}
+
 	return (
 		<div className="flex h-14 shrink-0 items-center justify-between border-b border-sidebar-border bg-sidebar px-4">
 			{/* Left */}
 			<div className="flex items-center gap-3">
 				<button
-					onClick={() => {
-						saveToLocalStorage();
-						navigate("/admin/templates");
-					}}
+					onClick={handleBackNavigation}
 					className="flex size-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-foreground"
 					title="Back to templates">
 					<span className="material-symbols-outlined" style={{ fontSize: 18 }}>

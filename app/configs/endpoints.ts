@@ -98,6 +98,7 @@ export const API_ENDPOINTS = {
 		CREATE: "/templateProject",
 		UPDATE: "/templateProject/:id",
 		DELETE: "/templateProject/:id",
+		FORK: "/templateProject/:id/fork",
 	},
 
 	COURSE: {

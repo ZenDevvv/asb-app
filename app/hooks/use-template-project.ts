@@ -65,6 +65,18 @@ export const useUpdateTemplateProject = () => {
 	});
 };
 
+export const useForkTemplateProject = () => {
+	return useMutation({
+		mutationFn: (templateProjectId: string) => {
+			return templateProjectService.forkTemplateProject(templateProjectId);
+		},
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["template-projects"] });
+			queryClient.invalidateQueries({ queryKey: ["projects"] });
+		},
+	});
+};
+
 export const useDeleteTemplateProject = () => {
 	return useMutation({
 		mutationFn: ({ templateProjectId }: { templateProjectId: string }) => {

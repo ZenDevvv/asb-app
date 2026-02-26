@@ -7,6 +7,7 @@ import type {
 	TemplateProject,
 	UpdateTemplateProject,
 } from "~/zod/templateProject.zod";
+import type { Project } from "~/zod/project.zod";
 
 const { TEMPLATE_PROJECT } = API_ENDPOINTS;
 
@@ -74,6 +75,20 @@ class TemplateProjectService extends APIService {
 					data,
 				);
 			}
+			return response.data;
+		} catch (error: any) {
+			throw new Error(
+				error.data?.errors?.[0]?.message || error.message || "An error has occurred",
+			);
+		}
+	};
+
+	forkTemplateProject = async (templateProjectId: string) => {
+		try {
+			const response: ApiResponse<Project> = await apiClient.post(
+				TEMPLATE_PROJECT.FORK.replace(":id", templateProjectId),
+				{},
+			);
 			return response.data;
 		} catch (error: any) {
 			throw new Error(

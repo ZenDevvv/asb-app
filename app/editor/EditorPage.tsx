@@ -3,6 +3,7 @@ import { useLocation, useNavigate, useParams } from "react-router";
 import { SplashScreen } from "~/components/admin/splash-screen";
 import { DEFAULT_GLOBAL_STYLE, EDITOR_STORAGE_KEY, useEditorStore } from "~/stores/editorStore";
 import { useGetTemplateProjectById, useUpdateTemplateProject } from "~/hooks/use-template-project";
+import { useGetProjectById, useUpdateProject } from "~/hooks/use-project";
 import { EditorToolbar } from "./EditorToolbar";
 import { SectionsListPanel } from "./SectionsListPanel";
 import { EditorCanvas } from "./EditorCanvas";
@@ -30,8 +31,9 @@ function hasValidPersistedEditorState(): boolean {
 	}
 }
 
-type ActiveTemplateContext = {
-	templateId: string;
+type ActiveDocumentContext = {
+	kind: "template" | "project";
+	documentId: string;
 	pageMetadata: { id: string; name: string; slug: string; isDefault: boolean };
 };
 
@@ -45,24 +47,30 @@ export default function EditorPage() {
 	const setIsSaving = useEditorStore((s) => s.setIsSaving);
 	const locationState = location.state as EditorLocationState;
 	const editorSeed = locationState?.editorSeed;
-	const { templateId } = useParams<{ templateId?: string }>();
+	const { templateId, projectId } = useParams<{ templateId?: string; projectId?: string }>();
 
-	// Persists the loaded template context after nav state is cleared.
-	const activeTemplateRef = useRef<ActiveTemplateContext | null>(null);
+	// Persists the loaded document context after nav state is cleared.
+	const activeDocumentRef = useRef<ActiveDocumentContext | null>(null);
 
 	const { data: templateData, isLoading: isTemplateLoading } = useGetTemplateProjectById(
 		templateId ?? "",
 		{ fields: "id,name,pages,globalStyle" },
 	);
-	const { mutate: updateTemplate, isPending: isServerSaving } = useUpdateTemplateProject();
+	const { mutate: updateTemplate, isPending: isTemplateSaving } = useUpdateTemplateProject();
+
+	const { data: projectData, isLoading: isProjectLoading } = useGetProjectById(
+		projectId ?? "",
+		{ fields: "id,name,pages,globalStyle" },
+	);
+	const { mutate: updateProject, isPending: isProjectSaving } = useUpdateProject();
 
 	useEffect(() => {
-		setIsSaving(isServerSaving);
-	}, [isServerSaving, setIsSaving]);
+		setIsSaving(isTemplateSaving || isProjectSaving);
+	}, [isTemplateSaving, isProjectSaving, setIsSaving]);
 
-	// Seed/localStorage init — skipped when waiting on a template fetch.
+	// Seed/localStorage init — skipped when waiting on a template or project fetch.
 	useEffect(() => {
-		if (templateId) return;
+		if (templateId || projectId) return;
 
 		const store = useEditorStore.getState();
 
@@ -91,15 +99,16 @@ export default function EditorPage() {
 				store.addSection(type);
 			});
 		}
-	}, [editorSeed, templateId, navigate]);
+	}, [editorSeed, templateId, projectId, navigate]);
 
 	// Load fetched template data into the editor store and cache context for saves.
 	useEffect(() => {
 		if (!templateId || !templateData) return;
 		const store = useEditorStore.getState();
 		const firstPage = templateData.pages?.[0];
-		activeTemplateRef.current = {
-			templateId: templateData.id,
+		activeDocumentRef.current = {
+			kind: "template",
+			documentId: templateData.id,
 			pageMetadata: {
 				id: firstPage?.id,
 				name: firstPage?.name,
@@ -114,21 +123,40 @@ export default function EditorPage() {
 		store.saveToLocalStorage();
 	}, [templateId, templateData]);
 
-	// Auto-save debounced — also persists to server when editing a template.
-	const debouncedSave = useCallback(
-		debounce(() => {
-			saveToLocalStorage();
-			const ctx = activeTemplateRef.current;
-			if (!ctx) return;
-			const { sections, globalStyle } = useEditorStore.getState();
+	// Load fetched project data into the editor store and cache context for saves.
+	useEffect(() => {
+		if (!projectId || !projectData) return;
+		const store = useEditorStore.getState();
+		const firstPage = projectData.pages?.[0];
+		activeDocumentRef.current = {
+			kind: "project",
+			documentId: projectData.id,
+			pageMetadata: {
+				id: firstPage?.id,
+				name: firstPage?.name,
+				slug: firstPage?.slug,
+				isDefault: firstPage?.isDefault ?? true,
+			},
+		};
+		store.loadSections(
+			firstPage?.sections ?? [],
+			projectData.globalStyle ?? { ...DEFAULT_GLOBAL_STYLE },
+		);
+		store.saveToLocalStorage();
+	}, [projectId, projectData]);
+
+	// Persist current editor state to the correct server endpoint.
+	const saveToServer = useCallback(() => {
+		const ctx = activeDocumentRef.current;
+		if (!ctx) return;
+		const { sections, globalStyle } = useEditorStore.getState();
+		const payload = {
+			pages: [{ ...ctx.pageMetadata, sections }],
+			globalStyle,
+		};
+		if (ctx.kind === "template") {
 			updateTemplate(
-				{
-					templateProjectId: ctx.templateId,
-					data: {
-						pages: [{ ...ctx.pageMetadata, sections }],
-						globalStyle,
-					},
-				},
+				{ templateProjectId: ctx.documentId, data: payload },
 				{
 					onSuccess: (data) => {
 						const updatedAt = data?.templateProject?.updatedAt;
@@ -136,8 +164,26 @@ export default function EditorPage() {
 					},
 				},
 			);
+		} else {
+			updateProject(
+				{ projectId: ctx.documentId, data: payload },
+				{
+					onSuccess: (data) => {
+						const updatedAt = data?.project?.updatedAt;
+						if (updatedAt) setLastSaved(new Date(updatedAt).toISOString());
+					},
+				},
+			);
+		}
+	}, [updateTemplate, updateProject, setLastSaved]);
+
+	// Auto-save debounced — also persists to server when editing a template or project.
+	const debouncedSave = useCallback(
+		debounce(() => {
+			saveToLocalStorage();
+			saveToServer();
 		}, 3000),
-		[saveToLocalStorage, updateTemplate, setLastSaved],
+		[saveToLocalStorage, saveToServer],
 	);
 
 	useEffect(() => {
@@ -166,24 +212,7 @@ export default function EditorPage() {
 				e.preventDefault();
 				debouncedSave.cancel();
 				store.saveToLocalStorage();
-				const ctx = activeTemplateRef.current;
-				if (!ctx) return;
-				const { sections, globalStyle } = useEditorStore.getState();
-				updateTemplate(
-					{
-						templateProjectId: ctx.templateId,
-						data: {
-							pages: [{ ...ctx.pageMetadata, sections }],
-							globalStyle,
-						},
-					},
-					{
-						onSuccess: (data) => {
-							const updatedAt = data?.templateProject?.updatedAt;
-							if (updatedAt) setLastSaved(new Date(updatedAt).toISOString());
-						},
-					},
-				);
+				saveToServer();
 			}
 
 			if ((e.ctrlKey || e.metaKey) && e.key === "c") {
@@ -262,20 +291,24 @@ export default function EditorPage() {
 
 		window.addEventListener("keydown", handleKeyDown);
 		return () => window.removeEventListener("keydown", handleKeyDown);
-	}, [debouncedSave, updateTemplate, setLastSaved]);
+	}, [debouncedSave, saveToServer]);
 
-	if (templateId && isTemplateLoading) {
+	if ((templateId && isTemplateLoading) || (projectId && isProjectLoading)) {
 		return <SplashScreen mode="editor" />;
 	}
 
 	return (
 		<div className="flex h-screen flex-col overflow-hidden bg-background">
 			<EditorToolbar
-				templateName={templateData?.name}
+				templateName={templateData?.name ?? projectData?.name}
 				onRenameTemplate={(name) => {
-					const ctx = activeTemplateRef.current;
+					const ctx = activeDocumentRef.current;
 					if (!ctx) return;
-					updateTemplate({ templateProjectId: ctx.templateId, data: { name } });
+					if (ctx.kind === "template") {
+						updateTemplate({ templateProjectId: ctx.documentId, data: { name } });
+					} else {
+						updateProject({ projectId: ctx.documentId, data: { name } });
+					}
 				}}
 			/>
 

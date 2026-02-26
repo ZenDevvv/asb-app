@@ -3,7 +3,12 @@ import { motion, useReducedMotion } from "framer-motion";
 import { useNavigate, useParams } from "react-router";
 import { Icon } from "~/components/ui/icon";
 import { TemplateCard } from "~/components/user/TemplateCard";
-import { useGetTemplateProjectById, useGetTemplateProjects } from "~/hooks/use-template-project";
+import {
+	useGetTemplateProjectById,
+	useGetTemplateProjects,
+	useForkTemplateProject,
+} from "~/hooks/use-template-project";
+import { useAuth } from "~/hooks/use-auth";
 import {
 	TEMPLATE_PROJECT_FIELDS,
 	getTemplateCategoryLabel,
@@ -171,6 +176,8 @@ export default function UserTemplateDetailsRoute() {
 	const { templateId } = useParams<{ templateId: string }>();
 	const navigate = useNavigate();
 	const prefersReducedMotion = useReducedMotion();
+	const { user } = useAuth();
+	const { mutate: forkTemplate, isPending: isForking } = useForkTemplateProject();
 
 	const {
 		data: templateData,
@@ -346,15 +353,23 @@ export default function UserTemplateDetailsRoute() {
 							<div className="flex flex-wrap items-center gap-2 lg:justify-end">
 								<button
 									type="button"
-									disabled
-									className="inline-flex items-center gap-2 rounded-2xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition-all disabled:cursor-not-allowed disabled:opacity-65">
-									<Icon name="rocket_launch" size={16} />
-									Use Template
+									disabled={isForking || !user}
+									onClick={() => {
+										if (!templateId) return;
+										forkTemplate(templateId, {
+											onSuccess: (data) => {
+												navigate(`/project/${data.id}`);
+											},
+										});
+									}}
+									className="inline-flex items-center gap-2 rounded-2xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-65">
+									<Icon
+										name={isForking ? "progress_activity" : "rocket_launch"}
+										size={16}
+										className={isForking ? "animate-spin" : ""}
+									/>
+									{isForking ? "Creating Project..." : "Use Template"}
 								</button>
-								<span className="inline-flex items-center gap-1 rounded-full border border-border bg-card/70 px-3 py-1 text-xs font-medium text-muted-foreground">
-									<Icon name="hourglass_top" size={13} />
-									Coming soon
-								</span>
 							</div>
 						</div>
 
