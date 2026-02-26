@@ -373,7 +373,7 @@ EDITOR DOES NOT HAVE (by design):
 
 type BlockType =
   | "heading"        // H1-H4 text with size/weight/style options
-  | "text"           // Body/paragraph text
+  | "text"           // Body/paragraph text + optional iconLeft/iconRight
   | "button"         // CTA button — variant (solid/outline/ghost/link/text) + text + link + optional iconLeft/iconRight
   | "card"           // Surface card with title/body/button/image
   | "image"          // Single image — editableProps: src, alt, caption (short-text). editableStyles: width, opacity, height, fontSize (with custom), fontWeight, fontStyle, letterSpacing, textAlign (align-picker), captionVerticalAlign (top/center/bottom). Caption is full-width, absolutely positioned; horizontal alignment via textAlign, vertical via captionVerticalAlign. Supports block-level font family override applied to caption. supportsCustomTextSize = true (same as heading/text).
@@ -684,6 +684,20 @@ Rules for block components:
 // globalStyle.borderRadius applies to solid, outline, ghost â€” NOT link
 // iconLeft/iconRight use "icon-picker" control in editableProps; render as <span class="material-symbols-outlined"> inside the <a>
 // icon size tracks block.style.fontSize: sm=16, base=18, lg=20, xl=22px
+```
+
+**Text block props (implemented):**
+```typescript
+// text block.props shape
+{
+  text: string;
+  iconLeft?: string;   // Material Symbol name, set via icon-picker modal — empty string = no icon
+  iconRight?: string;  // Material Symbol name, set via icon-picker modal — empty string = no icon
+}
+// iconLeft/iconRight use "icon-picker" controls in editableProps
+// TextBlock.tsx renders icons before/after text using <span class="material-symbols-outlined">
+// icon size follows text size presets: sm=16, base=18, lg=20, xl=22, 2xl=24, 3xl=28, 4xl=32, 5xl=36
+// if fontSize="custom", icon size uses the same clamped px value as the text
 ```
 
 **Heading block props (implemented):**
@@ -1671,6 +1685,7 @@ This contract ensures AI output can be validated and loaded directly into the ed
 
 ---
 
+*Document Version: 3.74 - Added left/right icon support to `text` blocks. `blockRegistry.ts` text entry now includes `defaultProps.iconLeft` and `defaultProps.iconRight` (empty-string defaults) plus two `icon-picker` fields in `editableProps` (`Left Icon`, `Right Icon`). `TextBlock.tsx` now renders Material Symbols before/after the text and scales icon size with the block font size (including custom px size).*
 *Document Version: 3.73 - Replaced section `Dim` overlay with a colorable `Overlay` effect in `BackgroundControl`. Added `SectionStyle.backgroundEffectColor` and updated `SectionRenderer` so legacy `backgroundEffect: "dim"` still renders as the same black overlay by default.*
 *Document Version: 3.72 - Added block-level Font Family selector support to `date` block. `BlockSettings.tsx` and `StylePanel.tsx` updated `supportsFontOverride` to include `block.type === "date"`, so date blocks can override `globalStyle.fontFamily` using the same Typography Settings modal as heading/text/button/image blocks.*
 *Document Version: 3.71 - Added vertical section spacing control to `date` block. `blockRegistry.ts` date entry now includes `defaultStyle.dateSectionGap = 24` and a Section Spacing slider (`dateSectionGap`, 0–160, step 2). `DateBlock.tsx` now applies this value as the gap between the weekday, center row, and year sections (scale-aware), so users can tighten or expand vertical spacing.*

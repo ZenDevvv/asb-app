@@ -100,10 +100,16 @@ export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
     label: "Text",
     icon: "notes",
     category: "basic",
-    defaultProps: { text: "Body text goes here. Write something compelling for your visitors." },
+    defaultProps: {
+      text: "Body text goes here. Write something compelling for your visitors.",
+      iconLeft: "",
+      iconRight: "",
+    },
     defaultStyle: { fontSize: "base", fontWeight: "normal", fontStyle: "normal", letterSpacing: 0, textAlign: "left" },
     editableProps: [
       { key: "text", label: "Text", type: "long-text" },
+      { key: "iconLeft", label: "Left Icon", type: "icon-picker" },
+      { key: "iconRight", label: "Right Icon", type: "icon-picker" },
     ],
     editableStyles: [
       {

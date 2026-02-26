@@ -12,6 +12,17 @@ const FONT_SIZE_MAP: Record<string, string> = {
 	"5xl": "text-5xl",
 };
 
+const ICON_SIZE_MAP: Record<string, number> = {
+	sm: 16,
+	base: 18,
+	lg: 20,
+	xl: 22,
+	"2xl": 24,
+	"3xl": 28,
+	"4xl": 32,
+	"5xl": 36,
+};
+
 const TEXT_ALIGN_MAP: Record<string, string> = {
 	left: "text-left",
 	center: "text-center",
@@ -29,7 +40,11 @@ const CUSTOM_TEXT_SIZE_MIN = 12;
 const CUSTOM_TEXT_SIZE_MAX = 200;
 
 export function TextBlock({ block, globalStyle }: BlockComponentProps) {
-	const { text } = block.props as { text: string };
+	const { text, iconLeft, iconRight } = block.props as {
+		text: string;
+		iconLeft?: string;
+		iconRight?: string;
+	};
 	const s = block.style;
 	const isCustomFontSize = s.fontSize === "custom";
 	const customFontSizePx =
@@ -39,6 +54,10 @@ export function TextBlock({ block, globalStyle }: BlockComponentProps) {
 					Math.max(CUSTOM_TEXT_SIZE_MIN, Math.round(s.fontSizePx)),
 				)
 			: undefined;
+	const iconSize =
+		isCustomFontSize && typeof customFontSizePx === "number"
+			? customFontSizePx
+			: ICON_SIZE_MAP[s.fontSize || "base"] || ICON_SIZE_MAP.base;
 
 	const classes = [
 		!isCustomFontSize ? FONT_SIZE_MAP[s.fontSize || "base"] || "text-base" : "text-base",
@@ -64,7 +83,31 @@ export function TextBlock({ block, globalStyle }: BlockComponentProps) {
 				marginTop: s.marginTop ?? 0,
 				marginBottom: s.marginBottom ?? 0,
 			}}>
+			{iconLeft ? (
+				<span
+					aria-hidden="true"
+					className="material-symbols-outlined"
+					style={{
+						fontSize: iconSize,
+						verticalAlign: "text-bottom",
+						marginRight: "0.35em",
+					}}>
+					{iconLeft}
+				</span>
+			) : null}
 			{text || "Body text goes here..."}
+			{iconRight ? (
+				<span
+					aria-hidden="true"
+					className="material-symbols-outlined"
+					style={{
+						fontSize: iconSize,
+						verticalAlign: "text-bottom",
+						marginLeft: "0.35em",
+					}}>
+					{iconRight}
+				</span>
+			) : null}
 		</p>
 	);
 }
