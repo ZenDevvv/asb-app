@@ -643,7 +643,7 @@ BLOCK_REGISTRY[blockType] = {
   defaultProps: Record<string, any>,       // Default content
   defaultStyle: BlockStyle,                // Default visual style
   editableProps: EditableField[],          // What controls to show in sidebar
-  variantConfig?: BlockVariantConfig,      // Optional variant/appearance config for content controls
+  variantConfig?: BlockVariantConfig,      // Optional variant/appearance config for the dedicated Variant panel
   editableStyles: EditableStyleField[],    // What style controls to show (size, align, opacity — NOT textColor/accentColor). Optional EditableStyleField.group can route controls into separate style panels.
   inlineEditable: boolean,                 // Can this block be edited inline on canvas?
   colorOptions?: { hasText: boolean; hasAccent: boolean }; // Controls which pickers appear in the Colors panel
@@ -651,9 +651,12 @@ BLOCK_REGISTRY[blockType] = {
 // colorOptions drives the dedicated Colors panel in block-settings/ColorsPanel.tsx
 // (wired by BlockSettings.tsx).
 // variantConfig semantics:
-// - variant = style collection key (for future reusable style collections)
+// - variant = style collection key (for reusable appearance sets)
 // - appearance = concrete look option within selected variant
-// - if a block has only one variant option, hide the Variant select and show only Appearance
+// - Block Mode renders variant controls in a dedicated "Variant" accordion (separate from Content)
+// - variants are shown as selectable card previews
+// - appearances for the selected variant are also shown as card previews
+// - if the selected variant has only one appearance option, hide the Appearance selection UI
 // hasText=true → shows Text Color picker; hasAccent=true → shows Accent Color picker.
 // textColor and accentColor are NO LONGER in editableStyles — they are handled by the Colors panel.
 // image block uses style field grouping: group === "caption" renders in a separate collapsed Caption panel.
@@ -845,6 +848,44 @@ Rules for block components:
 ```
 
 **Timeline block props (implemented):**
+> v3.86 RSVP update (supersedes legacy RSVP notes above):
+```typescript
+// rsvp block.props shape (current)
+{
+  variant?: "default" | "postcard";
+  appearance?: "classic" | "postal-card";
+
+  nameLabel?: string;
+  namePlaceholder?: string;
+  emailLabel?: string;
+  emailPlaceholder?: string;
+  attendanceLabel?: string;
+  acceptText?: string;
+  declineText?: string;
+  guestsLabel?: string;       // classic variant
+  maxGuests?: string;         // "5" | "10" | "15" | "20"
+  submitText?: string;
+  submitUrl?: string;
+
+  postcardTitle?: string;
+  postcardQuote?: string;
+  postcardQuoteAuthor?: string;
+  returnToLabel?: string;
+  returnToName?: string;
+  returnToAddressLine1?: string;
+  returnToAddressLine2?: string;
+
+  bgColor?: string;
+  fgColor?: string;
+}
+// variantConfig:
+// - default -> appearance "classic"
+// - postcard -> appearance "postal-card"
+// - Block Mode Variant panel shows RSVP variants as preview cards
+// - each RSVP variant currently has 1 appearance, so Appearance cards are hidden
+// editableStyles: marginTop, marginBottom, tilt (-180..180)
+```
+
 ```typescript
 // timeline block.props shape
 {
@@ -951,6 +992,7 @@ BlockStyle.borderWidth      -> image block border width base in px (0-24 slider)
 BlockStyle.borderColor      -> image block border color (hex)
 BlockStyle.opacity          -> block opacity percentage (0-100)
 BlockStyle.tilt             -> image block tilt/rotation in degrees (-180 to +180, slider defaults to 0 center)
+BlockStyle.tilt             -> RSVP block also uses this same -180..180 tilt control
 BlockStyle.shadowSize       -> image block shadow size preset ("none" | "sm" | "md" | "lg")
 BlockStyle.shadowColor      -> image block shadow color (hex or CSS color)
 BlockStyle.overlayEffect         -> image block overlay pattern ("none" | "dots" | "grid" | "dim" | "vignette")
@@ -1011,7 +1053,7 @@ When a specific block is selected (click a block on the canvas):
 - `image` blocks split style controls into **Style** and **Caption** collapsibles. **Style** contains Width/Corner Style/Border Width/Border Color/Opacity/Height/Tilt/Shadow/Shadow Color and does not show Font Family. **Caption** is collapsed by default and contains Font Family + caption typography/alignment/padding controls.
 - `image` blocks have an **Overlay** panel (rendered by `ImageOverlayPanel.tsx`) — 5 effect buttons (none/dots/grid/dim/vignette) plus an **Intensity** slider (0–100). The overlay is rendered as an absolutely positioned `<div>` layered over the `<img>` inside a `relative overflow-hidden` wrapper. State stored in `BlockStyle.overlayEffect` and `BlockStyle.overlayIntensity`.
 - Block Mode UI is componentized under `app/editor/block-settings/` (header, per-panel components, and shared helpers/constants), while `BlockSettings.tsx` remains the store-wiring/orchestration layer.
-- Variant/Appearance pattern in Content: `variant` is the style collection key; `appearance` is the concrete style option within that collection. If a block defines only one variant, hide the **Variant** selector and show only **Appearance**.
+- Variant/Appearance pattern is handled in a dedicated **Variant** accordion (separate from **Content**): `variant` is the style collection key and `appearance` is the concrete look within that collection. Both are shown as preview cards; hide Appearance cards when the selected variant has only one appearance.
 
 ```
 â”Œâ”€ RIGHT SIDEBAR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
@@ -1750,6 +1792,8 @@ This contract ensures AI output can be validated and loaded directly into the ed
 
 ---
 
+*Document Version: 3.87 - Moved block `variant`/`appearance` controls into a dedicated **Variant** accordion in Block Mode (`VariantPanel.tsx`). Variants and appearances are now selected through preview cards instead of Content select fields. Appearance cards are hidden when the selected variant has only one appearance. `ContentPanel.tsx` now renders only block `editableProps` fields.*
+*Document Version: 3.86 - Added RSVP variant expansion and postcard-style renderer. `rsvp` now has `variant`/`appearance` config with two variants (`default`, `postcard`) and one appearance each (`classic`, `postal-card`). Updated Block Mode Content rule: hide Appearance selector when the active variant has only one appearance. RSVP Block Style now includes **Tilt** (`-180..180`) and `RsvpBlock.tsx` applies a clamped rotate transform similar to image tilt.*
 *Document Version: 3.85 - Simplified image border controls by removing Border Weight. Image blocks now use a single **Border Width** slider (0-24px) plus **Border Color**. `blockRegistry.ts` no longer exposes `lineWeight` for image styles, and `ImageBlock.tsx` now applies border thickness directly from `BlockStyle.borderWidth` (no multiplier). Prompt guide sections were updated to reflect the simplified UI.*
 *Document Version: 3.84 - Added image border + shadow controls in Block Mode Style. `BlockStyle` now includes `borderWidth`, `borderColor`, `shadowSize`, and `shadowColor`; image defaults include `borderWidth: 0` and `shadowSize: "none"`. `blockRegistry.ts` image styles include **Border Width**, **Border Color**, **Shadow**, and **Shadow Color**. `ImageBlock.tsx` applies border thickness and shadow using these fields. (An interim Border Weight option introduced in this version was removed in v3.85.)*
 *Document Version: 3.83 - Added image tilt control. `BlockStyle` now includes `tilt` (degrees) and `blockRegistry.ts` image styles now include a **Tilt** slider with `min: -180`, `max: 180`, `step: 1`, default `0` (center). `ImageBlock.tsx` now applies this value as a clamped `transform: rotate(...)` on the image container, so users can tilt from -180 to +180 directly in Block Mode Style controls.*
@@ -1815,15 +1859,6 @@ This contract ensures AI output can be validated and loaded directly into the ed
 *Last Updated: February 26, 2026*
 *Keep this document updated as architecture decisions change.*
 *For colors and theming, always reference the separate Style Guide file.*
-
-
-
-
-
-
-
-
-
 
 
 

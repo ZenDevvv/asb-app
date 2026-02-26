@@ -10,6 +10,7 @@ import { ImageOverlayPanel } from "./block-settings/ImageOverlayPanel";
 import { PositionPanel } from "./block-settings/PositionPanel";
 import { SpacingPanel } from "./block-settings/SpacingPanel";
 import { StylePanel } from "./block-settings/StylePanel";
+import { VariantPanel } from "./block-settings/VariantPanel";
 
 interface BlockSettingsProps {
 	sectionId: string;
@@ -99,9 +100,14 @@ export function BlockSettings({
 				/>
 
 				<div className="minimal-scrollbar flex-1 space-y-1 overflow-y-auto px-4 py-3">
+					<VariantPanel
+						variantConfig={blockEntry.variantConfig}
+						blockProps={block.props}
+						onPropChange={handlePropChange}
+					/>
+
 					<ContentPanel
 						editableProps={blockEntry.editableProps}
-						variantConfig={blockEntry.variantConfig}
 						blockProps={block.props}
 						onPropChange={handlePropChange}
 					/>
