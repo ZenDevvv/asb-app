@@ -200,6 +200,7 @@ export interface EditableStyleField {
   key: keyof BlockStyle;
   label: string;
   type: ControlType;
+  group?: string;
   options?: { label: string; value: string }[];
   min?: number;
   max?: number;

@@ -22,6 +22,9 @@ interface StylePanelProps {
 	defaultStyle: BlockStyle;
 	globalFontFamily: string;
 	globalBorderRadius: GlobalStyle["borderRadius"];
+	title?: string;
+	defaultOpen?: boolean;
+	showFontOverride?: boolean;
 	onStyleChange: (style: Partial<BlockStyle>) => void;
 	onOpenFontModal: (target: "fontFamily" | "secondaryFontFamily") => void;
 }
@@ -78,6 +81,9 @@ export function StylePanel({
 	defaultStyle,
 	globalFontFamily,
 	globalBorderRadius,
+	title = "Style",
+	defaultOpen = true,
+	showFontOverride = true,
 	onStyleChange,
 	onOpenFontModal,
 }: StylePanelProps) {
@@ -114,9 +120,9 @@ export function StylePanel({
 	const customDividerWidthValue = getCustomDividerWidthValue(block);
 
 	return (
-		<CollapsiblePanel title="Style" defaultOpen>
+		<CollapsiblePanel title={title} defaultOpen={defaultOpen}>
 			<div className="space-y-3">
-				{supportsFontOverride && !isTimelineBlock && (
+				{showFontOverride && supportsFontOverride && !isTimelineBlock && (
 					<div className="space-y-1.5">
 						<label className="text-xs font-medium text-muted-foreground">
 							Font Family
@@ -148,7 +154,7 @@ export function StylePanel({
 					</div>
 				)}
 
-				{isTimelineBlock && (
+				{showFontOverride && isTimelineBlock && (
 					<>
 						<div className="space-y-1.5">
 							<label className="text-xs font-medium text-muted-foreground">

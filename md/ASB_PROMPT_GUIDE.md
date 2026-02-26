@@ -229,7 +229,7 @@ The right sidebar changes based on what is selected:
 
 **When a BLOCK is selected** (click a specific block on the canvas):
 1. **Block Content** - auto-generated controls based on block type (text input, image upload, etc.)
-2. **Block Style** - constrained style options for that block (size, alignment, spacing, letter spacing, and per-block corners where supported). `heading`, `text`, `button`, `image`, `date`, `countdown`, and `timeline` blocks expose a **Font Family** control that opens the same Typography Settings modal used in Global Settings; selecting a font applies a block-level override (applied to the caption text for `image` blocks). `timeline` blocks provide two selectors: one for title text and one for subtitle+description text. `button` blocks also expose **Corner Style** (Sharp/S/M/L/Full) which defaults to the global corner style until explicitly overridden on that block.
+2. **Block Style** - constrained style options for that block (size, alignment, spacing, letter spacing, and per-block corners where supported). `heading`, `text`, `button`, `image`, `date`, `countdown`, and `timeline` blocks expose a **Font Family** control that opens the same Typography Settings modal used in Global Settings; selecting a font applies a block-level override (applied to the caption text for `image` blocks). `timeline` blocks provide two selectors: one for title text and one for subtitle+description text. `button` blocks also expose **Corner Style** (Sharp/S/M/L/Full) which defaults to the global corner style until explicitly overridden on that block. For `image` blocks, style controls are split into two collapsibles: **Style** (Width, Corner Style, Opacity, Height) and **Caption** (collapsed by default; Font Family, Text Size, Weight, Style, Letter Spacing, Align, Vertical, Text Padding).
 3. **Position** - collapsible panel with:
    - **Column** — slot/column picker (shown only when the group layout has multiple slots and the block is in flow mode). Allows moving the block to a different column after it was added. Calls `moveBlockToSlot` / `moveBlockToSlotAtIndex` store actions.
    - **Flow / Absolute** toggle — choose positioning mode. Absolute blocks are positioned relative to the selected group and can be moved on the canvas by dragging.
@@ -379,7 +379,7 @@ type BlockType =
   | "text"           // Body/paragraph text + optional iconLeft/iconRight
   | "button"         // CTA button — variant + appearance + text + link + optional iconLeft/iconRight
   | "card"           // Surface card with title/body/button/image
-  | "image"          // Single image — editableProps: src, alt, caption (short-text). editableStyles: width, opacity, height, fontSize (with custom), fontWeight, fontStyle, letterSpacing, textAlign (align-picker), captionVerticalAlign (top/center/bottom). Caption is full-width, absolutely positioned; horizontal alignment via textAlign, vertical via captionVerticalAlign. Supports block-level font family override applied to caption. supportsCustomTextSize = true (same as heading/text).
+  | "image"          // Single image — editableProps: src, alt, caption (short-text). editableStyles are grouped in Block Mode: Style panel -> width, borderRadius, opacity, height; Caption panel (collapsed by default) -> fontSize (with custom), fontWeight, fontStyle, letterSpacing, textAlign (align-picker), captionVerticalAlign (top/center/bottom), captionPadding. Caption is full-width, absolutely positioned; horizontal alignment via textAlign, vertical via captionVerticalAlign. Supports block-level font family override applied to caption (shown in Caption panel). supportsCustomTextSize = true (same as heading/text).
   | "icon"           // Material Symbol icon — plain icon only, no label
   | "spacer"         // Vertical space (height slider)
   | "badge"          // Small label/tag — variant + appearance + text
@@ -644,7 +644,7 @@ BLOCK_REGISTRY[blockType] = {
   defaultStyle: BlockStyle,                // Default visual style
   editableProps: EditableField[],          // What controls to show in sidebar
   variantConfig?: BlockVariantConfig,      // Optional variant/appearance config for content controls
-  editableStyles: EditableStyleField[],    // What style controls to show (size, align, opacity — NOT textColor/accentColor)
+  editableStyles: EditableStyleField[],    // What style controls to show (size, align, opacity — NOT textColor/accentColor). Optional EditableStyleField.group can route controls into separate style panels.
   inlineEditable: boolean,                 // Can this block be edited inline on canvas?
   colorOptions?: { hasText: boolean; hasAccent: boolean }; // Controls which pickers appear in the Colors panel
 }
@@ -656,6 +656,7 @@ BLOCK_REGISTRY[blockType] = {
 // - if a block has only one variant option, hide the Variant select and show only Appearance
 // hasText=true → shows Text Color picker; hasAccent=true → shows Accent Color picker.
 // textColor and accentColor are NO LONGER in editableStyles — they are handled by the Colors panel.
+// image block uses style field grouping: group === "caption" renders in a separate collapsed Caption panel.
 ```
 
 ### Block Component Contract
@@ -1002,6 +1003,7 @@ When a specific block is selected (click a block on the canvas):
 - Header includes block actions: **Duplicate** (`content_copy`) and **Delete** (`delete`).
 - `heading` and `text` block Size controls now include an icon-only **Custom Size** option (`tune`). When selected, Block Mode shows a px slider + numeric input (12-200px) and stores the value in `BlockStyle.fontSizePx`.
 - `divider` Width control also includes an icon-only **Custom Width** option (`tune`). When selected, Block Mode shows a px slider + numeric input (40-1600px) and stores the value in `BlockStyle.widthPx` with `BlockStyle.width="custom"`.
+- `image` blocks split style controls into **Style** and **Caption** collapsibles. **Style** contains Width/Corner Style/Opacity/Height and does not show Font Family. **Caption** is collapsed by default and contains Font Family + caption typography/alignment/padding controls.
 - `image` blocks have an **Overlay** panel (rendered by `ImageOverlayPanel.tsx`) — 5 effect buttons (none/dots/grid/dim/vignette) plus an **Intensity** slider (0–100). The overlay is rendered as an absolutely positioned `<div>` layered over the `<img>` inside a `relative overflow-hidden` wrapper. State stored in `BlockStyle.overlayEffect` and `BlockStyle.overlayIntensity`.
 - Block Mode UI is componentized under `app/editor/block-settings/` (header, per-panel components, and shared helpers/constants), while `BlockSettings.tsx` remains the store-wiring/orchestration layer.
 - Variant/Appearance pattern in Content: `variant` is the style collection key; `appearance` is the concrete style option within that collection. If a block defines only one variant, hide the **Variant** selector and show only **Appearance**.
@@ -1743,6 +1745,7 @@ This contract ensures AI output can be validated and loaded directly into the ed
 
 ---
 
+*Document Version: 3.82 - Split `image` block style settings into two collapsibles in Block Mode. Added optional `EditableStyleField.group` metadata and tagged image caption style fields as `group: "caption"` in `blockRegistry.ts`. `BlockSettings.tsx` now renders image **Style** controls (Width, Corner Style, Opacity, Height) separately from a collapsed **Caption** panel (Font Family, Text Size, Weight, Style, Letter Spacing, Align, Vertical, Text Padding). `StylePanel.tsx` now supports configurable `title`, `defaultOpen`, and `showFontOverride` to support this split while preserving non-image behavior.*
 *Document Version: 3.81 - Renamed block-level button/badge style selector from `variant` to `appearance` and introduced a variant/appearance model in Block Mode Content controls. `variant` now represents a style collection key and `appearance` is the actual selectable look. Added the UI rule: if only one variant exists for a block, hide the Variant selector and show only Appearance. `ButtonBlock.tsx` and `BadgeBlock.tsx` keep backward compatibility by treating legacy appearance values stored in `variant` as appearance.*
 *Document Version: 3.80 - Updated `timeline` typography controls to support two independent font selectors in Block Mode Style settings. Existing font override (`BlockStyle.fontFamily`) now applies to timeline **title** text only, and new `BlockStyle.secondaryFontFamily` applies to timeline **subtitle + description** text. `StylePanel.tsx` now shows two font selectors for timeline blocks and `BlockSettings.tsx` routes both through the Typography Settings modal with target-aware descriptions. `TimelineBlock.tsx` now renders title and subtitle/description with separate font-family resolution paths.*
 *Document Version: 3.79 - Added new `timeline` block. `BlockType` now includes `"timeline"`. New block component `TimelineBlock.tsx` renders an alternating timeline layout (title/subtitle + icon + description), collapses responsively on mobile, and supports countdown-style flow scale control via `editableStyles.scale` (25–300, step 5). `blockRegistry.ts` now includes timeline repeater content (`timeline[]` with `title`, `subtitle`, `icon`, `description`) plus timeline color settings (`titleColor`, `subtitleColor`, `descriptionColor`). `sectionRegistry.ts` allowed block lists now include `timeline` across section profiles. `BlockSettings.tsx` and `StylePanel.tsx` now include `timeline` in block-level Font Family override support. `editorStore.ts` seeds new timeline blocks with theme-aware default title/description colors and global primary subtitle color. `RepeaterControl.tsx` now supports `icon-picker` subfields so timeline items can select icons from the existing icon library.*

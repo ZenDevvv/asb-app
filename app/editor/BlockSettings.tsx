@@ -52,6 +52,13 @@ export function BlockSettings({
 		block.type === "countdown" ||
 		block.type === "timeline";
 	const isTimelineBlock = block.type === "timeline";
+	const isImageBlock = block.type === "image";
+	const imageStyles = isImageBlock
+		? blockEntry.editableStyles.filter((styleField) => styleField.group !== "caption")
+		: blockEntry.editableStyles;
+	const captionStyles = isImageBlock
+		? blockEntry.editableStyles.filter((styleField) => styleField.group === "caption")
+		: [];
 	const [fontModalOpen, setFontModalOpen] = useState(false);
 	const [fontModalTarget, setFontModalTarget] = useState<FontModalTarget>("fontFamily");
 	const effectiveFontValue =
@@ -76,6 +83,11 @@ export function BlockSettings({
 		moveBlockToSlot(sectionId, groupId, block.id, slot);
 	};
 
+	const handleOpenFontModal = (target: FontModalTarget) => {
+		setFontModalTarget(target);
+		setFontModalOpen(true);
+	};
+
 	return (
 		<>
 			<div className="flex h-full w-[300px] shrink-0 flex-col border-l border-sidebar-border bg-sidebar">
@@ -94,18 +106,43 @@ export function BlockSettings({
 						onPropChange={handlePropChange}
 					/>
 
-					<StylePanel
-						block={block}
-						editableStyles={blockEntry.editableStyles}
-						defaultStyle={blockEntry.defaultStyle}
-						globalFontFamily={globalStyle.fontFamily}
-						globalBorderRadius={globalStyle.borderRadius}
-						onStyleChange={handleStyleChange}
-						onOpenFontModal={(target) => {
-							setFontModalTarget(target);
-							setFontModalOpen(true);
-						}}
-					/>
+					{isImageBlock ? (
+						<>
+							<StylePanel
+								block={block}
+								editableStyles={imageStyles}
+								defaultStyle={blockEntry.defaultStyle}
+								globalFontFamily={globalStyle.fontFamily}
+								globalBorderRadius={globalStyle.borderRadius}
+								showFontOverride={false}
+								onStyleChange={handleStyleChange}
+								onOpenFontModal={handleOpenFontModal}
+							/>
+							{captionStyles.length > 0 && (
+								<StylePanel
+									block={block}
+									editableStyles={captionStyles}
+									defaultStyle={blockEntry.defaultStyle}
+									globalFontFamily={globalStyle.fontFamily}
+									globalBorderRadius={globalStyle.borderRadius}
+									title="Caption"
+									defaultOpen={false}
+									onStyleChange={handleStyleChange}
+									onOpenFontModal={handleOpenFontModal}
+								/>
+							)}
+						</>
+					) : (
+						<StylePanel
+							block={block}
+							editableStyles={imageStyles}
+							defaultStyle={blockEntry.defaultStyle}
+							globalFontFamily={globalStyle.fontFamily}
+							globalBorderRadius={globalStyle.borderRadius}
+							onStyleChange={handleStyleChange}
+							onOpenFontModal={handleOpenFontModal}
+						/>
+					)}
 
 					<ColorsPanel
 						block={block}
@@ -116,7 +153,7 @@ export function BlockSettings({
 
 					<SpacingPanel blockStyle={block.style} onStyleChange={handleStyleChange} />
 
-					{block.type === "image" && (
+					{isImageBlock && (
 						<ImageOverlayPanel
 							blockStyle={block.style}
 							onStyleChange={handleStyleChange}
