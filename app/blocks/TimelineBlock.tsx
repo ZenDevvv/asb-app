@@ -81,7 +81,7 @@ export function TimelineBlock({ block, globalStyle }: BlockComponentProps) {
 					marginTop: s.marginTop ?? 0,
 					marginBottom: s.marginBottom ?? 0,
 				}}>
-				<p style={{ fontSize: scaleLength("clamp(0.85rem, 1.8vw, 1rem)") }}>
+				<p style={{ fontSize: scaleLength("clamp(0.78rem, 1.4vw, 0.9rem)") }}>
 					Add timeline items to start building this section.
 				</p>
 			</div>
@@ -121,7 +121,7 @@ export function TimelineBlock({ block, globalStyle }: BlockComponentProps) {
 									className="font-semibold leading-tight"
 									style={{
 										color: titleColor,
-										fontSize: scaleLength("clamp(1.3rem, 3vw, 2.2rem)"),
+										fontSize: scaleLength("clamp(1.02rem, 2vw, 1.5rem)"),
 									}}>
 									{title}
 								</p>
@@ -130,7 +130,7 @@ export function TimelineBlock({ block, globalStyle }: BlockComponentProps) {
 										className="font-medium leading-tight tracking-[0.05em]"
 										style={{
 											color: subtitleColor,
-											fontSize: scaleLength("clamp(0.85rem, 1.5vw, 1.2rem)"),
+											fontSize: scaleLength("clamp(0.72rem, 0.95vw, 0.9rem)"),
 										}}>
 										{subtitle}
 									</p>
@@ -143,7 +143,7 @@ export function TimelineBlock({ block, globalStyle }: BlockComponentProps) {
 								className="leading-relaxed"
 								style={{
 									color: descriptionColor,
-									fontSize: scaleLength("clamp(0.86rem, 1.35vw, 1.07rem)"),
+									fontSize: scaleLength("clamp(0.74rem, 0.92vw, 0.88rem)"),
 								}}>
 								{description}
 							</p>

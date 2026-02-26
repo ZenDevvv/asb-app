@@ -373,7 +373,7 @@ export const SECTION_REGISTRY: Record<SectionType, SectionRegistryEntry> = {
       paddingY: 80,
       backgroundType: "solid",
     },
-    allowedBlockTypes: ["heading", "text", "card", "spacer", "divider", "badge", "date", "countdown", "timeline"],
+    allowedBlockTypes: ["heading", "text", "card", "image", "spacer", "divider", "badge", "date", "countdown", "timeline"],
   },
 
   footer: {

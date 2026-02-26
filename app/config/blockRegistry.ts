@@ -331,6 +331,18 @@ export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
           { label: "Full", value: "full" },
         ],
       },
+      {
+        key: "borderRadius",
+        label: "Corner Style",
+        type: "size-picker",
+        options: [
+          { label: "Sharp", value: "none" },
+          { label: "S", value: "sm" },
+          { label: "M", value: "md" },
+          { label: "L", value: "lg" },
+          { label: "Full", value: "full" },
+        ],
+      },
       { key: "opacity", label: "Opacity", type: "slider", min: 0, max: 100, step: 5 },
       { key: "height", label: "Height", type: "slider", min: 0, max: 800, step: 8 },
       {

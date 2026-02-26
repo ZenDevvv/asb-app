@@ -138,7 +138,7 @@ export function StylePanel({
 
 				{editableStyles.map((styleField) => {
 					const globalFallbackValue =
-						block.type === "button" && styleField.key === "borderRadius"
+						(block.type === "button" || block.type === "image") && styleField.key === "borderRadius"
 							? globalBorderRadius
 							: undefined;
 					const value =

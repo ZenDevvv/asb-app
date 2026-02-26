@@ -111,7 +111,8 @@ export function ImageBlock({ block, globalStyle }: BlockComponentProps) {
   const s = block.style;
 
   const widthClass = WIDTH_MAP[s.width || "full"] || "w-full";
-  const radius = RADIUS_MAP[globalStyle.borderRadius || "md"] || "rounded-lg";
+  const radiusKey = s.borderRadius || globalStyle.borderRadius || "md";
+  const radius = RADIUS_MAP[radiusKey] || "rounded-lg";
   const isLightTheme = globalStyle.themeMode === "light";
   const heightStyle = s.height ? { height: s.height } : {};
   const overlayStyle = getOverlayStyle(s.overlayEffect, s.overlayIntensity ?? 40);

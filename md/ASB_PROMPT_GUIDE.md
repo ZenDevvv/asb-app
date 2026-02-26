@@ -1230,7 +1230,7 @@ POST /api/projects/:id/publish
     - "md"   â†’ rounded-lg
     - "lg"   â†’ rounded-xl
     - "full" â†’ rounded-full
-    - Button blocks can override this with `block.style.borderRadius`; when unset, they use the global map above
+    - Button and image blocks can override this with `block.style.borderRadius`; when unset, they use the global map above
 11. Block fontSize map (block.style.fontSize):
     - "sm"   â†’ text-sm
     - "base" â†’ text-base
