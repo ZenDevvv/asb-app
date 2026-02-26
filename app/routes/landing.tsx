@@ -361,12 +361,12 @@ export default function LandingPage() {
 							className="hidden rounded-full px-4 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground md:inline-flex">
 							Log In
 						</Link>
-						<button
-							type="button"
+						<Link
+							to="/login"
 							className="inline-flex items-center gap-1.5 rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/30 transition-all hover:brightness-110 active:scale-95">
 							<Icon name="bolt" size={15} filled />
 							Get Started
-						</button>
+						</Link>
 					</div>
 				</div>
 			</motion.header>
@@ -483,12 +483,12 @@ export default function LandingPage() {
 									<span className="ml-0.5 inline-block h-[1.1em] w-[2px] translate-y-[1px] animate-pulse rounded-full bg-primary" />
 								</span>
 							</div>
-							<button
-								type="button"
+							<Link
+								to="/login"
 								className="inline-flex shrink-0 items-center justify-center gap-2 rounded-2xl bg-primary px-7 py-3 text-base font-semibold text-primary-foreground shadow-lg shadow-primary/30 transition-all hover:brightness-110 active:scale-95">
 								<Icon name="bolt" size={18} filled />
 								Generate
-							</button>
+							</Link>
 						</div>
 					</div>
 				</motion.div>
