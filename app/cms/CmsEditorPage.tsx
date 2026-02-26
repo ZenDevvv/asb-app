@@ -7,7 +7,7 @@ import {
 	ZoomIn,
 	ZoomOut,
 } from "lucide-react";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { CMSCanvas } from "~/components/admin/display/CMSCanvas";
 import { CMSSidebar } from "~/components/admin/display/CMSSidebar";
@@ -37,7 +37,7 @@ function getPresetLabel(width: number, height: number): string {
 
 export default function CmsEditorPage() {
 	const navigate = useNavigate();
-	const { user, isLoading } = useAuth();
+	const { isLoading } = useAuth();
 
 	const isHydrated = useDisplayStore((state) => state.isHydrated);
 	const loadFromLocalStorage = useDisplayStore((state) => state.loadFromLocalStorage);
@@ -55,12 +55,6 @@ export default function CmsEditorPage() {
 		if (isHydrated) return;
 		loadFromLocalStorage();
 	}, [isHydrated, loadFromLocalStorage]);
-
-	useEffect(() => {
-		if (!isLoading && !user) {
-			navigate("/login");
-		}
-	}, [isLoading, navigate, user]);
 
 	const selectedPresetLabel = useMemo(
 		() => getPresetLabel(resolution.width, resolution.height),
@@ -135,10 +129,6 @@ export default function CmsEditorPage() {
 
 	if (isLoading) {
 		return <SplashScreen mode="editor" />;
-	}
-
-	if (!user) {
-		return null;
 	}
 
 	return (
