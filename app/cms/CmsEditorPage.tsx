@@ -165,10 +165,7 @@ export default function CmsEditorPage() {
 		const blob = new Blob([json], { type: "application/json" });
 		const objectUrl = window.URL.createObjectURL(blob);
 		const anchor = document.createElement("a");
-		const timestamp = new Date()
-			.toISOString()
-			.replace(/[:]/g, "-")
-			.replace(/[.]/g, "-");
+		const timestamp = new Date().toISOString().replace(/[:]/g, "-").replace(/[.]/g, "-");
 
 		anchor.href = objectUrl;
 		anchor.download = `cms-canvas-state-${timestamp}.json`;

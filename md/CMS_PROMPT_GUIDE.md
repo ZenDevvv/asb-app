@@ -101,6 +101,7 @@ Avoid touching:
 5. Orientation switch (landscape/portrait) supported in header
 6. Selected block supports horizontal/vertical content alignment inside its own container in settings
 7. Alignment controls in settings use icon-only buttons (with accessible labels), not text labels
+8. Selected block supports rotation via slider (`-180` to `180` degrees)
 
 ---
 
@@ -146,7 +147,8 @@ Rules:
 4. Images and videos must visually resize with the container when dragged.
 5. Dragging is not edge-clamped: `x`/`y` can move outside 0-100 so blocks may be placed off-canvas.
 6. Alignment controls support quick horizontal (`left|center|right`) and vertical (`top|middle|bottom`) content placement inside each block container.
-7. Keep this behavior CMS-only; do not port to page-builder editor modes.
+7. Rotation control updates block container tilt and applies to all CMS block types.
+8. Keep this behavior CMS-only; do not port to page-builder editor modes.
 
 ---
 
@@ -312,3 +314,4 @@ As of this guide version:
 9. CMS blocks can be dragged outside canvas bounds (no edge clamp on drag).
 10. CMS block settings include horizontal and vertical alignment controls for content placement inside block containers.
 11. `/cms?debug=true` shows `Export JSON` button that downloads the current CMS snapshot.
+12. CMS block settings include a rotation slider for all blocks and the canvas renders rotated containers.

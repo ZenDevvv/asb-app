@@ -496,6 +496,7 @@ export function CMSBlockSettings({ block, className }: CMSBlockSettingsProps) {
 	const verticalContentAlignment = getContainerVerticalAlignment(
 		block.props.containerVerticalAlign,
 	);
+	const blockRotation = getNumber(block.style.tilt, 0);
 
 	const updateSelectedProps = (props: Record<string, unknown>) => {
 		updateBlock(block.id, { props });
@@ -745,6 +746,24 @@ export function CMSBlockSettings({ block, className }: CMSBlockSettingsProps) {
 							onValueChange={(value) =>
 								updateBlock(block.id, {
 									h: value[0] ?? block.h,
+								})
+							}
+						/>
+					</div>
+					<div className="space-y-1.5">
+						<span className="text-xs text-muted-foreground">
+							Rotation ({Math.round(blockRotation)}°)
+						</span>
+						<Slider
+							min={-180}
+							max={180}
+							step={1}
+							value={[blockRotation]}
+							onValueChange={(value) =>
+								updateBlock(block.id, {
+									style: {
+										tilt: value[0] ?? blockRotation,
+									},
 								})
 							}
 						/>

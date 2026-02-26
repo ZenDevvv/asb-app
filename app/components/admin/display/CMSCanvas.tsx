@@ -44,6 +44,8 @@ function clamp(value: number, min: number, max: number): number {
 const RESIZE_HANDLES: ResizeHandle[] = ["n", "s", "e", "w", "ne", "nw", "se", "sw"];
 const MIN_BLOCK_WIDTH = 8;
 const MIN_BLOCK_HEIGHT = 6;
+const MIN_BLOCK_ROTATION = -180;
+const MAX_BLOCK_ROTATION = 180;
 
 function getResizeHandleClass(handle: ResizeHandle): string {
 	switch (handle) {
@@ -66,6 +68,12 @@ function getResizeHandleClass(handle: ResizeHandle): string {
 		default:
 			return "";
 	}
+}
+
+function getBlockRotationDegrees(block: CMSBlock): number {
+	const tilt = block.style.tilt;
+	if (typeof tilt !== "number" || !Number.isFinite(tilt)) return 0;
+	return clamp(tilt, MIN_BLOCK_ROTATION, MAX_BLOCK_ROTATION);
 }
 
 export function CMSCanvas({ className }: CMSCanvasProps) {
@@ -352,6 +360,8 @@ export function CMSCanvas({ className }: CMSCanvasProps) {
 											top: `${block.y}%`,
 											width: `${block.w}%`,
 											height: `${block.h}%`,
+											transform: `rotate(${getBlockRotationDegrees(block)}deg)`,
+											transformOrigin: "center center",
 											zIndex:
 												typeof block.style.zIndex === "number"
 													? block.style.zIndex
