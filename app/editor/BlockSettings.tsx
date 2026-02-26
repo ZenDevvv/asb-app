@@ -89,6 +89,7 @@ export function BlockSettings({
 				<div className="minimal-scrollbar flex-1 space-y-1 overflow-y-auto px-4 py-3">
 					<ContentPanel
 						editableProps={blockEntry.editableProps}
+						variantConfig={blockEntry.variantConfig}
 						blockProps={block.props}
 						onPropChange={handlePropChange}
 					/>

@@ -177,7 +177,8 @@ export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
     defaultProps: {
       text: "Get Started",
       url: "#",
-      variant: "solid",
+      variant: "default",
+      appearance: "solid",
       iconLeft: "",
       iconRight: "",
     },
@@ -185,18 +186,6 @@ export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
     editableProps: [
       { key: "text", label: "Button Text", type: "short-text" },
       { key: "url", label: "Button Link", type: "url" },
-      {
-        key: "variant",
-        label: "Style",
-        type: "select",
-        options: [
-          { label: "Solid", value: "solid" },
-          { label: "Outline", value: "outline" },
-          { label: "Ghost", value: "ghost" },
-          { label: "Link", value: "link" },
-          { label: "Text", value: "text" },
-        ],
-      },
       { key: "iconLeft", label: "Left Icon", type: "icon-picker" },
       { key: "iconRight", label: "Right Icon", type: "icon-picker" },
     ],
@@ -236,6 +225,23 @@ export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
     ],
     inlineEditable: false,
     colorOptions: { hasText: false, hasAccent: true },
+    variantConfig: {
+      variantLabel: "Variant",
+      appearanceLabel: "Appearance",
+      options: [
+        {
+          label: "Default",
+          value: "default",
+          appearances: [
+            { label: "Solid", value: "solid" },
+            { label: "Outline", value: "outline" },
+            { label: "Ghost", value: "ghost" },
+            { label: "Link", value: "link" },
+            { label: "Text", value: "text" },
+          ],
+        },
+      ],
+    },
   },
 
   card: {
@@ -482,21 +488,10 @@ export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
     label: "Badge",
     icon: "label",
     category: "basic",
-    defaultProps: { text: "NEW", variant: "subtle" },
+    defaultProps: { text: "NEW", variant: "default", appearance: "subtle" },
     defaultStyle: { fontSize: "base", textAlign: "left" },
     editableProps: [
       { key: "text", label: "Text", type: "short-text" },
-      {
-        key: "variant",
-        label: "Style",
-        type: "select",
-        options: [
-          { label: "Subtle", value: "subtle" },
-          { label: "Filled", value: "filled" },
-          { label: "Outline", value: "outline" },
-          { label: "Pill Dot", value: "pill-dot" },
-        ],
-      },
     ],
     editableStyles: [
       {
@@ -522,6 +517,22 @@ export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
     ],
     inlineEditable: false,
     colorOptions: { hasText: false, hasAccent: true },
+    variantConfig: {
+      variantLabel: "Variant",
+      appearanceLabel: "Appearance",
+      options: [
+        {
+          label: "Default",
+          value: "default",
+          appearances: [
+            { label: "Subtle", value: "subtle" },
+            { label: "Filled", value: "filled" },
+            { label: "Outline", value: "outline" },
+            { label: "Pill Dot", value: "pill-dot" },
+          ],
+        },
+      ],
+    },
   },
 
   divider: {

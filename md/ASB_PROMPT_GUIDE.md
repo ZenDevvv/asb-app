@@ -377,12 +377,12 @@ EDITOR DOES NOT HAVE (by design):
 type BlockType =
   | "heading"        // H1-H4 text with size/weight/style options
   | "text"           // Body/paragraph text + optional iconLeft/iconRight
-  | "button"         // CTA button — variant (solid/outline/ghost/link/text) + text + link + optional iconLeft/iconRight
+  | "button"         // CTA button — variant + appearance + text + link + optional iconLeft/iconRight
   | "card"           // Surface card with title/body/button/image
   | "image"          // Single image — editableProps: src, alt, caption (short-text). editableStyles: width, opacity, height, fontSize (with custom), fontWeight, fontStyle, letterSpacing, textAlign (align-picker), captionVerticalAlign (top/center/bottom). Caption is full-width, absolutely positioned; horizontal alignment via textAlign, vertical via captionVerticalAlign. Supports block-level font family override applied to caption. supportsCustomTextSize = true (same as heading/text).
   | "icon"           // Material Symbol icon — plain icon only, no label
   | "spacer"         // Vertical space (height slider)
-  | "badge"          // Small label/tag — variant (subtle/filled/outline/pill-dot) + text
+  | "badge"          // Small label/tag — variant + appearance + text
   | "divider"        // Horizontal line — editableStyles: width, lineWeight, opacity, top/bottom spacing
   | "list"           // Bulleted or numbered list of text items
   | "quote"          // Blockquote with attribution
@@ -643,12 +643,17 @@ BLOCK_REGISTRY[blockType] = {
   defaultProps: Record<string, any>,       // Default content
   defaultStyle: BlockStyle,                // Default visual style
   editableProps: EditableField[],          // What controls to show in sidebar
+  variantConfig?: BlockVariantConfig,      // Optional variant/appearance config for content controls
   editableStyles: EditableStyleField[],    // What style controls to show (size, align, opacity — NOT textColor/accentColor)
   inlineEditable: boolean,                 // Can this block be edited inline on canvas?
   colorOptions?: { hasText: boolean; hasAccent: boolean }; // Controls which pickers appear in the Colors panel
 }
 // colorOptions drives the dedicated Colors panel in block-settings/ColorsPanel.tsx
 // (wired by BlockSettings.tsx).
+// variantConfig semantics:
+// - variant = style collection key (for future reusable style collections)
+// - appearance = concrete look option within selected variant
+// - if a block has only one variant option, hide the Variant select and show only Appearance
 // hasText=true → shows Text Color picker; hasAccent=true → shows Accent Color picker.
 // textColor and accentColor are NO LONGER in editableStyles — they are handled by the Colors panel.
 ```
@@ -684,14 +689,16 @@ Rules for block components:
 {
   text: string;
   url: string;
-  variant: "solid" | "outline" | "ghost" | "link" | "text";  // default: "solid"
+  variant?: "default";                                         // default: "default"
+  appearance?: "solid" | "outline" | "ghost" | "link" | "text"; // default: "solid"
   iconLeft?: string;   // Material Symbol name, set via icon-picker modal â€” empty string = no icon
   iconRight?: string;  // Material Symbol name, set via icon-picker modal â€” empty string = no icon
 }
-// variant drives className/style branching in ButtonBlock.tsx
-// all variants except "text" inherit accentColor from sectionStyle (or globalStyle.primaryColor)
-// block.style.borderRadius (if set) overrides globalStyle.borderRadius for solid/outline/ghost
-// link/text variants do not render rounded corners
+// variant identifies a style collection; appearance selects a concrete look within that collection
+// appearance drives className/style branching in ButtonBlock.tsx
+// all appearances except "text" inherit accentColor from sectionStyle (or globalStyle.primaryColor)
+// block.style.borderRadius (if set) overrides globalStyle.borderRadius for solid/outline/ghost appearances
+// link/text appearances do not render rounded corners
 // iconLeft/iconRight use "icon-picker" control in editableProps; render as <span class="material-symbols-outlined"> inside the <a>
 // icon size tracks block.style.fontSize: sm=16, base=18, lg=20, xl=22px
 ```
@@ -732,7 +739,8 @@ Rules for block components:
 // badge block.props shape
 {
   text: string;
-  variant?: "subtle" | "filled" | "outline" | "pill-dot";  // default: "subtle"
+  variant?: "default";                                       // default: "default"
+  appearance?: "subtle" | "filled" | "outline" | "pill-dot"; // default: "subtle"
 }
 // "subtle"   → tinted accent background (accentColor + "18" alpha) + accent text — original style
 // "filled"   → solid accent background + white text (#ffffff)
@@ -741,7 +749,7 @@ Rules for block components:
 //              dot is a size-1.5 rounded-full span before the text, colored with accentColor
 //              always renders with rounded-full regardless of globalStyle.borderRadius
 // subtle/filled/outline respect globalStyle.borderRadius (never "rounded-none" — falls back to "rounded-md")
-// variant uses "select" control type in editableProps
+// appearance uses "select" control type in editableProps
 ```
 
 **Icon block props (implemented):**
@@ -996,6 +1004,7 @@ When a specific block is selected (click a block on the canvas):
 - `divider` Width control also includes an icon-only **Custom Width** option (`tune`). When selected, Block Mode shows a px slider + numeric input (40-1600px) and stores the value in `BlockStyle.widthPx` with `BlockStyle.width="custom"`.
 - `image` blocks have an **Overlay** panel (rendered by `ImageOverlayPanel.tsx`) — 5 effect buttons (none/dots/grid/dim/vignette) plus an **Intensity** slider (0–100). The overlay is rendered as an absolutely positioned `<div>` layered over the `<img>` inside a `relative overflow-hidden` wrapper. State stored in `BlockStyle.overlayEffect` and `BlockStyle.overlayIntensity`.
 - Block Mode UI is componentized under `app/editor/block-settings/` (header, per-panel components, and shared helpers/constants), while `BlockSettings.tsx` remains the store-wiring/orchestration layer.
+- Variant/Appearance pattern in Content: `variant` is the style collection key; `appearance` is the concrete style option within that collection. If a block defines only one variant, hide the **Variant** selector and show only **Appearance**.
 
 ```
 â”Œâ”€ RIGHT SIDEBAR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
@@ -1734,6 +1743,7 @@ This contract ensures AI output can be validated and loaded directly into the ed
 
 ---
 
+*Document Version: 3.81 - Renamed block-level button/badge style selector from `variant` to `appearance` and introduced a variant/appearance model in Block Mode Content controls. `variant` now represents a style collection key and `appearance` is the actual selectable look. Added the UI rule: if only one variant exists for a block, hide the Variant selector and show only Appearance. `ButtonBlock.tsx` and `BadgeBlock.tsx` keep backward compatibility by treating legacy appearance values stored in `variant` as appearance.*
 *Document Version: 3.80 - Updated `timeline` typography controls to support two independent font selectors in Block Mode Style settings. Existing font override (`BlockStyle.fontFamily`) now applies to timeline **title** text only, and new `BlockStyle.secondaryFontFamily` applies to timeline **subtitle + description** text. `StylePanel.tsx` now shows two font selectors for timeline blocks and `BlockSettings.tsx` routes both through the Typography Settings modal with target-aware descriptions. `TimelineBlock.tsx` now renders title and subtitle/description with separate font-family resolution paths.*
 *Document Version: 3.79 - Added new `timeline` block. `BlockType` now includes `"timeline"`. New block component `TimelineBlock.tsx` renders an alternating timeline layout (title/subtitle + icon + description), collapses responsively on mobile, and supports countdown-style flow scale control via `editableStyles.scale` (25–300, step 5). `blockRegistry.ts` now includes timeline repeater content (`timeline[]` with `title`, `subtitle`, `icon`, `description`) plus timeline color settings (`titleColor`, `subtitleColor`, `descriptionColor`). `sectionRegistry.ts` allowed block lists now include `timeline` across section profiles. `BlockSettings.tsx` and `StylePanel.tsx` now include `timeline` in block-level Font Family override support. `editorStore.ts` seeds new timeline blocks with theme-aware default title/description colors and global primary subtitle color. `RepeaterControl.tsx` now supports `icon-picker` subfields so timeline items can select icons from the existing icon library.*
 *Document Version: 3.78 - Fixed absolute block editor/preview parity by adding anchor-aware coordinates. `BlockStyle` now includes `positionAnchor` (`"top-left" | "center"`). New absolute blocks default to `positionAnchor: "center"` with `positionX` / `positionY` stored as offsets from group center. `GroupRenderer.tsx` now renders/drags absolute blocks using anchor-aware math with legacy `top-left` fallback, so existing saved blocks still render correctly while new center-anchored blocks keep placement aligned across editor and preview widths. `PositionPanel.tsx` now switches Flow -> Absolute using center anchoring by default.*

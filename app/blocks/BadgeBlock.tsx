@@ -1,6 +1,9 @@
 import type { BlockComponentProps } from "~/types/editor";
 import { resolveAccentColor } from "~/lib/blockColors";
 
+const BADGE_APPEARANCES = ["subtle", "filled", "outline", "pill-dot"] as const;
+type BadgeAppearance = (typeof BADGE_APPEARANCES)[number];
+
 const FONT_SIZE_MAP: Record<string, string> = {
   sm: "text-[10px] px-2 py-0.5",
   base: "text-xs px-2.5 py-0.5",
@@ -21,11 +24,34 @@ const RADIUS_MAP: Record<string, string> = {
   full: "rounded-full",
 };
 
+function resolveBadgeAppearance(props: Record<string, unknown>): BadgeAppearance {
+  const rawAppearance = props.appearance;
+  if (
+    typeof rawAppearance === "string" &&
+    BADGE_APPEARANCES.includes(rawAppearance as BadgeAppearance)
+  ) {
+    return rawAppearance as BadgeAppearance;
+  }
+
+  // Backward compatibility: historical payloads stored style choice in `variant`.
+  const rawLegacyVariant = props.variant;
+  if (
+    typeof rawLegacyVariant === "string" &&
+    BADGE_APPEARANCES.includes(rawLegacyVariant as BadgeAppearance)
+  ) {
+    return rawLegacyVariant as BadgeAppearance;
+  }
+
+  return "subtle";
+}
+
 export function BadgeBlock({ block, globalStyle }: BlockComponentProps) {
-  const { text, variant = "subtle" } = block.props as {
+  const { text } = block.props as {
     text: string;
-    variant?: "subtle" | "filled" | "outline" | "pill-dot";
+    appearance?: BadgeAppearance;
+    variant?: string;
   };
+  const appearance = resolveBadgeAppearance(block.props);
   const s = block.style;
 
   const accentColor = resolveAccentColor(s, globalStyle);
@@ -35,16 +61,16 @@ export function BadgeBlock({ block, globalStyle }: BlockComponentProps) {
   const globalRadius = RADIUS_MAP[globalStyle.borderRadius || "md"] ?? "rounded-full";
   // pill-dot is always fully rounded; subtle/filled/outline respect global radius but never go none
   const radius =
-    variant === "pill-dot"
+    appearance === "pill-dot"
       ? "rounded-full"
       : globalRadius === "rounded-none"
         ? "rounded-md"
         : globalRadius;
 
   let badgeStyle: React.CSSProperties;
-  if (variant === "filled") {
+  if (appearance === "filled") {
     badgeStyle = { backgroundColor: accentColor, color: "#ffffff" };
-  } else if (variant === "outline") {
+  } else if (appearance === "outline") {
     badgeStyle = { border: `1px solid ${accentColor}`, color: accentColor };
   } else {
     // "subtle" and "pill-dot" share the same tinted background treatment
@@ -60,7 +86,7 @@ export function BadgeBlock({ block, globalStyle }: BlockComponentProps) {
         className={`inline-flex items-center font-semibold uppercase tracking-wider ${sizeClass} ${radius}`}
         style={badgeStyle}
       >
-        {variant === "pill-dot" && (
+        {appearance === "pill-dot" && (
           <span
             className="mr-1.5 inline-block size-1.5 shrink-0 rounded-full"
             style={{ backgroundColor: accentColor }}

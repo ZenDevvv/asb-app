@@ -206,6 +206,25 @@ export interface EditableStyleField {
   step?: number;
 }
 
+export interface BlockAppearanceOption {
+  label: string;
+  value: string;
+}
+
+export interface BlockVariantOption {
+  label: string;
+  value: string;
+  appearances: BlockAppearanceOption[];
+}
+
+export interface BlockVariantConfig {
+  variantKey?: string;
+  variantLabel?: string;
+  appearanceKey?: string;
+  appearanceLabel?: string;
+  options: BlockVariantOption[];
+}
+
 export interface BlockRegistryEntry {
   component: ComponentType<BlockComponentProps>;
   label: string;
@@ -217,6 +236,7 @@ export interface BlockRegistryEntry {
   editableStyles: EditableStyleField[];
   inlineEditable: boolean;
   colorOptions?: { hasText: boolean; hasAccent: boolean };
+  variantConfig?: BlockVariantConfig;
 }
 
 export interface SectionGroupSeed {

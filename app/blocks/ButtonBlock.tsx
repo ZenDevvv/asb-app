@@ -1,7 +1,8 @@
 import type { BlockComponentProps } from "~/types/editor";
 import { resolveAccentColor } from "~/lib/blockColors";
 
-type ButtonVariant = "solid" | "outline" | "ghost" | "link" | "text";
+const BUTTON_APPEARANCES = ["solid", "outline", "ghost", "link", "text"] as const;
+type ButtonAppearance = (typeof BUTTON_APPEARANCES)[number];
 
 const RADIUS_MAP: Record<string, string> = {
   none: "rounded-none",
@@ -31,18 +32,18 @@ const TEXT_ALIGN_MAP: Record<string, string> = {
   right: "justify-end",
 };
 
-interface ButtonVariantConfig {
+interface ButtonAppearanceConfig {
   className: string;
   style: React.CSSProperties;
 }
 
-function getVariantConfig(
-  variant: ButtonVariant,
+function getAppearanceConfig(
+  appearance: ButtonAppearance,
   accentColor: string,
   radius: string,
   sizeClass: string,
-): ButtonVariantConfig {
-  switch (variant) {
+): ButtonAppearanceConfig {
+  switch (appearance) {
     case "outline":
       return {
         className: `cursor-pointer inline-flex items-center gap-2 font-semibold transition-opacity hover:opacity-80 border-2 ${radius} ${sizeClass}`,
@@ -72,18 +73,41 @@ function getVariantConfig(
   }
 }
 
+function resolveButtonAppearance(props: Record<string, unknown>): ButtonAppearance {
+  const rawAppearance = props.appearance;
+  if (
+    typeof rawAppearance === "string" &&
+    BUTTON_APPEARANCES.includes(rawAppearance as ButtonAppearance)
+  ) {
+    return rawAppearance as ButtonAppearance;
+  }
+
+  // Backward compatibility: historical payloads stored style choice in `variant`.
+  const rawLegacyVariant = props.variant;
+  if (
+    typeof rawLegacyVariant === "string" &&
+    BUTTON_APPEARANCES.includes(rawLegacyVariant as ButtonAppearance)
+  ) {
+    return rawLegacyVariant as ButtonAppearance;
+  }
+
+  return "solid";
+}
+
 export function ButtonBlock({
   block,
   globalStyle,
   isEditing,
 }: BlockComponentProps) {
-  const { text, url, variant = "solid", iconLeft, iconRight } = block.props as {
+  const { text, url, iconLeft, iconRight } = block.props as {
     text: string;
     url: string;
-    variant?: ButtonVariant;
+    appearance?: ButtonAppearance;
+    variant?: string;
     iconLeft?: string;
     iconRight?: string;
   };
+  const appearance = resolveButtonAppearance(block.props);
 
   const s = block.style;
   const accentColor = resolveAccentColor(s, globalStyle);
@@ -93,8 +117,8 @@ export function ButtonBlock({
   const alignClass = TEXT_ALIGN_MAP[s.textAlign || "left"] || "justify-start";
   const iconSize = ICON_SIZE_MAP[s.fontSize || "base"] || 18;
 
-  const { className: variantClass, style: variantStyle } = getVariantConfig(
-    variant,
+  const { className: appearanceClass, style: appearanceStyle } = getAppearanceConfig(
+    appearance,
     accentColor,
     radius,
     sizeClass,
@@ -115,8 +139,8 @@ export function ButtonBlock({
       <a
         href={isEditing ? undefined : url || "#"}
         onClick={handleClick}
-        className={variantClass}
-        style={{ ...variantStyle, fontFamily: s.fontFamily || globalStyle.fontFamily }}
+        className={appearanceClass}
+        style={{ ...appearanceStyle, fontFamily: s.fontFamily || globalStyle.fontFamily }}
       >
         {iconLeft ? (
           <span className="material-symbols-outlined" style={{ fontSize: iconSize }}>
