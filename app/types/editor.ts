@@ -13,6 +13,7 @@ export type BlockType =
   | "list"
   | "quote"
   | "date"
+  | "countdown"
   | "rsvp";
 
 export type BlockCategory = "basic" | "media" | "layout" | "content";

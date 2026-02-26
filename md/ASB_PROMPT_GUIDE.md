@@ -229,7 +229,7 @@ The right sidebar changes based on what is selected:
 
 **When a BLOCK is selected** (click a specific block on the canvas):
 1. **Block Content** - auto-generated controls based on block type (text input, image upload, etc.)
-2. **Block Style** - constrained style options for that block (size, alignment, spacing, letter spacing, and per-block corners where supported). `heading`, `text`, `button`, `image`, and `date` blocks expose a **Font Family** control that opens the same Typography Settings modal used in Global Settings; selecting a font applies a block-level override (applied to the caption text for `image` blocks). `button` blocks also expose **Corner Style** (Sharp/S/M/L/Full) which defaults to the global corner style until explicitly overridden on that block.
+2. **Block Style** - constrained style options for that block (size, alignment, spacing, letter spacing, and per-block corners where supported). `heading`, `text`, `button`, `image`, `date`, and `countdown` blocks expose a **Font Family** control that opens the same Typography Settings modal used in Global Settings; selecting a font applies a block-level override (applied to the caption text for `image` blocks). `button` blocks also expose **Corner Style** (Sharp/S/M/L/Full) which defaults to the global corner style until explicitly overridden on that block.
 3. **Position** - collapsible panel with:
    - **Column** — slot/column picker (shown only when the group layout has multiple slots and the block is in flow mode). Allows moving the block to a different column after it was added. Calls `moveBlockToSlot` / `moveBlockToSlotAtIndex` store actions.
    - **Flow / Absolute** toggle — choose positioning mode. Absolute blocks are positioned relative to the selected group and can be moved on the canvas by dragging.
@@ -384,6 +384,7 @@ type BlockType =
   | "list"           // Bulleted or numbered list of text items
   | "quote"          // Blockquote with attribution
   | "date"           // Event date/time display — editableProps: eventDate (date input) + eventTime (time input); editableStyles: width slider (320-1600px), section spacing slider (0-160px), and scale slider (25-300)
+  | "countdown"      // Live countdown display — editableProps: eventDate (date input), eventTime (time input), showDays/showHours/showMinutes/showSeconds (toggle); editableStyles: scale slider (25-300). New countdown blocks prefill eventDate/eventTime from an existing date block when available.
   | "rsvp"           // Event RSVP form — full self-contained form with name, email, attendance toggle, guest count, song request, and submit button
   // Post-MVP:
   | "video"          // Embedded video (YouTube/Vimeo URL)
@@ -404,7 +405,7 @@ interface Block {
 
 interface BlockStyle {
   // Text
-  fontFamily?: string;            // Optional block-level font override (heading, text, button, image, date blocks)
+  fontFamily?: string;            // Optional block-level font override (heading, text, button, image, date, countdown blocks)
   fontSize?: "sm" | "base" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "5xl" | "custom";
   fontSizePx?: number;            // Custom heading/text size in px when fontSize="custom"
   fontWeight?: "normal" | "medium" | "semibold" | "bold";
@@ -438,7 +439,7 @@ interface BlockStyle {
   positionX?: number;             // px from group container left
   positionY?: number;             // px from group container top
   zIndex?: number;                // Layer order for absolute blocks
-  scale?: number;                 // Block scale percentage (date block style slider; also used by absolute positioning)
+  scale?: number;                 // Block scale percentage (date/countdown style slider; also used by absolute positioning)
 }
 
 // â”€â”€â”€ Layout Template â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -887,7 +888,7 @@ BlockStyle.colorMode        -> "global" (default): block derives text/accent fro
                                "custom": block uses its own textColor/accentColor
 BlockStyle.textColor        â†’ custom text color (only active when colorMode="custom")
 BlockStyle.accentColor      â†’ custom accent color (only active when colorMode="custom")
-BlockStyle.fontFamily       â†’ optional block-level font override (heading, text, button, image, date blocks — applies to caption on image)
+BlockStyle.fontFamily       â†’ optional block-level font override (heading, text, button, image, date, countdown blocks — applies to caption on image)
 BlockStyle.fontSize         â†’ block-level size choice (heading/text support presets + "custom")
 BlockStyle.fontSizePx       â†’ heading/text custom size in px (applies when fontSize="custom")
 BlockStyle.fontWeight       â†’ block-level weight choice (where supported)
@@ -1689,6 +1690,7 @@ This contract ensures AI output can be validated and loaded directly into the ed
 
 ---
 
+*Document Version: 3.76 - Added new `countdown` block. `BlockType` now includes `"countdown"`. New block component `CountdownBlock.tsx` renders a live countdown using `eventDate` + `eventTime`, supports per-unit toggles (`showDays`, `showHours`, `showMinutes`, `showSeconds`), and supports block-scale control via `editableStyles.scale` (25–300, step 5). `blockRegistry.ts` now includes the `countdown` entry and `sectionRegistry.ts` allowed block lists now include `countdown` across section profiles. `BlockSettings.tsx` and `StylePanel.tsx` now include `countdown` in block-level Font Family override support. New countdown blocks prefill date/time from an existing `date` block in the current group/section when available (`editorStore.ts` addBlock flow).*
 *Document Version: 3.75 - Added block-level Corner Style control for `button` blocks. `blockRegistry.ts` now exposes `borderRadius` options (Sharp/S/M/L/Full) in Button Block Style. `ButtonBlock.tsx` now resolves corner radius as `block.style.borderRadius ?? globalStyle.borderRadius`, so button-level corner choices override global settings while unset buttons continue inheriting global corners.*
 *Document Version: 3.74 - Added left/right icon support to `text` blocks. `blockRegistry.ts` text entry now includes `defaultProps.iconLeft` and `defaultProps.iconRight` (empty-string defaults) plus two `icon-picker` fields in `editableProps` (`Left Icon`, `Right Icon`). `TextBlock.tsx` now renders Material Symbols before/after the text and scales icon size with the block font size (including custom px size).*
 *Document Version: 3.73 - Replaced section `Dim` overlay with a colorable `Overlay` effect in `BackgroundControl`. Added `SectionStyle.backgroundEffectColor` and updated `SectionRenderer` so legacy `backgroundEffect: "dim"` still renders as the same black overlay by default.*

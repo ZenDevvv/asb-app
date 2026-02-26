@@ -667,13 +667,34 @@ export const useEditorStore = create<EditorState & EditorActions>()(
         const maxOrder = candidateBlocks.length > 0
           ? Math.max(...candidateBlocks.map((block) => block.order))
           : -1;
+        const newBlockProps: Record<string, unknown> = { ...blockEntry.defaultProps };
+
+        if (blockType === "countdown") {
+          const dateSourceFromCurrentGroup = group.blocks.find((block) => block.type === "date");
+          const dateSourceFromSection = section.groups
+            .flatMap((entry) => entry.blocks)
+            .find((block) => block.type === "date");
+          const dateSourceBlock = dateSourceFromCurrentGroup || dateSourceFromSection;
+
+          if (dateSourceBlock) {
+            const sourceEventDate = dateSourceBlock.props.eventDate;
+            const sourceEventTime = dateSourceBlock.props.eventTime;
+
+            if (typeof sourceEventDate === "string") {
+              newBlockProps.eventDate = sourceEventDate;
+            }
+            if (typeof sourceEventTime === "string") {
+              newBlockProps.eventTime = sourceEventTime;
+            }
+          }
+        }
 
         const newBlock: Block = {
           id: nanoid(10),
           type: blockType,
           slot: targetSlot,
           order: maxOrder + 1,
-          props: { ...blockEntry.defaultProps },
+          props: newBlockProps,
           style: {
             ...blockEntry.defaultStyle,
             ...(isAbsolute

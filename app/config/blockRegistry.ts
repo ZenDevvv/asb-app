@@ -11,6 +11,7 @@ import { DividerBlock } from "~/blocks/DividerBlock";
 import { ListBlock } from "~/blocks/ListBlock";
 import { QuoteBlock } from "~/blocks/QuoteBlock";
 import { DateBlock } from "~/blocks/DateBlock";
+import { CountdownBlock } from "~/blocks/CountdownBlock";
 import { RsvpBlock } from "~/blocks/RsvpBlock";
 
 export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
@@ -654,6 +655,37 @@ export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
     editableStyles: [
       { key: "widthPx", label: "Width", type: "slider", min: 320, max: 1600, step: 10 },
       { key: "dateSectionGap", label: "Section Spacing", type: "slider", min: 0, max: 160, step: 2 },
+      { key: "scale", label: "Scale", type: "slider", min: 25, max: 300, step: 5 },
+    ],
+    inlineEditable: false,
+    colorOptions: { hasText: true, hasAccent: false },
+  },
+
+  countdown: {
+    component: CountdownBlock,
+    label: "Countdown",
+    icon: "timer",
+    category: "content",
+    defaultProps: {
+      eventDate: "2024-08-08",
+      eventTime: "15:00",
+      showDays: true,
+      showHours: true,
+      showMinutes: true,
+      showSeconds: false,
+    },
+    defaultStyle: {
+      scale: 100,
+    },
+    editableProps: [
+      { key: "eventDate", label: "Date", type: "date" },
+      { key: "eventTime", label: "Time", type: "time" },
+      { key: "showDays", label: "Show Days", type: "toggle" },
+      { key: "showHours", label: "Show Hours", type: "toggle" },
+      { key: "showMinutes", label: "Show Minutes", type: "toggle" },
+      { key: "showSeconds", label: "Show Seconds", type: "toggle" },
+    ],
+    editableStyles: [
       { key: "scale", label: "Scale", type: "slider", min: 25, max: 300, step: 5 },
     ],
     inlineEditable: false,
