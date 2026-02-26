@@ -98,6 +98,8 @@ Avoid touching:
 3. Resize block containers by dragging edges and corners (8 handles)
 4. Block positions and dimensions (`x`, `y`, `w`, `h`) are stored as canvas percentages
 5. Orientation switch (landscape/portrait) supported in header
+6. Selected block supports horizontal/vertical content alignment inside its own container in settings
+7. Alignment controls in settings use icon-only buttons (with accessible labels), not text labels
 
 ---
 
@@ -142,7 +144,8 @@ Rules:
 3. Width and height are persisted as percentages for responsive scaling across resolutions.
 4. Images and videos must visually resize with the container when dragged.
 5. Dragging is not edge-clamped: `x`/`y` can move outside 0-100 so blocks may be placed off-canvas.
-6. Keep this behavior CMS-only; do not port to page-builder editor modes.
+6. Alignment controls support quick horizontal (`left|center|right`) and vertical (`top|middle|bottom`) content placement inside each block container.
+7. Keep this behavior CMS-only; do not port to page-builder editor modes.
 
 ---
 
@@ -293,3 +296,4 @@ As of this guide version:
 7. CMS blocks support drag-resize containers using edge/corner handles.
 8. CMS text blocks support font-family selection via Typography Settings modal.
 9. CMS blocks can be dragged outside canvas bounds (no edge clamp on drag).
+10. CMS block settings include horizontal and vertical alignment controls for content placement inside block containers.

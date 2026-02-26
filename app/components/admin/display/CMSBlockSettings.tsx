@@ -17,6 +17,28 @@ interface CMSBlockSettingsProps {
 }
 
 type FontModalTarget = "fontFamily" | "secondaryFontFamily";
+type CMSContainerHorizontalAlignment = "left" | "center" | "right";
+type CMSContainerVerticalAlignment = "top" | "middle" | "bottom";
+
+const HORIZONTAL_ALIGNMENT_OPTIONS: Array<{
+	value: CMSContainerHorizontalAlignment;
+	label: string;
+	icon: string;
+}> = [
+	{ value: "left", label: "Left", icon: "format_align_left" },
+	{ value: "center", label: "Center", icon: "format_align_center" },
+	{ value: "right", label: "Right", icon: "format_align_right" },
+];
+
+const VERTICAL_ALIGNMENT_OPTIONS: Array<{
+	value: CMSContainerVerticalAlignment;
+	label: string;
+	icon: string;
+}> = [
+	{ value: "top", label: "Top", icon: "vertical_align_top" },
+	{ value: "middle", label: "Middle", icon: "vertical_align_center" },
+	{ value: "bottom", label: "Bottom", icon: "vertical_align_bottom" },
+];
 
 function getString(value: unknown, fallback = ""): string {
 	return typeof value === "string" ? value : fallback;
@@ -105,6 +127,14 @@ function supportsFontOverride(type: CMSBlock["type"]): boolean {
 		type === "countdown" ||
 		type === "timeline"
 	);
+}
+
+function getContainerHorizontalAlignment(value: unknown): CMSContainerHorizontalAlignment {
+	return value === "left" || value === "center" || value === "right" ? value : "left";
+}
+
+function getContainerVerticalAlignment(value: unknown): CMSContainerVerticalAlignment {
+	return value === "top" || value === "middle" || value === "bottom" ? value : "top";
 }
 
 function renderContentFields(
@@ -460,6 +490,12 @@ export function CMSBlockSettings({ block, className }: CMSBlockSettingsProps) {
 			? "Choose a font for subtitle and description text in this timeline block."
 			: "Choose a font for title text in this timeline block."
 		: "Choose a font for this block.";
+	const horizontalContentAlignment = getContainerHorizontalAlignment(
+		block.props.containerHorizontalAlign,
+	);
+	const verticalContentAlignment = getContainerVerticalAlignment(
+		block.props.containerVerticalAlign,
+	);
 
 	const updateSelectedProps = (props: Record<string, unknown>) => {
 		updateBlock(block.id, { props });
@@ -614,6 +650,72 @@ export function CMSBlockSettings({ block, className }: CMSBlockSettingsProps) {
 								})
 							}
 						/>
+					</div>
+					<div className="space-y-1.5">
+						<span className="text-xs text-muted-foreground">
+							Container Horizontal Align
+						</span>
+						<div className="grid grid-cols-3 gap-2">
+							{HORIZONTAL_ALIGNMENT_OPTIONS.map((option) => {
+								const isActive = horizontalContentAlignment === option.value;
+								return (
+									<Button
+										key={option.value}
+										type="button"
+										size="sm"
+										variant={isActive ? "default" : "outline"}
+										aria-label={`Align content ${option.label.toLowerCase()}`}
+										title={option.label}
+										onClick={() =>
+											updateBlock(block.id, {
+												props: {
+													containerHorizontalAlign: option.value,
+												},
+											})
+										}
+										className="h-8 px-0">
+										<span
+											className="material-symbols-outlined"
+											style={{ fontSize: 18 }}>
+											{option.icon}
+										</span>
+									</Button>
+								);
+							})}
+						</div>
+					</div>
+					<div className="space-y-1.5">
+						<span className="text-xs text-muted-foreground">
+							Container Vertical Align
+						</span>
+						<div className="grid grid-cols-3 gap-2">
+							{VERTICAL_ALIGNMENT_OPTIONS.map((option) => {
+								const isActive = verticalContentAlignment === option.value;
+								return (
+									<Button
+										key={option.value}
+										type="button"
+										size="sm"
+										variant={isActive ? "default" : "outline"}
+										aria-label={`Align content ${option.label.toLowerCase()}`}
+										title={option.label}
+										onClick={() =>
+											updateBlock(block.id, {
+												props: {
+													containerVerticalAlign: option.value,
+												},
+											})
+										}
+										className="h-8 px-0">
+										<span
+											className="material-symbols-outlined"
+											style={{ fontSize: 18 }}>
+											{option.icon}
+										</span>
+									</Button>
+								);
+							})}
+						</div>
 					</div>
 					<div className="space-y-1.5">
 						<span className="text-xs text-muted-foreground">
