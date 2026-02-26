@@ -162,7 +162,7 @@ export const CMS_TEMPLATE_LIBRARY: CMSTemplate[] = [
 	},
 	{
 		id: "multiple-video-in-canvas",
-		label: "multiple video in canvas",
+		label: "Multiple video in canvas",
 		description: "Imported from CMS debug snapshot with multiple video blocks in landscape.",
 		resolution: { label: "1080p Landscape", width: 1920, height: 1080 },
 		globalStyle: {
