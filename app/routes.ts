@@ -24,7 +24,7 @@ export default [
 			route("users", "routes/admin/users.tsx"),
 		]),
 	),
-	route("/project/:projectId", "routes/project/editor.tsx"),
+	route("/project/:slug", "routes/project/editor.tsx"),
 	route("/editor/:templateId", "routes/editor/template.tsx"),
 	route("/editor", "routes/editor/index.tsx"),
 	route("/editor/preview", "routes/editor/preview.tsx"),

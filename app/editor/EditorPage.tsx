@@ -3,7 +3,7 @@ import { useLocation, useNavigate, useParams } from "react-router";
 import { SplashScreen } from "~/components/admin/splash-screen";
 import { DEFAULT_GLOBAL_STYLE, EDITOR_STORAGE_KEY, useEditorStore } from "~/stores/editorStore";
 import { useGetTemplateProjectById, useUpdateTemplateProject } from "~/hooks/use-template-project";
-import { useGetProjectById, useUpdateProject } from "~/hooks/use-project";
+import { useGetProjectBySlug, useUpdateProject } from "~/hooks/use-project";
 import { EditorToolbar } from "./EditorToolbar";
 import { SectionsListPanel } from "./SectionsListPanel";
 import { EditorCanvas } from "./EditorCanvas";
@@ -47,7 +47,7 @@ export default function EditorPage() {
 	const setIsSaving = useEditorStore((s) => s.setIsSaving);
 	const locationState = location.state as EditorLocationState;
 	const editorSeed = locationState?.editorSeed;
-	const { templateId, projectId } = useParams<{ templateId?: string; projectId?: string }>();
+	const { templateId, slug } = useParams<{ templateId?: string; slug?: string }>();
 
 	// Persists the loaded document context after nav state is cleared.
 	const activeDocumentRef = useRef<ActiveDocumentContext | null>(null);
@@ -58,9 +58,9 @@ export default function EditorPage() {
 	);
 	const { mutate: updateTemplate, isPending: isTemplateSaving } = useUpdateTemplateProject();
 
-	const { data: projectData, isLoading: isProjectLoading } = useGetProjectById(
-		projectId ?? "",
-		{ fields: "id,name,pages,globalStyle" },
+	const { data: projectData, isLoading: isProjectLoading } = useGetProjectBySlug(
+		slug ?? "",
+		{ fields: "id,name,slug,pages,globalStyle" },
 	);
 	const { mutate: updateProject, isPending: isProjectSaving } = useUpdateProject();
 
@@ -70,7 +70,7 @@ export default function EditorPage() {
 
 	// Seed/localStorage init — skipped when waiting on a template or project fetch.
 	useEffect(() => {
-		if (templateId || projectId) return;
+		if (templateId || slug) return;
 
 		const store = useEditorStore.getState();
 
@@ -99,7 +99,7 @@ export default function EditorPage() {
 				store.addSection(type);
 			});
 		}
-	}, [editorSeed, templateId, projectId, navigate]);
+	}, [editorSeed, templateId, slug, navigate]);
 
 	// Load fetched template data into the editor store and cache context for saves.
 	useEffect(() => {
@@ -125,7 +125,7 @@ export default function EditorPage() {
 
 	// Load fetched project data into the editor store and cache context for saves.
 	useEffect(() => {
-		if (!projectId || !projectData) return;
+		if (!slug || !projectData) return;
 		const store = useEditorStore.getState();
 		const firstPage = projectData.pages?.[0];
 		activeDocumentRef.current = {
@@ -143,7 +143,7 @@ export default function EditorPage() {
 			projectData.globalStyle ?? { ...DEFAULT_GLOBAL_STYLE },
 		);
 		store.saveToLocalStorage();
-	}, [projectId, projectData]);
+	}, [slug, projectData]);
 
 	// Persist current editor state to the correct server endpoint.
 	const saveToServer = useCallback(() => {
@@ -293,7 +293,7 @@ export default function EditorPage() {
 		return () => window.removeEventListener("keydown", handleKeyDown);
 	}, [debouncedSave, saveToServer]);
 
-	if ((templateId && isTemplateLoading) || (projectId && isProjectLoading)) {
+	if ((templateId && isTemplateLoading) || (slug && isProjectLoading)) {
 		return <SplashScreen mode="editor" />;
 	}
 

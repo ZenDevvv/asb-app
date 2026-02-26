@@ -32,6 +32,21 @@ export const useGetProjectById = (projectId: string, apiParams?: ApiQueryParams)
 	});
 };
 
+export const useGetProjectBySlug = (slug: string, apiParams?: ApiQueryParams) => {
+	return useQuery({
+		queryKey: ["project-by-slug", slug, apiParams],
+		queryFn: async () => {
+			const result = await projectService
+				.select(apiParams?.fields || "")
+				.filter(`slug:${slug}`)
+				.paginate(1, 1)
+				.getAllProjects();
+			return result?.projects?.[0] ?? null;
+		},
+		enabled: !!slug,
+	});
+};
+
 export const useCreateProject = () => {
 	return useMutation({
 		mutationFn: (data: CreateProject | FormData) => {

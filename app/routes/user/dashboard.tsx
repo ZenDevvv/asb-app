@@ -7,6 +7,7 @@ import { DashboardProjectsSection } from "~/components/user/dashboard/DashboardP
 import { DashboardTemplatesSection } from "~/components/user/dashboard/DashboardTemplatesSection";
 import type { ToneId } from "~/components/user/dashboard/dashboard-constants";
 import { useAuth } from "~/hooks/use-auth";
+import { useGetProjects } from "~/hooks/use-project";
 import { useGetTemplateProjects } from "~/hooks/use-template-project";
 import {
 	TEMPLATE_PROJECT_FIELDS,
@@ -36,6 +37,21 @@ export default function UserDashboard() {
 	const projectsInView = useInView(projectsRef, { once: true, margin: "-80px" });
 
 	const {
+		data: projectData,
+		isLoading: isProjectsLoading,
+		isError: isProjectsError,
+		error: projectLoadError,
+	} = useGetProjects({
+		page: 1,
+		limit: 6,
+		fields: "name,status,slug,createdAt,updatedAt,publishedAt",
+		sort: "updatedAt",
+		order: "desc",
+		pagination: false,
+		count: true,
+	});
+
+	const {
 		data: templateData,
 		isLoading: isTemplatesLoading,
 		isError: isTemplatesError,
@@ -50,6 +66,13 @@ export default function UserDashboard() {
 		pagination: false,
 		count: true,
 	});
+
+	const userProjects = useMemo(() => {
+		const projects = projectData?.projects ?? [];
+		return projects.filter((project) => !project.isDeleted);
+	}, [projectData?.projects]);
+
+	const projectCount = projectData?.count ?? userProjects.length;
 
 	const templateProjects = useMemo(() => {
 		const templates = templateData?.templateProjects ?? [];
@@ -119,7 +142,13 @@ export default function UserDashboard() {
 				textareaRef={textareaRef}
 				projectsInView={projectsInView}
 				prefersReducedMotion={prefersReducedMotion}
+				projects={userProjects}
+				projectCount={projectCount}
+				isProjectsLoading={isProjectsLoading}
+				isProjectsError={isProjectsError}
+				projectLoadError={projectLoadError}
 				onCreateNewProject={() => navigate("/editor")}
+				onProjectClick={(slug) => navigate(`/project/${slug}`)}
 			/>
 
 			<DashboardTemplatesSection

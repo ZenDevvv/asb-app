@@ -358,7 +358,7 @@ export default function UserTemplateDetailsRoute() {
 										if (!templateId) return;
 										forkTemplate(templateId, {
 											onSuccess: (data) => {
-												navigate(`/project/${data.id}`);
+												navigate(`/project/${data.slug}`);
 											},
 										});
 									}}
