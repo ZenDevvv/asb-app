@@ -23,7 +23,7 @@ interface StylePanelProps {
 	globalFontFamily: string;
 	globalBorderRadius: GlobalStyle["borderRadius"];
 	onStyleChange: (style: Partial<BlockStyle>) => void;
-	onOpenFontModal: () => void;
+	onOpenFontModal: (target: "fontFamily" | "secondaryFontFamily") => void;
 }
 
 interface CustomValueControlProps {
@@ -93,12 +93,20 @@ export function StylePanel({
 		block.type === "date" ||
 		block.type === "countdown" ||
 		block.type === "timeline";
-	const effectiveFontValue = block.style.fontFamily || globalFontFamily;
-	const selectedFont = resolveFontOption(effectiveFontValue);
-	const hasBlockFontOverride =
-		typeof block.style.fontFamily === "string" &&
-		block.style.fontFamily.trim().length > 0 &&
-		block.style.fontFamily !== globalFontFamily;
+	const isTimelineBlock = block.type === "timeline";
+	const getFontState = (styleKey: "fontFamily" | "secondaryFontFamily") => {
+		const rawValue = block.style[styleKey];
+		const overrideValue = typeof rawValue === "string" ? rawValue.trim() : "";
+		const hasOverride = overrideValue.length > 0 && overrideValue !== globalFontFamily;
+		const effectiveValue = hasOverride ? overrideValue : globalFontFamily;
+
+		return {
+			hasOverride,
+			selectedFont: resolveFontOption(effectiveValue),
+		};
+	};
+	const primaryFontState = getFontState("fontFamily");
+	const secondaryFontState = getFontState("secondaryFontFamily");
 	const supportsCustomTextSize =
 		block.type === "heading" || block.type === "text" || block.type === "image";
 	const supportsCustomDividerWidth = block.type === "divider";
@@ -108,23 +116,27 @@ export function StylePanel({
 	return (
 		<CollapsiblePanel title="Style" defaultOpen>
 			<div className="space-y-3">
-				{supportsFontOverride && (
+				{supportsFontOverride && !isTimelineBlock && (
 					<div className="space-y-1.5">
 						<label className="text-xs font-medium text-muted-foreground">
 							Font Family
 						</label>
 						<button
 							type="button"
-							onClick={onOpenFontModal}
+							onClick={() => onOpenFontModal("fontFamily")}
 							className="group flex w-full items-center justify-between rounded-xl border border-border bg-input/50 px-3 py-2 text-left transition-colors hover:border-primary/40">
 							<div>
 								<p className="text-[10px] uppercase tracking-wider text-muted-foreground">
-									{hasBlockFontOverride ? "Block Override" : "Using Global"}
+									{primaryFontState.hasOverride
+										? "Block Override"
+										: "Using Global"}
 								</p>
 								<p
 									className="text-sm text-foreground"
-									style={{ fontFamily: selectedFont.fontFamily }}>
-									{selectedFont.label}
+									style={{
+										fontFamily: primaryFontState.selectedFont.fontFamily,
+									}}>
+									{primaryFontState.selectedFont.label}
 								</p>
 							</div>
 							<span
@@ -136,9 +148,74 @@ export function StylePanel({
 					</div>
 				)}
 
+				{isTimelineBlock && (
+					<>
+						<div className="space-y-1.5">
+							<label className="text-xs font-medium text-muted-foreground">
+								Title Font Family
+							</label>
+							<button
+								type="button"
+								onClick={() => onOpenFontModal("fontFamily")}
+								className="group flex w-full items-center justify-between rounded-xl border border-border bg-input/50 px-3 py-2 text-left transition-colors hover:border-primary/40">
+								<div>
+									<p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+										{primaryFontState.hasOverride
+											? "Title Override"
+											: "Using Global"}
+									</p>
+									<p
+										className="text-sm text-foreground"
+										style={{
+											fontFamily: primaryFontState.selectedFont.fontFamily,
+										}}>
+										{primaryFontState.selectedFont.label}
+									</p>
+								</div>
+								<span
+									className="material-symbols-outlined text-muted-foreground transition-colors group-hover:text-foreground"
+									style={{ fontSize: 18 }}>
+									tune
+								</span>
+							</button>
+						</div>
+
+						<div className="space-y-1.5">
+							<label className="text-xs font-medium text-muted-foreground">
+								Subtitle + Description Font Family
+							</label>
+							<button
+								type="button"
+								onClick={() => onOpenFontModal("secondaryFontFamily")}
+								className="group flex w-full items-center justify-between rounded-xl border border-border bg-input/50 px-3 py-2 text-left transition-colors hover:border-primary/40">
+								<div>
+									<p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+										{secondaryFontState.hasOverride
+											? "Subtitle/Description Override"
+											: "Using Global"}
+									</p>
+									<p
+										className="text-sm text-foreground"
+										style={{
+											fontFamily: secondaryFontState.selectedFont.fontFamily,
+										}}>
+										{secondaryFontState.selectedFont.label}
+									</p>
+								</div>
+								<span
+									className="material-symbols-outlined text-muted-foreground transition-colors group-hover:text-foreground"
+									style={{ fontSize: 18 }}>
+									tune
+								</span>
+							</button>
+						</div>
+					</>
+				)}
+
 				{editableStyles.map((styleField) => {
 					const globalFallbackValue =
-						(block.type === "button" || block.type === "image") && styleField.key === "borderRadius"
+						(block.type === "button" || block.type === "image") &&
+						styleField.key === "borderRadius"
 							? globalBorderRadius
 							: undefined;
 					const value =

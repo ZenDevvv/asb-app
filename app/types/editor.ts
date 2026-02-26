@@ -22,6 +22,7 @@ export type AbsolutePositionAnchor = "top-left" | "center";
 
 export interface BlockStyle {
   fontFamily?: string;
+  secondaryFontFamily?: string;
   fontSize?: "sm" | "base" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "5xl" | "custom";
   fontSizePx?: number;
   fontWeight?: "normal" | "medium" | "semibold" | "bold";

@@ -229,7 +229,7 @@ The right sidebar changes based on what is selected:
 
 **When a BLOCK is selected** (click a specific block on the canvas):
 1. **Block Content** - auto-generated controls based on block type (text input, image upload, etc.)
-2. **Block Style** - constrained style options for that block (size, alignment, spacing, letter spacing, and per-block corners where supported). `heading`, `text`, `button`, `image`, `date`, `countdown`, and `timeline` blocks expose a **Font Family** control that opens the same Typography Settings modal used in Global Settings; selecting a font applies a block-level override (applied to the caption text for `image` blocks). `button` blocks also expose **Corner Style** (Sharp/S/M/L/Full) which defaults to the global corner style until explicitly overridden on that block.
+2. **Block Style** - constrained style options for that block (size, alignment, spacing, letter spacing, and per-block corners where supported). `heading`, `text`, `button`, `image`, `date`, `countdown`, and `timeline` blocks expose a **Font Family** control that opens the same Typography Settings modal used in Global Settings; selecting a font applies a block-level override (applied to the caption text for `image` blocks). `timeline` blocks provide two selectors: one for title text and one for subtitle+description text. `button` blocks also expose **Corner Style** (Sharp/S/M/L/Full) which defaults to the global corner style until explicitly overridden on that block.
 3. **Position** - collapsible panel with:
    - **Column** — slot/column picker (shown only when the group layout has multiple slots and the block is in flow mode). Allows moving the block to a different column after it was added. Calls `moveBlockToSlot` / `moveBlockToSlotAtIndex` store actions.
    - **Flow / Absolute** toggle — choose positioning mode. Absolute blocks are positioned relative to the selected group and can be moved on the canvas by dragging.
@@ -409,7 +409,8 @@ interface Block {
 
 interface BlockStyle {
   // Text
-  fontFamily?: string;            // Optional block-level font override (heading, text, button, image, date, countdown, timeline blocks)
+  fontFamily?: string;            // Optional block-level font override (heading, text, button, image, date, countdown, timeline blocks); timeline uses this for title text
+  secondaryFontFamily?: string;   // Timeline block only — optional font override for subtitle + description text
   fontSize?: "sm" | "base" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "5xl" | "custom";
   fontSizePx?: number;            // Custom heading/text size in px when fontSize="custom"
   fontWeight?: "normal" | "medium" | "semibold" | "bold";
@@ -855,7 +856,8 @@ Rules for block components:
 //   - titleColor, subtitleColor, descriptionColor (color controls)
 // editableStyles:
 //   - scale slider (25-300, step 5)
-// Block-level font override is supported via BlockStyle.fontFamily.
+// Block-level font override is supported via BlockStyle.fontFamily (title) and
+// BlockStyle.secondaryFontFamily (subtitle + description).
 // New timeline blocks seed default colors from the active global theme + primary color at add time.
 ```
 
@@ -924,7 +926,8 @@ BlockStyle.colorMode        -> "global" (default): block derives text/accent fro
                                "custom": block uses its own textColor/accentColor
 BlockStyle.textColor        â†’ custom text color (only active when colorMode="custom")
 BlockStyle.accentColor      â†’ custom accent color (only active when colorMode="custom")
-BlockStyle.fontFamily       â†’ optional block-level font override (heading, text, button, image, date, countdown, timeline blocks — applies to caption on image)
+BlockStyle.fontFamily       â†’ optional block-level font override (heading, text, button, image, date, countdown, timeline blocks — applies to caption on image; for timeline this targets title text)
+BlockStyle.secondaryFontFamily -> timeline-only font override for subtitle + description text
 BlockStyle.fontSize         â†’ block-level size choice (heading/text support presets + "custom")
 BlockStyle.fontSizePx       â†’ heading/text custom size in px (applies when fontSize="custom")
 BlockStyle.fontWeight       â†’ block-level weight choice (where supported)
@@ -1731,6 +1734,7 @@ This contract ensures AI output can be validated and loaded directly into the ed
 
 ---
 
+*Document Version: 3.80 - Updated `timeline` typography controls to support two independent font selectors in Block Mode Style settings. Existing font override (`BlockStyle.fontFamily`) now applies to timeline **title** text only, and new `BlockStyle.secondaryFontFamily` applies to timeline **subtitle + description** text. `StylePanel.tsx` now shows two font selectors for timeline blocks and `BlockSettings.tsx` routes both through the Typography Settings modal with target-aware descriptions. `TimelineBlock.tsx` now renders title and subtitle/description with separate font-family resolution paths.*
 *Document Version: 3.79 - Added new `timeline` block. `BlockType` now includes `"timeline"`. New block component `TimelineBlock.tsx` renders an alternating timeline layout (title/subtitle + icon + description), collapses responsively on mobile, and supports countdown-style flow scale control via `editableStyles.scale` (25–300, step 5). `blockRegistry.ts` now includes timeline repeater content (`timeline[]` with `title`, `subtitle`, `icon`, `description`) plus timeline color settings (`titleColor`, `subtitleColor`, `descriptionColor`). `sectionRegistry.ts` allowed block lists now include `timeline` across section profiles. `BlockSettings.tsx` and `StylePanel.tsx` now include `timeline` in block-level Font Family override support. `editorStore.ts` seeds new timeline blocks with theme-aware default title/description colors and global primary subtitle color. `RepeaterControl.tsx` now supports `icon-picker` subfields so timeline items can select icons from the existing icon library.*
 *Document Version: 3.78 - Fixed absolute block editor/preview parity by adding anchor-aware coordinates. `BlockStyle` now includes `positionAnchor` (`"top-left" | "center"`). New absolute blocks default to `positionAnchor: "center"` with `positionX` / `positionY` stored as offsets from group center. `GroupRenderer.tsx` now renders/drags absolute blocks using anchor-aware math with legacy `top-left` fallback, so existing saved blocks still render correctly while new center-anchored blocks keep placement aligned across editor and preview widths. `PositionPanel.tsx` now switches Flow -> Absolute using center anchoring by default.*
 *Document Version: 3.77 - Added divider line weight control. `BlockStyle` now includes `lineWeight` (`"thin" | "medium" | "thick"`). `blockRegistry.ts` divider entry now includes a Weight size-picker (Thin/Medium/Thick) with default `lineWeight: "thin"`. `DividerBlock.tsx` now maps this to inline `<hr>` thickness (`1px`, `2px`, `4px`) while preserving existing width/custom-width and opacity behavior.*

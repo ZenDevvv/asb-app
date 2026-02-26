@@ -64,9 +64,14 @@ export function TimelineBlock({ block, globalStyle }: BlockComponentProps) {
 		props.descriptionColor,
 		isDarkTheme ? DEFAULT_DESCRIPTION_DARK : DEFAULT_DESCRIPTION_LIGHT,
 	);
-	const lineColor = hexToRgba(titleColor, isDarkTheme ? 0.18 : 0.22);
+	const titleFontFamily = s.fontFamily || globalStyle.fontFamily;
+	const detailFontFamily = s.secondaryFontFamily || globalStyle.fontFamily;
+	const lineColor = hexToRgba(titleColor, isDarkTheme ? 0.34 : 0.32);
 	const iconBorderColor = hexToRgba(subtitleColor, isDarkTheme ? 0.85 : 0.72);
 	const iconBackground = hexToRgba(subtitleColor, isDarkTheme ? 0.14 : 0.1);
+	const iconDiameter = scaleLength("clamp(2.35rem, 3.4vw, 2.9rem)");
+	const iconGlyphSize = scaleLength("clamp(1rem, 1.55vw, 1.26rem)");
+	const iconHalf = scaleLength("clamp(1.175rem, 1.7vw, 1.45rem)");
 
 	const timelineItems = getTimelineItems(props.timeline);
 
@@ -75,7 +80,7 @@ export function TimelineBlock({ block, globalStyle }: BlockComponentProps) {
 			<div
 				className="mx-auto w-full px-2 text-center sm:px-4"
 				style={{
-					fontFamily: s.fontFamily || globalStyle.fontFamily,
+					fontFamily: detailFontFamily,
 					color: descriptionColor,
 					opacity: (s.opacity ?? 100) / 100,
 					marginTop: s.marginTop ?? 0,
@@ -92,18 +97,11 @@ export function TimelineBlock({ block, globalStyle }: BlockComponentProps) {
 		<div
 			className="mx-auto w-full px-2 sm:px-4"
 			style={{
-				fontFamily: s.fontFamily || globalStyle.fontFamily,
 				opacity: (s.opacity ?? 100) / 100,
 				marginTop: s.marginTop ?? 0,
 				marginBottom: s.marginBottom ?? 0,
 			}}>
 			<div className="relative mx-auto max-w-5xl">
-				<div
-					aria-hidden
-					className="absolute bottom-0 top-0 left-5 w-px md:left-1/2 md:-translate-x-1/2"
-					style={{ backgroundColor: lineColor }}
-				/>
-
 				<div>
 					{timelineItems.map((item, index) => {
 						const isTitleOnLeft = index % 2 === 0;
@@ -121,6 +119,7 @@ export function TimelineBlock({ block, globalStyle }: BlockComponentProps) {
 									className="font-semibold leading-tight"
 									style={{
 										color: titleColor,
+										fontFamily: titleFontFamily,
 										fontSize: scaleLength("clamp(1.02rem, 2vw, 1.5rem)"),
 									}}>
 									{title}
@@ -130,6 +129,7 @@ export function TimelineBlock({ block, globalStyle }: BlockComponentProps) {
 										className="font-medium leading-tight tracking-[0.05em]"
 										style={{
 											color: subtitleColor,
+											fontFamily: detailFontFamily,
 											fontSize: scaleLength("clamp(0.72rem, 0.95vw, 0.9rem)"),
 										}}>
 										{subtitle}
@@ -143,6 +143,7 @@ export function TimelineBlock({ block, globalStyle }: BlockComponentProps) {
 								className="leading-relaxed"
 								style={{
 									color: descriptionColor,
+									fontFamily: detailFontFamily,
 									fontSize: scaleLength("clamp(0.74rem, 0.92vw, 0.88rem)"),
 								}}>
 								{description}
@@ -158,27 +159,44 @@ export function TimelineBlock({ block, globalStyle }: BlockComponentProps) {
 									paddingTop: scalePx(18),
 									paddingBottom: scalePx(18),
 								}}>
+								{index > 0 && (
+									<span
+										aria-hidden
+										className="absolute left-5 top-0 z-0 w-px md:left-1/2 md:-translate-x-1/2"
+										style={{
+											height: `calc(50% - ${iconHalf})`,
+											backgroundColor: lineColor,
+										}}
+									/>
+								)}
+								{index < timelineItems.length - 1 && (
+									<span
+										aria-hidden
+										className="absolute bottom-0 left-5 z-0 w-px md:left-1/2 md:-translate-x-1/2"
+										style={{
+											height: `calc(50% - ${iconHalf})`,
+											backgroundColor: lineColor,
+										}}
+									/>
+								)}
+
 								<div className="hidden md:block" style={{ textAlign: "right" }}>
 									{isTitleOnLeft ? titleSubtitleContent : descriptionContent}
 								</div>
 
 								<div className="relative z-10 flex items-center justify-center md:justify-center">
 									<span
-										className="inline-flex items-center justify-center rounded-full border"
+										className="relative z-10 inline-flex items-center justify-center rounded-full border"
 										style={{
-											width: scaleLength("clamp(2.35rem, 3.4vw, 2.9rem)"),
-											height: scaleLength("clamp(2.35rem, 3.4vw, 2.9rem)"),
+											width: iconDiameter,
+											height: iconDiameter,
 											backgroundColor: iconBackground,
 											borderColor: iconBorderColor,
 											color: subtitleColor,
 										}}>
 										<span
 											className="material-symbols-outlined"
-											style={{
-												fontSize: scaleLength(
-													"clamp(1rem, 1.55vw, 1.26rem)",
-												),
-											}}>
+											style={{ fontSize: iconGlyphSize }}>
 											{icon}
 										</span>
 									</span>

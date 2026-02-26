@@ -20,6 +20,8 @@ interface BlockSettingsProps {
 	onDelete: () => void;
 }
 
+type FontModalTarget = "fontFamily" | "secondaryFontFamily";
+
 export function BlockSettings({
 	sectionId,
 	groupId,
@@ -49,8 +51,18 @@ export function BlockSettings({
 		block.type === "date" ||
 		block.type === "countdown" ||
 		block.type === "timeline";
+	const isTimelineBlock = block.type === "timeline";
 	const [fontModalOpen, setFontModalOpen] = useState(false);
-	const effectiveFontValue = block.style.fontFamily || globalStyle.fontFamily;
+	const [fontModalTarget, setFontModalTarget] = useState<FontModalTarget>("fontFamily");
+	const effectiveFontValue =
+		(fontModalTarget === "secondaryFontFamily"
+			? block.style.secondaryFontFamily
+			: block.style.fontFamily) || globalStyle.fontFamily;
+	const fontModalDescription = isTimelineBlock
+		? fontModalTarget === "secondaryFontFamily"
+			? "Choose a font for subtitle and description text in this timeline block. It will override the global font for those lines only."
+			: "Choose a font for title text in this timeline block. It will override the global font for titles only."
+		: "Choose a font for this block. It will override the global font for this block only.";
 
 	const handlePropChange = (key: string, value: unknown) => {
 		updateBlockProp(sectionId, groupId, block.id, key, value);
@@ -88,7 +100,10 @@ export function BlockSettings({
 						globalFontFamily={globalStyle.fontFamily}
 						globalBorderRadius={globalStyle.borderRadius}
 						onStyleChange={handleStyleChange}
-						onOpenFontModal={() => setFontModalOpen(true)}
+						onOpenFontModal={(target) => {
+							setFontModalTarget(target);
+							setFontModalOpen(true);
+						}}
 					/>
 
 					<ColorsPanel
@@ -123,11 +138,12 @@ export function BlockSettings({
 					value={effectiveFontValue}
 					onApply={(fontFamily) =>
 						handleStyleChange({
-							fontFamily: fontFamily === globalStyle.fontFamily ? "" : fontFamily,
-						})
+							[fontModalTarget]:
+								fontFamily === globalStyle.fontFamily ? "" : fontFamily,
+						} as Partial<BlockStyle>)
 					}
 					title="Typography Settings"
-					description="Choose a font for this block. It will override the global font for this block only."
+					description={fontModalDescription}
 					applyLabel="Apply Font"
 				/>
 			)}
