@@ -197,7 +197,9 @@ Current pattern:
 4. Templates can include prefilled blocks, typography, and canvas background settings
 5. Applying a template also applies template `globalStyle` and template `canvasBackground`
 6. `activeTemplateId` is persisted
-7. Current hardcoded state: a single portrait template sourced from exported debug JSON
+7. Current hardcoded state: two templates sourced from exported debug JSON:
+   - `Canvas Background as a video` (portrait)
+   - `multiple video in canvas` (landscape)
 
 ---
 
@@ -310,7 +312,7 @@ As of this guide version:
 
 1. CMS is available at `/cms`.
 2. CMS uses isolated store and local persistence.
-3. CMS supports template injection from hardcoded snapshot data (currently one portrait template).
+3. CMS supports template injection from hardcoded snapshot data (portrait + landscape templates).
 4. CMS supports background settings (color/image/video).
 5. CMS video playback defaults to autoplay/muted/loop without controls.
 6. CMS library uses grid cards.
@@ -320,7 +322,7 @@ As of this guide version:
 10. CMS block settings include horizontal and vertical alignment controls for content placement inside block containers.
 11. `/cms?debug=true` shows `Export JSON` button that downloads the current CMS snapshot.
 12. CMS block settings include a rotation slider for all blocks and the canvas renders rotated containers.
-13. CMS template library currently contains one hardcoded portrait template imported from debug snapshot JSON.
+13. CMS template library currently contains two hardcoded templates imported from debug snapshot JSON.
 14. Header shows an explicit `Template` label and uses orientation-filtered preset dropdowns.
 15. CMS `image` and `video` blocks fill the entire container and do not use container alignment controls.
 16. Block settings header uses minimal icon-only actions, including duplicate and delete.
