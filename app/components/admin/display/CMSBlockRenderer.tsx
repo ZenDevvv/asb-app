@@ -15,14 +15,12 @@ type CMSContainerVerticalAlignment = "top" | "middle" | "bottom";
 
 function getContainerHorizontalAlignment(block: CMSBlock): CMSContainerHorizontalAlignment {
 	const value = block.props.containerHorizontalAlign;
-	if (value === "left" || value === "center" || value === "right") return value;
-	return block.type === "image" || block.type === "video" ? "center" : "left";
+	return value === "left" || value === "center" || value === "right" ? value : "left";
 }
 
 function getContainerVerticalAlignment(block: CMSBlock): CMSContainerVerticalAlignment {
 	const value = block.props.containerVerticalAlign;
-	if (value === "top" || value === "middle" || value === "bottom") return value;
-	return block.type === "image" || block.type === "video" ? "middle" : "top";
+	return value === "top" || value === "middle" || value === "bottom" ? value : "top";
 }
 
 function getAlignItems(
@@ -42,6 +40,7 @@ function getJustifyContent(
 }
 
 export function CMSBlockRenderer({ block, globalStyle, canvasHeight }: CMSBlockRendererProps) {
+	const isMediaBlock = block.type === "image" || block.type === "video";
 	const overrideFontFamily =
 		typeof block.style.fontFamily === "string" && block.style.fontFamily.trim().length > 0
 			? block.style.fontFamily
@@ -64,16 +63,36 @@ export function CMSBlockRenderer({ block, globalStyle, canvasHeight }: CMSBlockR
 							loop: true,
 						}
 					: { ...block.props },
-			style:
-				block.type === "image" || block.type === "video"
-					? {
-							...block.style,
-							height: Math.max(24, Math.round((block.h / 100) * canvasHeight)),
-						}
-					: { ...block.style },
+			style: isMediaBlock
+				? {
+						...block.style,
+						width: "full",
+						height: Math.max(24, Math.round((block.h / 100) * canvasHeight)),
+						marginTop: 0,
+						marginBottom: 0,
+						tilt: 0,
+					}
+				: { ...block.style },
 		}),
-		[block, canvasHeight],
+		[block, canvasHeight, isMediaBlock],
 	);
+
+	if (isMediaBlock) {
+		return (
+			<div
+				className="h-full w-full overflow-hidden"
+				style={{ fontFamily: overrideFontFamily }}>
+				<BlockRenderer
+					block={editorBlock}
+					sectionStyle={DISPLAY_SECTION_STYLE}
+					globalStyle={globalStyle}
+					isEditing
+					isSelected={false}
+					onUpdateProp={() => undefined}
+				/>
+			</div>
+		);
+	}
 
 	return (
 		<div

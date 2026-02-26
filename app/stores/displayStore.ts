@@ -324,17 +324,6 @@ function getDefaultHeight(type: CMSBlockType): number {
 	return clamp(DEFAULT_HEIGHT_BY_TYPE[type] ?? 18, MIN_BLOCK_HEIGHT, 100);
 }
 
-function getDefaultContainerAlignmentProps(type: CMSBlockType): Record<string, unknown> {
-	if (type === "image" || type === "video") {
-		return {
-			containerHorizontalAlign: "center",
-			containerVerticalAlign: "middle",
-		};
-	}
-
-	return {};
-}
-
 function resolveTemplate(templateId: string): CMSTemplate | undefined {
 	return CMS_TEMPLATE_LIBRARY.find((template) => template.id === templateId);
 }
@@ -363,7 +352,6 @@ function createBlockFromTemplateSeed(seed: CMSTemplateBlockSeed): CMSBlock | nul
 		type: seed.type,
 		props: {
 			...registryEntry.defaultProps,
-			...getDefaultContainerAlignmentProps(seed.type),
 			...(seed.props ?? {}),
 		},
 		style: {
@@ -416,10 +404,7 @@ export const useDisplayStore = create<CMSDisplayState & CMSDisplayActions>()(
 					const next: CMSBlock = {
 						id: nanoid(10),
 						type,
-						props: {
-							...entry.defaultProps,
-							...getDefaultContainerAlignmentProps(type),
-						},
+						props: { ...entry.defaultProps },
 						style: { ...entry.defaultStyle },
 						x: clamp(50 - width / 2, 0, 100 - width),
 						y: clamp(42, 0, 100 - height),

@@ -131,14 +131,12 @@ function supportsFontOverride(type: CMSBlock["type"]): boolean {
 
 function getContainerHorizontalAlignment(block: CMSBlock): CMSContainerHorizontalAlignment {
 	const value = block.props.containerHorizontalAlign;
-	if (value === "left" || value === "center" || value === "right") return value;
-	return block.type === "image" || block.type === "video" ? "center" : "left";
+	return value === "left" || value === "center" || value === "right" ? value : "left";
 }
 
 function getContainerVerticalAlignment(block: CMSBlock): CMSContainerVerticalAlignment {
 	const value = block.props.containerVerticalAlign;
-	if (value === "top" || value === "middle" || value === "bottom") return value;
-	return block.type === "image" || block.type === "video" ? "middle" : "top";
+	return value === "top" || value === "middle" || value === "bottom" ? value : "top";
 }
 
 function renderContentFields(
@@ -497,6 +495,7 @@ export function CMSBlockSettings({ block, className }: CMSBlockSettingsProps) {
 	const horizontalContentAlignment = getContainerHorizontalAlignment(block);
 	const verticalContentAlignment = getContainerVerticalAlignment(block);
 	const blockRotation = getNumber(block.style.tilt, 0);
+	const showContainerAlignmentControls = block.type !== "image" && block.type !== "video";
 
 	const updateSelectedProps = (props: Record<string, unknown>) => {
 		updateBlock(block.id, { props });
@@ -652,72 +651,77 @@ export function CMSBlockSettings({ block, className }: CMSBlockSettingsProps) {
 							}
 						/>
 					</div>
-					<div className="space-y-1.5">
-						<span className="text-xs text-muted-foreground">
-							Container Horizontal Align
-						</span>
-						<div className="grid grid-cols-3 gap-2">
-							{HORIZONTAL_ALIGNMENT_OPTIONS.map((option) => {
-								const isActive = horizontalContentAlignment === option.value;
-								return (
-									<Button
-										key={option.value}
-										type="button"
-										size="sm"
-										variant={isActive ? "default" : "outline"}
-										aria-label={`Align content ${option.label.toLowerCase()}`}
-										title={option.label}
-										onClick={() =>
-											updateBlock(block.id, {
-												props: {
-													containerHorizontalAlign: option.value,
-												},
-											})
-										}
-										className="h-8 px-0">
-										<span
-											className="material-symbols-outlined"
-											style={{ fontSize: 18 }}>
-											{option.icon}
-										</span>
-									</Button>
-								);
-							})}
-						</div>
-					</div>
-					<div className="space-y-1.5">
-						<span className="text-xs text-muted-foreground">
-							Container Vertical Align
-						</span>
-						<div className="grid grid-cols-3 gap-2">
-							{VERTICAL_ALIGNMENT_OPTIONS.map((option) => {
-								const isActive = verticalContentAlignment === option.value;
-								return (
-									<Button
-										key={option.value}
-										type="button"
-										size="sm"
-										variant={isActive ? "default" : "outline"}
-										aria-label={`Align content ${option.label.toLowerCase()}`}
-										title={option.label}
-										onClick={() =>
-											updateBlock(block.id, {
-												props: {
-													containerVerticalAlign: option.value,
-												},
-											})
-										}
-										className="h-8 px-0">
-										<span
-											className="material-symbols-outlined"
-											style={{ fontSize: 18 }}>
-											{option.icon}
-										</span>
-									</Button>
-								);
-							})}
-						</div>
-					</div>
+					{showContainerAlignmentControls ? (
+						<>
+							<div className="space-y-1.5">
+								<span className="text-xs text-muted-foreground">
+									Container Horizontal Align
+								</span>
+								<div className="grid grid-cols-3 gap-2">
+									{HORIZONTAL_ALIGNMENT_OPTIONS.map((option) => {
+										const isActive =
+											horizontalContentAlignment === option.value;
+										return (
+											<Button
+												key={option.value}
+												type="button"
+												size="sm"
+												variant={isActive ? "default" : "outline"}
+												aria-label={`Align content ${option.label.toLowerCase()}`}
+												title={option.label}
+												onClick={() =>
+													updateBlock(block.id, {
+														props: {
+															containerHorizontalAlign: option.value,
+														},
+													})
+												}
+												className="h-8 px-0">
+												<span
+													className="material-symbols-outlined"
+													style={{ fontSize: 18 }}>
+													{option.icon}
+												</span>
+											</Button>
+										);
+									})}
+								</div>
+							</div>
+							<div className="space-y-1.5">
+								<span className="text-xs text-muted-foreground">
+									Container Vertical Align
+								</span>
+								<div className="grid grid-cols-3 gap-2">
+									{VERTICAL_ALIGNMENT_OPTIONS.map((option) => {
+										const isActive = verticalContentAlignment === option.value;
+										return (
+											<Button
+												key={option.value}
+												type="button"
+												size="sm"
+												variant={isActive ? "default" : "outline"}
+												aria-label={`Align content ${option.label.toLowerCase()}`}
+												title={option.label}
+												onClick={() =>
+													updateBlock(block.id, {
+														props: {
+															containerVerticalAlign: option.value,
+														},
+													})
+												}
+												className="h-8 px-0">
+												<span
+													className="material-symbols-outlined"
+													style={{ fontSize: 18 }}>
+													{option.icon}
+												</span>
+											</Button>
+										);
+									})}
+								</div>
+							</div>
+						</>
+					) : null}
 					<div className="space-y-1.5">
 						<span className="text-xs text-muted-foreground">
 							Width ({block.w.toFixed(1)}%)
