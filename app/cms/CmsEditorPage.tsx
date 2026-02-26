@@ -28,6 +28,7 @@ import {
 	CMS_TEMPLATE_LIBRARY,
 	useDisplayStore,
 	type CMSDisplaySnapshot,
+	type CMSResolution,
 } from "~/stores/displayStore";
 
 function clamp(value: number, min: number, max: number): number {
@@ -47,6 +48,20 @@ function getPresetLabel(width: number, height: number): string {
 	return bySize ? bySize.label : "Custom";
 }
 
+type PresetOrientation = "landscape" | "portrait";
+
+function getOrientationFromResolution(resolution: CMSResolution): PresetOrientation {
+	return resolution.width >= resolution.height ? "landscape" : "portrait";
+}
+
+const LANDSCAPE_PRESETS = CMS_PRESETS.filter(
+	(preset) => preset.label !== "Custom" && preset.width >= preset.height,
+);
+
+const PORTRAIT_PRESETS = CMS_PRESETS.filter(
+	(preset) => preset.label !== "Custom" && preset.width < preset.height,
+);
+
 export default function CmsEditorPage() {
 	const navigate = useNavigate();
 	const [searchParams] = useSearchParams();
@@ -65,13 +80,30 @@ export default function CmsEditorPage() {
 	const activeTemplateId = useDisplayStore((state) => state.activeTemplateId);
 	const canvasBackground = useDisplayStore((state) => state.canvasBackground);
 	const globalStyle = useDisplayStore((state) => state.globalStyle);
+	const [presetOrientation, setPresetOrientation] = useState<PresetOrientation>(
+		getOrientationFromResolution(resolution),
+	);
 
 	useEffect(() => {
 		if (isHydrated) return;
 		loadFromLocalStorage();
 	}, [isHydrated, loadFromLocalStorage]);
 
-	const selectedPresetLabel = useMemo(
+	useEffect(() => {
+		setPresetOrientation(getOrientationFromResolution(resolution));
+	}, [resolution]);
+
+	const orientationPresets = useMemo(
+		() => (presetOrientation === "landscape" ? LANDSCAPE_PRESETS : PORTRAIT_PRESETS),
+		[presetOrientation],
+	);
+	const selectedPresetLabel = useMemo(() => {
+		const selected = orientationPresets.find(
+			(preset) => preset.width === resolution.width && preset.height === resolution.height,
+		);
+		return selected?.label ?? "Custom";
+	}, [orientationPresets, resolution.height, resolution.width]);
+	const selectedPresetTriggerLabel = useMemo(
 		() => getPresetLabel(resolution.width, resolution.height),
 		[resolution.height, resolution.width],
 	);
@@ -80,7 +112,7 @@ export default function CmsEditorPage() {
 		[activeTemplateId],
 	);
 	const isCustomPreset = selectedPresetLabel === "Custom";
-	const orientation = resolution.width >= resolution.height ? "landscape" : "portrait";
+	const orientation = presetOrientation;
 	const isDebugMode = isDebugQueryEnabled(searchParams.get("debug"));
 
 	const buildSnapshotForExport = (): CMSDisplaySnapshot => ({
@@ -105,10 +137,7 @@ export default function CmsEditorPage() {
 	};
 
 	const handlePresetChange = (value: string) => {
-		const preset = CMS_PRESETS.find((entry) => entry.label === value);
-		if (!preset) return;
-
-		if (preset.label === "Custom") {
+		if (value === "Custom") {
 			setResolution({
 				label: "Custom",
 				width: resolution.width,
@@ -116,6 +145,9 @@ export default function CmsEditorPage() {
 			});
 			return;
 		}
+
+		const preset = orientationPresets.find((entry) => entry.label === value);
+		if (!preset) return;
 
 		setResolution(preset);
 	};
@@ -133,16 +165,14 @@ export default function CmsEditorPage() {
 	};
 
 	const setOrientation = (target: "landscape" | "portrait") => {
-		const isLandscape = resolution.width >= resolution.height;
+		setPresetOrientation(target);
+		const currentOrientation = getOrientationFromResolution(resolution);
+		if (currentOrientation === target) return;
 
-		if (target === "landscape" && isLandscape) return;
-		if (target === "portrait" && !isLandscape) return;
-
-		setResolution({
-			label: "Custom",
-			width: resolution.height,
-			height: resolution.width,
-		});
+		const fallbackPreset = target === "landscape" ? LANDSCAPE_PRESETS[0] : PORTRAIT_PRESETS[0];
+		if (fallbackPreset) {
+			setResolution(fallbackPreset);
+		}
 	};
 
 	const handleReset = () => {
@@ -206,22 +236,27 @@ export default function CmsEditorPage() {
 				</div>
 
 				<div className="flex flex-wrap items-center gap-2">
-					<Select
-						value={activeTemplateId ?? undefined}
-						onValueChange={handleTemplateChange}>
-						<SelectTrigger
-							size="sm"
-							className="h-8 min-w-[190px] rounded-lg border-sidebar-border bg-sidebar-accent/30 text-xs text-sidebar-foreground hover:bg-sidebar-accent/50">
-							<SelectValue placeholder="Templates" />
-						</SelectTrigger>
-						<SelectContent className="border-sidebar-border bg-sidebar text-sidebar-foreground">
-							{CMS_TEMPLATE_LIBRARY.map((template) => (
-								<SelectItem key={template.id} value={template.id}>
-									{template.label}
-								</SelectItem>
-							))}
-						</SelectContent>
-					</Select>
+					<div className="flex items-center gap-2">
+						<span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+							Template
+						</span>
+						<Select
+							value={activeTemplateId ?? undefined}
+							onValueChange={handleTemplateChange}>
+							<SelectTrigger
+								size="sm"
+								className="h-8 min-w-[220px] rounded-lg border-sidebar-border bg-sidebar-accent/30 text-xs text-sidebar-foreground hover:bg-sidebar-accent/50">
+								<SelectValue placeholder="Select template" />
+							</SelectTrigger>
+							<SelectContent className="border-sidebar-border bg-sidebar text-sidebar-foreground">
+								{CMS_TEMPLATE_LIBRARY.map((template) => (
+									<SelectItem key={template.id} value={template.id}>
+										{template.label}
+									</SelectItem>
+								))}
+							</SelectContent>
+						</Select>
+					</div>
 
 					<div className="flex items-center rounded-xl border border-sidebar-border bg-sidebar-accent/50 p-0.5">
 						<Button
@@ -246,14 +281,15 @@ export default function CmsEditorPage() {
 						<SelectTrigger
 							size="sm"
 							className="h-8 rounded-lg border-sidebar-border bg-sidebar-accent/30 text-xs text-sidebar-foreground hover:bg-sidebar-accent/50">
-							<SelectValue />
+							<SelectValue>{selectedPresetTriggerLabel}</SelectValue>
 						</SelectTrigger>
 						<SelectContent className="border-sidebar-border bg-sidebar text-sidebar-foreground">
-							{CMS_PRESETS.map((preset) => (
+							{orientationPresets.map((preset) => (
 								<SelectItem key={preset.label} value={preset.label}>
 									{preset.label}
 								</SelectItem>
 							))}
+							<SelectItem value="Custom">Custom</SelectItem>
 						</SelectContent>
 					</Select>
 

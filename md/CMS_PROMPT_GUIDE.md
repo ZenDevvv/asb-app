@@ -98,7 +98,7 @@ Avoid touching:
 2. Drag blocks by pointer, including outside canvas bounds
 3. Resize block containers by dragging edges and corners (8 handles)
 4. Block positions and dimensions (`x`, `y`, `w`, `h`) are stored as canvas percentages
-5. Orientation switch (landscape/portrait) supported in header
+5. Header orientation toggle is merged with presets: selecting `Landscape` shows only landscape presets, selecting `Portrait` shows only portrait presets
 6. Selected block supports horizontal/vertical content alignment inside its own container in settings
 7. Alignment controls in settings use icon-only buttons (with accessible labels), not text labels
 8. Selected block supports rotation via slider (`-180` to `180` degrees)
@@ -189,10 +189,12 @@ Templates are local CMS presets that inject prefilled blocks into canvas.
 Current pattern:
 
 1. Template catalog: `CMS_TEMPLATE_LIBRARY`
-2. Header template select uses shadcn `Select`
+2. Header template control uses shadcn `Select` and an explicit `Template` label
 3. Applying a template replaces current blocks (with confirmation if canvas is not empty)
-4. Templates can include stock image/video URLs
-5. `activeTemplateId` is persisted
+4. Templates can include prefilled blocks, typography, and canvas background settings
+5. Applying a template also applies template `globalStyle` and template `canvasBackground`
+6. `activeTemplateId` is persisted
+7. Current hardcoded state: a single portrait template sourced from exported debug JSON
 
 ---
 
@@ -249,7 +251,7 @@ Rules:
 In CMS, dropdown controls should use shadcn `Select` (not native `<select>`):
 
 1. Template selector
-2. Resolution selector
+2. Orientation-filtered resolution selector
 3. Background type selector
 4. Typography uses the same modal + font library pattern as editor typography settings
 
@@ -305,7 +307,7 @@ As of this guide version:
 
 1. CMS is available at `/cms`.
 2. CMS uses isolated store and local persistence.
-3. CMS supports template injection with prefilled stock media.
+3. CMS supports template injection from hardcoded snapshot data (currently one portrait template).
 4. CMS supports background settings (color/image/video).
 5. CMS video playback defaults to autoplay/muted/loop without controls.
 6. CMS library uses grid cards.
@@ -315,3 +317,5 @@ As of this guide version:
 10. CMS block settings include horizontal and vertical alignment controls for content placement inside block containers.
 11. `/cms?debug=true` shows `Export JSON` button that downloads the current CMS snapshot.
 12. CMS block settings include a rotation slider for all blocks and the canvas renders rotated containers.
+13. CMS template library currently contains one hardcoded portrait template imported from debug snapshot JSON.
+14. Header shows an explicit `Template` label and uses orientation-filtered preset dropdowns.

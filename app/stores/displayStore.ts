@@ -70,6 +70,7 @@ export interface CMSTemplate {
 	description: string;
 	resolution: CMSResolution;
 	globalStyle?: Partial<GlobalStyle>;
+	canvasBackground?: Partial<CMSCanvasBackground>;
 	blocks: CMSTemplateBlockSeed[];
 }
 
@@ -116,297 +117,45 @@ export const CMS_PRESETS: CMSResolution[] = [
 	{ label: "Custom", width: 1920, height: 1080 },
 ];
 
-const STOCK_IMAGE_CITY = "https://picsum.photos/id/1033/1920/1080";
-const STOCK_IMAGE_LOBBY = "https://picsum.photos/id/1048/1600/900";
-const STOCK_IMAGE_MENU = "https://picsum.photos/id/292/1080/1400";
-const STOCK_VIDEO_TRAILER = "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4";
-const STOCK_VIDEO_LOBBY = "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
-const STOCK_VIDEO_MENU = "https://storage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4";
-
 export const CMS_TEMPLATE_LIBRARY: CMSTemplate[] = [
 	{
-		id: "festival-promo",
-		label: "Festival Promo Wall",
-		description: "Hero event board with trailer, poster image, and live countdown.",
-		resolution: { label: "1080p Landscape", width: 1920, height: 1080 },
-		globalStyle: {
-			themeMode: "dark",
-			primaryColor: "#f59e0b",
-			borderRadius: "md",
-		},
-		blocks: [
-			{
-				type: "badge",
-				x: 5,
-				y: 6,
-				w: 18,
-				props: { text: "LIVE EVENT", variant: "default", appearance: "filled" },
-			},
-			{
-				type: "heading",
-				x: 5,
-				y: 14,
-				w: 52,
-				props: { text: "City Nights Film Festival" },
-				style: { fontSize: "5xl", fontWeight: "bold" },
-			},
-			{
-				type: "text",
-				x: 5,
-				y: 28,
-				w: 43,
-				props: {
-					text: "Friday lineup starts at 7:00 PM. Feature screenings, creator panels, and after-show lounge access.",
-				},
-			},
-			{
-				type: "video",
-				x: 54,
-				y: 11,
-				w: 41,
-				props: {
-					src: STOCK_VIDEO_TRAILER,
-					alt: "Festival trailer",
-					caption: "Tonight's Highlight Reel",
-				},
-				style: {
-					borderRadius: "lg",
-					shadowSize: "md",
-					overlayEffect: "dim",
-					overlayIntensity: 20,
-				},
-			},
-			{
-				type: "image",
-				x: 5,
-				y: 45,
-				w: 44,
-				props: {
-					src: STOCK_IMAGE_CITY,
-					alt: "Festival stage at night",
-					caption: "Downtown Plaza Main Stage",
-				},
-				style: { borderRadius: "lg", shadowSize: "sm" },
-			},
-			{
-				type: "list",
-				x: 52,
-				y: 64,
-				w: 43,
-				props: {
-					items: [
-						{ text: "6:30 PM  Gates Open" },
-						{ text: "7:00 PM  Opening Film" },
-						{ text: "9:15 PM  Director Q&A" },
-						{ text: "10:00 PM  Rooftop Afterparty" },
-					],
-					ordered: false,
-					inline: false,
-				},
-			},
-			{
-				type: "countdown",
-				x: 52,
-				y: 84,
-				w: 43,
-				props: {
-					eventDate: "2026-12-31",
-					eventTime: "23:59",
-					showDays: true,
-					showHours: true,
-					showMinutes: true,
-					showSeconds: false,
-				},
-				style: { scale: 90 },
-			},
-		],
-	},
-	{
-		id: "lobby-status",
-		label: "Lobby Status Board",
-		description: "Corporate display with KPI card, timeline, and looped brand video.",
-		resolution: { label: "1080p Landscape", width: 1920, height: 1080 },
-		globalStyle: {
-			themeMode: "light",
-			primaryColor: "#0ea5e9",
-			borderRadius: "md",
-		},
-		blocks: [
-			{
-				type: "badge",
-				x: 6,
-				y: 7,
-				w: 20,
-				props: { text: "DAILY BRIEF", variant: "default", appearance: "outline" },
-			},
-			{
-				type: "heading",
-				x: 6,
-				y: 14,
-				w: 58,
-				props: { text: "North Tower Operations Dashboard" },
-				style: { fontSize: "4xl", fontWeight: "bold" },
-			},
-			{
-				type: "text",
-				x: 6,
-				y: 26,
-				w: 48,
-				props: {
-					text: "Live occupancy, service queue metrics, and internal announcements for today's shift.",
-				},
-			},
-			{
-				type: "card",
-				x: 6,
-				y: 40,
-				w: 34,
-				props: {
-					title: "Visitor Check-ins",
-					text: "1,284 total entries today with an average front-desk wait time of 2m 14s.",
-					buttonText: "View Report",
-					buttonUrl: "#",
-					imageSrc: STOCK_IMAGE_LOBBY,
-					imageAlt: "Building lobby",
-				},
-			},
-			{
-				type: "timeline",
-				x: 42,
-				y: 36,
-				w: 24,
-				props: {
-					timeline: [
-						{
-							title: "Morning Sync",
-							subtitle: "08:30",
-							description: "Cross-team standup and ticket review.",
-							icon: "schedule",
-						},
-						{
-							title: "Client Visit",
-							subtitle: "11:00",
-							description: "Facilities walk-through at level 18.",
-							icon: "badge",
-						},
-						{
-							title: "Security Drill",
-							subtitle: "16:00",
-							description: "Evacuation rehearsal for all departments.",
-							icon: "shield",
-						},
-					],
-				},
-				style: { scale: 82 },
-			},
-			{
-				type: "video",
-				x: 68,
-				y: 18,
-				w: 27,
-				props: {
-					src: STOCK_VIDEO_LOBBY,
-					alt: "Brand video loop",
-					caption: "Campus Walkthrough",
-				},
-				style: { borderRadius: "lg", shadowSize: "sm" },
-			},
-			{
-				type: "quote",
-				x: 68,
-				y: 67,
-				w: 27,
-				props: {
-					text: "Operational excellence is built on visibility and consistency.",
-					attribution: "Facilities Leadership",
-				},
-			},
-		],
-	},
-	{
 		id: "portrait-menu",
-		label: "Portrait Menu Board",
-		description: "Portrait signage layout for menu highlights with photo and kitchen reel.",
+		label: "Canvas Background as a video",
+		description: "Imported from CMS debug snapshot with portrait video background.",
 		resolution: { label: "Portrait HD", width: 1080, height: 1920 },
 		globalStyle: {
 			themeMode: "dark",
 			primaryColor: "#34d399",
 			borderRadius: "lg",
 		},
+		canvasBackground: {
+			type: "video",
+			color: "#2e2e2e",
+			imageUrl: "",
+			videoUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+		},
 		blocks: [
 			{
-				type: "badge",
-				x: 8,
-				y: 5,
-				w: 30,
-				props: { text: "TODAY'S MENU", variant: "default", appearance: "filled" },
-			},
-			{
 				type: "heading",
-				x: 8,
-				y: 12,
-				w: 84,
-				props: { text: "Harbor Bistro" },
-				style: { fontSize: "5xl", fontWeight: "bold" },
-			},
-			{
-				type: "text",
-				x: 8,
-				y: 21,
-				w: 84,
+				x: 6.997464496507647,
+				y: 65.7768571677105,
+				w: 74.8,
+				h: 30,
 				props: {
-					text: "Fresh coastal dishes prepared all day. Ask the host for allergen details.",
+					text: "Canvas Background as a video",
+					textStyle: "default",
+					containerHorizontalAlign: "center",
+					containerVerticalAlign: "middle",
 				},
-			},
-			{
-				type: "image",
-				x: 8,
-				y: 30,
-				w: 84,
-				props: {
-					src: STOCK_IMAGE_MENU,
-					alt: "Featured dish",
-					caption: "Chef's Catch of the Day",
+				style: {
+					fontSize: "custom",
+					fontWeight: "bold",
+					fontStyle: "normal",
+					letterSpacing: 0,
+					textAlign: "left",
+					fontFamily: "EB Garamond",
+					fontSizePx: 120,
 				},
-				style: { borderRadius: "lg", shadowSize: "md" },
-			},
-			{
-				type: "list",
-				x: 8,
-				y: 58,
-				w: 84,
-				props: {
-					items: [
-						{ text: "Citrus Salmon Bowl  $18" },
-						{ text: "Seared Tuna Tacos   $14" },
-						{ text: "Grilled Veggie Wrap $12" },
-						{ text: "Passionfruit Soda   $6" },
-					],
-					ordered: false,
-					inline: false,
-				},
-			},
-			{
-				type: "video",
-				x: 8,
-				y: 75,
-				w: 84,
-				props: {
-					src: STOCK_VIDEO_MENU,
-					alt: "Kitchen reel",
-					caption: "Kitchen Live Reel",
-				},
-				style: { borderRadius: "lg", overlayEffect: "vignette", overlayIntensity: 18 },
-			},
-			{
-				type: "text",
-				x: 8,
-				y: 94,
-				w: 84,
-				props: {
-					text: "Happy Hour 4:00 PM - 6:00 PM",
-				},
-				style: { fontSize: "xl", fontWeight: "bold", textAlign: "center" },
 			},
 		],
 	},
@@ -757,6 +506,12 @@ export const useDisplayStore = create<CMSDisplayState & CMSDisplayActions>()(
 				const seededBlocks = template.blocks
 					.map((seed) => createBlockFromTemplateSeed(seed))
 					.filter((block): block is CMSBlock => block !== null);
+				const normalizedTemplateBackground = template.canvasBackground
+					? normalizeCanvasBackground(template.canvasBackground)
+					: { ...DEFAULT_CANVAS_BACKGROUND };
+				const normalizedTemplateGlobalStyle = template.globalStyle
+					? { ...DEFAULT_GLOBAL_STYLE, ...template.globalStyle }
+					: { ...DEFAULT_GLOBAL_STYLE };
 
 				set((state) => {
 					state.resolution = normalizedResolution;
@@ -764,9 +519,8 @@ export const useDisplayStore = create<CMSDisplayState & CMSDisplayActions>()(
 					state.blocks = seededBlocks;
 					state.selectedBlockId = null;
 					state.activeTemplateId = template.id;
-					if (template.globalStyle) {
-						state.globalStyle = { ...DEFAULT_GLOBAL_STYLE, ...template.globalStyle };
-					}
+					state.canvasBackground = normalizedTemplateBackground;
+					state.globalStyle = normalizedTemplateGlobalStyle;
 				});
 
 				persist();
