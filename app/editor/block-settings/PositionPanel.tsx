@@ -62,6 +62,7 @@ export function PositionPanel({
 	const positionY = block.style.positionY ?? 0;
 	const zIndex = block.style.zIndex ?? 20;
 	const absoluteScale = block.style.scale ?? 100;
+	const isCenterAnchoredAbsolute = block.style.positionAnchor === "center";
 
 	return (
 		<CollapsiblePanel title="Position" defaultOpen={false}>
@@ -103,15 +104,17 @@ export function PositionPanel({
 						Flow
 					</button>
 					<button
-						onClick={() =>
+						onClick={() => {
+							if (isAbsolute) return;
 							onStyleChange({
 								positionMode: "absolute",
-								positionX,
-								positionY,
+								positionAnchor: "center",
+								positionX: isCenterAnchoredAbsolute ? positionX : 0,
+								positionY: isCenterAnchoredAbsolute ? positionY : 0,
 								zIndex,
 								scale: absoluteScale,
-							})
-						}
+							});
+						}}
 						className={cn(
 							"rounded-lg border py-1.5 text-[10px] font-medium transition-colors",
 							isAbsolute
@@ -164,7 +167,8 @@ export function PositionPanel({
 						/>
 
 						<p className="text-[10px] text-muted-foreground">
-							Absolute positioning is relative to the selected group.
+							Absolute positioning uses center-based offsets inside the selected
+							group.
 						</p>
 					</>
 				)}

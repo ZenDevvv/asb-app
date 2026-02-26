@@ -700,8 +700,9 @@ export const useEditorStore = create<EditorState & EditorActions>()(
             ...(isAbsolute
               ? {
                 positionMode: "absolute",
-                positionX: 24,
-                positionY: 24,
+                positionAnchor: "center",
+                positionX: 0,
+                positionY: 0,
                 zIndex: 20,
                 scale: 100,
               }
@@ -803,6 +804,8 @@ export const useEditorStore = create<EditorState & EditorActions>()(
             const sourceIsAbsolute = isAbsoluteBlock(sourceBlock);
             if (sourceIsAbsolute) {
               clone.style.positionMode = "absolute";
+              clone.style.positionAnchor = sourceBlock.style.positionAnchor ?? "top-left";
+              clone.style.positionX = sourceBlock.style.positionX ?? 0;
               clone.style.positionY = (sourceBlock.style.positionY ?? 0) + 24;
             } else {
               clone.style.positionMode = "flow";

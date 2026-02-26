@@ -17,6 +17,7 @@ export type BlockType =
   | "rsvp";
 
 export type BlockCategory = "basic" | "media" | "layout" | "content";
+export type AbsolutePositionAnchor = "top-left" | "center";
 
 export interface BlockStyle {
   fontFamily?: string;
@@ -43,6 +44,7 @@ export interface BlockStyle {
   captionPadding?: number;
   dateSectionGap?: number;
   positionMode?: "flow" | "absolute";
+  positionAnchor?: AbsolutePositionAnchor;
   positionX?: number;
   positionY?: number;
   zIndex?: number;

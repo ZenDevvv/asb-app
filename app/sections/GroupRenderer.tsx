@@ -36,6 +36,65 @@ function isAbsoluteBlock(block: Block): boolean {
 	return block.style.positionMode === "absolute";
 }
 
+type AbsolutePositionAnchor = "top-left" | "center";
+
+function resolveAbsoluteAnchor(block: Block): AbsolutePositionAnchor {
+	return block.style.positionAnchor === "center" ? "center" : "top-left";
+}
+
+function getRenderedAbsolutePosition(
+	anchor: AbsolutePositionAnchor,
+	positionX: number,
+	positionY: number,
+	containerRect: DOMRect,
+): { left: number; top: number } {
+	if (anchor === "center") {
+		return {
+			left: containerRect.width / 2 + positionX,
+			top: containerRect.height / 2 + positionY,
+		};
+	}
+
+	return { left: positionX, top: positionY };
+}
+
+function getStoredAbsolutePosition(
+	anchor: AbsolutePositionAnchor,
+	renderedLeft: number,
+	renderedTop: number,
+	containerRect: DOMRect,
+): { positionX: number; positionY: number } {
+	if (anchor === "center") {
+		return {
+			positionX: Math.round(renderedLeft - containerRect.width / 2),
+			positionY: Math.round(renderedTop - containerRect.height / 2),
+		};
+	}
+
+	return {
+		positionX: Math.round(renderedLeft),
+		positionY: Math.round(renderedTop),
+	};
+}
+
+function getAbsoluteStylePosition(
+	anchor: AbsolutePositionAnchor,
+	positionX: number,
+	positionY: number,
+): Pick<React.CSSProperties, "left" | "top"> {
+	if (anchor === "center") {
+		return {
+			left: `calc(50% + ${positionX}px)`,
+			top: `calc(50% + ${positionY}px)`,
+		};
+	}
+
+	return {
+		left: positionX,
+		top: positionY,
+	};
+}
+
 function groupBlocksBySlot(blocks: Block[] | undefined): Record<string, Block[]> {
 	const groups: Record<string, Block[]> = {};
 	if (!blocks || !Array.isArray(blocks)) return groups;
@@ -166,6 +225,7 @@ export function GroupRenderer({
 	>({});
 	const dragStateRef = useRef<{
 		blockId: string;
+		anchor: AbsolutePositionAnchor;
 		offsetX: number;
 		offsetY: number;
 		lastX: number;
@@ -279,8 +339,14 @@ export function GroupRenderer({
 			const dragState = dragStateRef.current;
 			if (dragState) {
 				const rect = container.getBoundingClientRect();
-				const positionX = Math.round(event.clientX - rect.left - dragState.offsetX);
-				const positionY = Math.round(event.clientY - rect.top - dragState.offsetY);
+				const renderedLeft = event.clientX - rect.left - dragState.offsetX;
+				const renderedTop = event.clientY - rect.top - dragState.offsetY;
+				const { positionX, positionY } = getStoredAbsolutePosition(
+					dragState.anchor,
+					renderedLeft,
+					renderedTop,
+					rect,
+				);
 				if (positionX !== dragState.lastX || positionY !== dragState.lastY) {
 					dragState.lastX = positionX;
 					dragState.lastY = positionY;
@@ -329,8 +395,14 @@ export function GroupRenderer({
 			if (!dragState || !container || !onUpdateBlockStyle) return;
 
 			const rect = container.getBoundingClientRect();
-			const positionX = Math.round(event.clientX - rect.left - dragState.offsetX);
-			const positionY = Math.round(event.clientY - rect.top - dragState.offsetY);
+			const renderedLeft = event.clientX - rect.left - dragState.offsetX;
+			const renderedTop = event.clientY - rect.top - dragState.offsetY;
+			const { positionX, positionY } = getStoredAbsolutePosition(
+				dragState.anchor,
+				renderedLeft,
+				renderedTop,
+				rect,
+			);
 			if (positionX === dragState.lastX && positionY === dragState.lastY) return;
 
 			onUpdateBlockStyle(dragState.blockId, {
@@ -572,6 +644,12 @@ export function GroupRenderer({
 					const positionY = block.style.positionY ?? 0;
 					const zIndex = block.style.zIndex ?? 20;
 					const absoluteScale = block.style.scale ?? 100;
+					const positionAnchor = resolveAbsoluteAnchor(block);
+					const positionStyle = getAbsoluteStylePosition(
+						positionAnchor,
+						positionX,
+						positionY,
+					);
 
 					return (
 						<div
@@ -591,8 +669,7 @@ export function GroupRenderer({
 										: ""
 							}`}
 							style={{
-								left: positionX,
-								top: positionY,
+								...positionStyle,
 								zIndex,
 								transform: `scale(${absoluteScale / 100})`,
 								transformOrigin: "top left",
@@ -618,10 +695,17 @@ export function GroupRenderer({
 								if (!container) return;
 
 								const rect = container.getBoundingClientRect();
+								const renderedPosition = getRenderedAbsolutePosition(
+									positionAnchor,
+									positionX,
+									positionY,
+									rect,
+								);
 								dragStateRef.current = {
 									blockId: block.id,
-									offsetX: event.clientX - rect.left - positionX,
-									offsetY: event.clientY - rect.top - positionY,
+									anchor: positionAnchor,
+									offsetX: event.clientX - rect.left - renderedPosition.left,
+									offsetY: event.clientY - rect.top - renderedPosition.top,
 									lastX: positionX,
 									lastY: positionY,
 								};

@@ -325,7 +325,10 @@ KEYBOARD SHORTCUTS:
 ABSOLUTE BLOCK POSITIONING:
 - Blocks can be switched between `flow` and `absolute` modes from block settings
 - Absolute blocks render in a group-relative layer (not viewport-relative)
-- Dragging an absolute block on the canvas updates its `positionX` / `positionY`
+- Absolute blocks store anchor-aware coordinates:
+  - `positionAnchor: "center"` (default for newly-created absolute blocks) means `positionX` / `positionY` are offsets from the group center
+  - `positionAnchor: "top-left"` remains supported for legacy absolute blocks
+- Dragging an absolute block on the canvas updates anchor-relative `positionX` / `positionY`
 - Absolute drag position updates are history-grouped with debounce so one drag is one undo/redo step
 - Final pointer-up coordinates are committed before drag end so the last dropped position is undoable
 - Absolute blocks keep a cached minimum width during drag so they do not auto-shrink near group/canvas edges
@@ -437,8 +440,9 @@ interface BlockStyle {
 
   // Positioning (editor controls)
   positionMode?: "flow" | "absolute";
-  positionX?: number;             // px from group container left
-  positionY?: number;             // px from group container top
+  positionAnchor?: "top-left" | "center"; // Anchor for absolute coords (center is default for new absolute blocks)
+  positionX?: number;             // px offset from anchor origin (left edge or center)
+  positionY?: number;             // px offset from anchor origin (top edge or center)
   zIndex?: number;                // Layer order for absolute blocks
   scale?: number;                 // Block scale percentage (date/countdown style slider; also used by absolute positioning)
 }
@@ -1701,6 +1705,7 @@ This contract ensures AI output can be validated and loaded directly into the ed
 
 ---
 
+*Document Version: 3.78 - Fixed absolute block editor/preview parity by adding anchor-aware coordinates. `BlockStyle` now includes `positionAnchor` (`"top-left" | "center"`). New absolute blocks default to `positionAnchor: "center"` with `positionX` / `positionY` stored as offsets from group center. `GroupRenderer.tsx` now renders/drags absolute blocks using anchor-aware math with legacy `top-left` fallback, so existing saved blocks still render correctly while new center-anchored blocks keep placement aligned across editor and preview widths. `PositionPanel.tsx` now switches Flow -> Absolute using center anchoring by default.*
 *Document Version: 3.77 - Added divider line weight control. `BlockStyle` now includes `lineWeight` (`"thin" | "medium" | "thick"`). `blockRegistry.ts` divider entry now includes a Weight size-picker (Thin/Medium/Thick) with default `lineWeight: "thin"`. `DividerBlock.tsx` now maps this to inline `<hr>` thickness (`1px`, `2px`, `4px`) while preserving existing width/custom-width and opacity behavior.*
 *Document Version: 3.76 - Added new `countdown` block. `BlockType` now includes `"countdown"`. New block component `CountdownBlock.tsx` renders a live countdown using `eventDate` + `eventTime`, supports per-unit toggles (`showDays`, `showHours`, `showMinutes`, `showSeconds`), and supports block-scale control via `editableStyles.scale` (25–300, step 5). `blockRegistry.ts` now includes the `countdown` entry and `sectionRegistry.ts` allowed block lists now include `countdown` across section profiles. `BlockSettings.tsx` and `StylePanel.tsx` now include `countdown` in block-level Font Family override support. New countdown blocks prefill date/time from an existing `date` block in the current group/section when available (`editorStore.ts` addBlock flow).*
 *Document Version: 3.75 - Added block-level Corner Style control for `button` blocks. `blockRegistry.ts` now exposes `borderRadius` options (Sharp/S/M/L/Full) in Button Block Style. `ButtonBlock.tsx` now resolves corner radius as `block.style.borderRadius ?? globalStyle.borderRadius`, so button-level corner choices override global settings while unset buttons continue inheriting global corners.*
