@@ -15,7 +15,6 @@ export function RegisterForm() {
 	const { login } = useAuth();
 	const { mutate: register, isPending: isLoading } = useRegister();
 
-	const [role, setRole] = useState<UserRole>("student");
 	const [firstName, setFirstName] = useState("");
 	const [lastName, setLastName] = useState("");
 	const [userName, setUserName] = useState("");
@@ -60,39 +59,6 @@ export function RegisterForm() {
 			</div>
 
 			<form onSubmit={handleRegister} className="space-y-4">
-				{/* Role selector */}
-				<div className="space-y-2">
-					<Label className="text-sm font-medium">I am a</Label>
-					<div className="grid grid-cols-2 gap-3">
-						<button
-							type="button"
-							onClick={() => setRole("student")}
-							className={`flex items-center gap-2.5 rounded-lg border-2 px-4 py-3 text-sm font-medium transition-all ${
-								role === "student"
-									? "border-primary bg-primary/5 text-primary"
-									: "border-border text-muted-foreground hover:border-primary/40"
-							}`}>
-							<span className="text-xl leading-none">
-								<Icon name="school" className="text-xl" />
-							</span>
-							Student
-						</button>
-						<button
-							type="button"
-							onClick={() => setRole("instructor")}
-							className={`flex items-center gap-2.5 rounded-lg border-2 px-4 py-3 text-sm font-medium transition-all ${
-								role === "instructor"
-									? "border-primary bg-primary/5 text-primary"
-									: "border-border text-muted-foreground hover:border-primary/40"
-							}`}>
-							<span className="text-xl leading-none">
-								<Icon name="person" className="text-xl" />
-							</span>
-							Instructor
-						</button>
-					</div>
-				</div>
-
 				{/* Name row */}
 				<div className="grid grid-cols-2 gap-3">
 					<div className="space-y-2">
