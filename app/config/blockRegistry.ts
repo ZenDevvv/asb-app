@@ -313,6 +313,7 @@ export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
     defaultProps: { src: "", alt: "", caption: "" },
     defaultStyle: {
       width: "full",
+      tilt: 0,
       fontSize: "xl",
       fontWeight: "bold",
       fontStyle: "normal",
@@ -351,6 +352,7 @@ export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
       },
       { key: "opacity", label: "Opacity", type: "slider", min: 0, max: 100, step: 5 },
       { key: "height", label: "Height", type: "slider", min: 0, max: 800, step: 8 },
+      { key: "tilt", label: "Tilt", type: "slider", min: -180, max: 180, step: 1 },
       {
         key: "fontSize",
         label: "Text Size",

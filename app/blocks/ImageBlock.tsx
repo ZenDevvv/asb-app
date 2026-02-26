@@ -115,6 +115,12 @@ export function ImageBlock({ block, globalStyle }: BlockComponentProps) {
   const radius = RADIUS_MAP[radiusKey] || "rounded-lg";
   const isLightTheme = globalStyle.themeMode === "light";
   const heightStyle = s.height ? { height: s.height } : {};
+  const tilt =
+    typeof s.tilt === "number" && Number.isFinite(s.tilt)
+      ? Math.max(-180, Math.min(180, s.tilt))
+      : 0;
+  const tiltStyle: React.CSSProperties =
+    tilt === 0 ? {} : { transform: `rotate(${tilt}deg)`, transformOrigin: "center" };
   const overlayStyle = getOverlayStyle(s.overlayEffect, s.overlayIntensity ?? 40);
 
   // Caption styles
@@ -148,6 +154,7 @@ export function ImageBlock({ block, globalStyle }: BlockComponentProps) {
           marginBottom: s.marginBottom ?? 0,
           backgroundColor: isLightTheme ? "rgba(16,26,22,0.06)" : "rgba(255,255,255,0.05)",
           ...heightStyle,
+          ...tiltStyle,
         }}
       >
         <span
@@ -170,6 +177,7 @@ export function ImageBlock({ block, globalStyle }: BlockComponentProps) {
         marginTop: s.marginTop ?? 0,
         marginBottom: s.marginBottom ?? 0,
         ...heightStyle,
+        ...tiltStyle,
       }}
     >
       <img
