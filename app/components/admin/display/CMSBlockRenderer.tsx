@@ -15,12 +15,14 @@ type CMSContainerVerticalAlignment = "top" | "middle" | "bottom";
 
 function getContainerHorizontalAlignment(block: CMSBlock): CMSContainerHorizontalAlignment {
 	const value = block.props.containerHorizontalAlign;
-	return value === "left" || value === "center" || value === "right" ? value : "left";
+	if (value === "left" || value === "center" || value === "right") return value;
+	return block.type === "image" || block.type === "video" ? "center" : "left";
 }
 
 function getContainerVerticalAlignment(block: CMSBlock): CMSContainerVerticalAlignment {
 	const value = block.props.containerVerticalAlign;
-	return value === "top" || value === "middle" || value === "bottom" ? value : "top";
+	if (value === "top" || value === "middle" || value === "bottom") return value;
+	return block.type === "image" || block.type === "video" ? "middle" : "top";
 }
 
 function getAlignItems(

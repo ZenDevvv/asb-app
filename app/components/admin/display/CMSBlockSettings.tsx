@@ -129,12 +129,16 @@ function supportsFontOverride(type: CMSBlock["type"]): boolean {
 	);
 }
 
-function getContainerHorizontalAlignment(value: unknown): CMSContainerHorizontalAlignment {
-	return value === "left" || value === "center" || value === "right" ? value : "left";
+function getContainerHorizontalAlignment(block: CMSBlock): CMSContainerHorizontalAlignment {
+	const value = block.props.containerHorizontalAlign;
+	if (value === "left" || value === "center" || value === "right") return value;
+	return block.type === "image" || block.type === "video" ? "center" : "left";
 }
 
-function getContainerVerticalAlignment(value: unknown): CMSContainerVerticalAlignment {
-	return value === "top" || value === "middle" || value === "bottom" ? value : "top";
+function getContainerVerticalAlignment(block: CMSBlock): CMSContainerVerticalAlignment {
+	const value = block.props.containerVerticalAlign;
+	if (value === "top" || value === "middle" || value === "bottom") return value;
+	return block.type === "image" || block.type === "video" ? "middle" : "top";
 }
 
 function renderContentFields(
@@ -490,12 +494,8 @@ export function CMSBlockSettings({ block, className }: CMSBlockSettingsProps) {
 			? "Choose a font for subtitle and description text in this timeline block."
 			: "Choose a font for title text in this timeline block."
 		: "Choose a font for this block.";
-	const horizontalContentAlignment = getContainerHorizontalAlignment(
-		block.props.containerHorizontalAlign,
-	);
-	const verticalContentAlignment = getContainerVerticalAlignment(
-		block.props.containerVerticalAlign,
-	);
+	const horizontalContentAlignment = getContainerHorizontalAlignment(block);
+	const verticalContentAlignment = getContainerVerticalAlignment(block);
 	const blockRotation = getNumber(block.style.tilt, 0);
 
 	const updateSelectedProps = (props: Record<string, unknown>) => {
