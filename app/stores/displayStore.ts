@@ -466,6 +466,8 @@ const DEFAULT_HEIGHT_BY_TYPE: Partial<Record<CMSBlockType, number>> = {
 
 const MIN_BLOCK_WIDTH = 8;
 const MIN_BLOCK_HEIGHT = 6;
+const BLOCK_POSITION_MIN = -200;
+const BLOCK_POSITION_MAX = 200;
 
 function clamp(value: number, min: number, max: number): number {
 	return Math.min(max, Math.max(min, value));
@@ -517,8 +519,14 @@ function normalizeBlock(raw: unknown): CMSBlock | null {
 	if (!isCMSBlockType(value.type)) return null;
 
 	const defaultHeight = getDefaultHeight(value.type);
-	const x = typeof value.x === "number" ? clamp(value.x, 0, 100) : 40;
-	const y = typeof value.y === "number" ? clamp(value.y, 0, 100) : 40;
+	const x =
+		typeof value.x === "number"
+			? clamp(value.x, BLOCK_POSITION_MIN, BLOCK_POSITION_MAX)
+			: 40;
+	const y =
+		typeof value.y === "number"
+			? clamp(value.y, BLOCK_POSITION_MIN, BLOCK_POSITION_MAX)
+			: 40;
 	const width = typeof value.w === "number" ? clamp(value.w, MIN_BLOCK_WIDTH, 100) : 32;
 	const height =
 		typeof value.h === "number" ? clamp(value.h, MIN_BLOCK_HEIGHT, 100) : defaultHeight;
@@ -534,8 +542,8 @@ function normalizeBlock(raw: unknown): CMSBlock | null {
 			value.style && typeof value.style === "object"
 				? (value.style as Partial<BlockStyle>)
 				: {},
-		x: clamp(x, 0, 100 - width),
-		y: clamp(y, 0, 100 - height),
+		x,
+		y,
 		w: width,
 		h: height,
 	};
@@ -684,21 +692,19 @@ export const useDisplayStore = create<CMSDisplayState & CMSDisplayActions>()(
 						block.style = { ...block.style, ...patch.style };
 					}
 					if (typeof patch.x === "number") {
-						block.x = clamp(patch.x, 0, 100 - block.w);
+						block.x = clamp(patch.x, BLOCK_POSITION_MIN, BLOCK_POSITION_MAX);
 					}
 					if (typeof patch.y === "number") {
-						block.y = clamp(patch.y, 0, 100 - block.h);
+						block.y = clamp(patch.y, BLOCK_POSITION_MIN, BLOCK_POSITION_MAX);
 					}
 					if (typeof patch.w === "number") {
 						block.w = clamp(Math.round(patch.w * 10) / 10, MIN_BLOCK_WIDTH, 100);
-						block.x = clamp(block.x, 0, 100 - block.w);
 					}
 					if (typeof patch.h === "number") {
 						block.h = clamp(Math.round(patch.h * 10) / 10, MIN_BLOCK_HEIGHT, 100);
-						block.y = clamp(block.y, 0, 100 - block.h);
 					}
-					block.x = clamp(block.x, 0, 100 - block.w);
-					block.y = clamp(block.y, 0, 100 - block.h);
+					block.x = clamp(block.x, BLOCK_POSITION_MIN, BLOCK_POSITION_MAX);
+					block.y = clamp(block.y, BLOCK_POSITION_MIN, BLOCK_POSITION_MAX);
 				});
 
 				persist();

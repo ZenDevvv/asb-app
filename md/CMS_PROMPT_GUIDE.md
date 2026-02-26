@@ -94,7 +94,7 @@ Avoid touching:
 `CMSCanvas`:
 
 1. Fixed resolution canvas scaled to viewport
-2. Drag blocks by pointer
+2. Drag blocks by pointer, including outside canvas bounds
 3. Resize block containers by dragging edges and corners (8 handles)
 4. Block positions and dimensions (`x`, `y`, `w`, `h`) are stored as canvas percentages
 5. Orientation switch (landscape/portrait) supported in header
@@ -141,7 +141,8 @@ Rules:
 2. Resizing updates container width and height, not only content style.
 3. Width and height are persisted as percentages for responsive scaling across resolutions.
 4. Images and videos must visually resize with the container when dragged.
-5. Keep this behavior CMS-only; do not port to page-builder editor modes.
+5. Dragging is not edge-clamped: `x`/`y` can move outside 0-100 so blocks may be placed off-canvas.
+6. Keep this behavior CMS-only; do not port to page-builder editor modes.
 
 ---
 
@@ -291,3 +292,4 @@ As of this guide version:
 6. CMS library uses grid cards.
 7. CMS blocks support drag-resize containers using edge/corner handles.
 8. CMS text blocks support font-family selection via Typography Settings modal.
+9. CMS blocks can be dragged outside canvas bounds (no edge clamp on drag).

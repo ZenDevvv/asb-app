@@ -20,8 +20,6 @@ interface DragState {
 	startX: number;
 	startY: number;
 	startScale: number;
-	blockWidth: number;
-	blockHeight: number;
 }
 
 type ResizeHandle = "n" | "s" | "e" | "w" | "ne" | "nw" | "se" | "sw";
@@ -160,8 +158,6 @@ export function CMSCanvas({ className }: CMSCanvasProps) {
 			startX: block.x,
 			startY: block.y,
 			startScale: displayScale,
-			blockWidth: block.w,
-			blockHeight: block.h,
 		};
 		setDraggingBlockId(block.id);
 		selectBlock(block.id);
@@ -175,16 +171,8 @@ export function CMSCanvas({ className }: CMSCanvasProps) {
 
 		const deltaCanvasX = (event.clientX - drag.startClientX) / drag.startScale;
 		const deltaCanvasY = (event.clientY - drag.startClientY) / drag.startScale;
-		const nextX = clamp(
-			drag.startX + (deltaCanvasX / resolution.width) * 100,
-			0,
-			100 - drag.blockWidth,
-		);
-		const nextY = clamp(
-			drag.startY + (deltaCanvasY / resolution.height) * 100,
-			0,
-			100 - drag.blockHeight,
-		);
+		const nextX = drag.startX + (deltaCanvasX / resolution.width) * 100;
+		const nextY = drag.startY + (deltaCanvasY / resolution.height) * 100;
 
 		updateBlock(drag.blockId, { x: nextX, y: nextY });
 	};

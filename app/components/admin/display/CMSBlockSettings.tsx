@@ -588,8 +588,8 @@ export function CMSBlockSettings({ block, className }: CMSBlockSettingsProps) {
 							X ({block.x.toFixed(1)}%)
 						</span>
 						<Slider
-							min={0}
-							max={100}
+							min={-200}
+							max={200}
 							step={0.5}
 							value={[block.x]}
 							onValueChange={(value) =>
@@ -604,8 +604,8 @@ export function CMSBlockSettings({ block, className }: CMSBlockSettingsProps) {
 							Y ({block.y.toFixed(1)}%)
 						</span>
 						<Slider
-							min={0}
-							max={100}
+							min={-200}
+							max={200}
 							step={0.5}
 							value={[block.y]}
 							onValueChange={(value) =>
