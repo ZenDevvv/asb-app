@@ -14,6 +14,7 @@ export type BlockType =
   | "quote"
   | "date"
   | "countdown"
+  | "timeline"
   | "rsvp";
 
 export type BlockCategory = "basic" | "media" | "layout" | "content";

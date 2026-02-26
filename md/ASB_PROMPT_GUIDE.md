@@ -229,7 +229,7 @@ The right sidebar changes based on what is selected:
 
 **When a BLOCK is selected** (click a specific block on the canvas):
 1. **Block Content** - auto-generated controls based on block type (text input, image upload, etc.)
-2. **Block Style** - constrained style options for that block (size, alignment, spacing, letter spacing, and per-block corners where supported). `heading`, `text`, `button`, `image`, `date`, and `countdown` blocks expose a **Font Family** control that opens the same Typography Settings modal used in Global Settings; selecting a font applies a block-level override (applied to the caption text for `image` blocks). `button` blocks also expose **Corner Style** (Sharp/S/M/L/Full) which defaults to the global corner style until explicitly overridden on that block.
+2. **Block Style** - constrained style options for that block (size, alignment, spacing, letter spacing, and per-block corners where supported). `heading`, `text`, `button`, `image`, `date`, `countdown`, and `timeline` blocks expose a **Font Family** control that opens the same Typography Settings modal used in Global Settings; selecting a font applies a block-level override (applied to the caption text for `image` blocks). `button` blocks also expose **Corner Style** (Sharp/S/M/L/Full) which defaults to the global corner style until explicitly overridden on that block.
 3. **Position** - collapsible panel with:
    - **Column** — slot/column picker (shown only when the group layout has multiple slots and the block is in flow mode). Allows moving the block to a different column after it was added. Calls `moveBlockToSlot` / `moveBlockToSlotAtIndex` store actions.
    - **Flow / Absolute** toggle — choose positioning mode. Absolute blocks are positioned relative to the selected group and can be moved on the canvas by dragging.
@@ -388,6 +388,7 @@ type BlockType =
   | "quote"          // Blockquote with attribution
   | "date"           // Event date/time display — editableProps: eventDate (date input) + eventTime (time input); editableStyles: width slider (320-1600px), section spacing slider (0-160px), and scale slider (25-300)
   | "countdown"      // Live countdown display — editableProps: eventDate (date input), eventTime (time input), showDays/showHours/showMinutes/showSeconds (toggle); editableStyles: scale slider (25-300). New countdown blocks prefill eventDate/eventTime from an existing date block when available.
+  | "timeline"       // Alternating timeline display — editableProps: timeline[] repeater (title, subtitle, icon, description) + title/subtitle/description color pickers; editableStyles: scale slider (25-300)
   | "rsvp"           // Event RSVP form — full self-contained form with name, email, attendance toggle, guest count, song request, and submit button
   // Post-MVP:
   | "video"          // Embedded video (YouTube/Vimeo URL)
@@ -408,7 +409,7 @@ interface Block {
 
 interface BlockStyle {
   // Text
-  fontFamily?: string;            // Optional block-level font override (heading, text, button, image, date, countdown blocks)
+  fontFamily?: string;            // Optional block-level font override (heading, text, button, image, date, countdown, timeline blocks)
   fontSize?: "sm" | "base" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "5xl" | "custom";
   fontSizePx?: number;            // Custom heading/text size in px when fontSize="custom"
   fontWeight?: "normal" | "medium" | "semibold" | "bold";
@@ -444,7 +445,7 @@ interface BlockStyle {
   positionX?: number;             // px offset from anchor origin (left edge or center)
   positionY?: number;             // px offset from anchor origin (top edge or center)
   zIndex?: number;                // Layer order for absolute blocks
-  scale?: number;                 // Block scale percentage (date/countdown style slider; also used by absolute positioning)
+  scale?: number;                 // Block scale percentage (date/countdown/timeline style slider; also used by absolute positioning)
 }
 
 // â”€â”€â”€ Layout Template â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -833,6 +834,31 @@ Rules for block components:
 // category: "content"
 ```
 
+**Timeline block props (implemented):**
+```typescript
+// timeline block.props shape
+{
+  timeline: Array<{
+    title?: string;        // e.g. "The Ceremony"
+    subtitle?: string;     // e.g. "4:30 PM"
+    icon?: string;         // Material Symbol name from existing icon picker library
+    description?: string;  // Supporting detail text
+  }>;
+  titleColor?: string;       // Defaults by theme: dark=#ffffff, light=#111111
+  subtitleColor?: string;    // Defaults to GlobalStyle.primaryColor
+  descriptionColor?: string; // Defaults by theme: dark=#a1a1aa, light=#6b7280
+}
+// Renderer alternates title/subtitle vs description left/right on desktop
+// and collapses to a single-column timeline on mobile.
+// editableProps:
+//   - timeline (repeater): title, subtitle, icon-picker, description
+//   - titleColor, subtitleColor, descriptionColor (color controls)
+// editableStyles:
+//   - scale slider (25-300, step 5)
+// Block-level font override is supported via BlockStyle.fontFamily.
+// New timeline blocks seed default colors from the active global theme + primary color at add time.
+```
+
 ### Section Renderer
 
 The section renderer is responsible for:
@@ -898,7 +924,7 @@ BlockStyle.colorMode        -> "global" (default): block derives text/accent fro
                                "custom": block uses its own textColor/accentColor
 BlockStyle.textColor        â†’ custom text color (only active when colorMode="custom")
 BlockStyle.accentColor      â†’ custom accent color (only active when colorMode="custom")
-BlockStyle.fontFamily       â†’ optional block-level font override (heading, text, button, image, date, countdown blocks — applies to caption on image)
+BlockStyle.fontFamily       â†’ optional block-level font override (heading, text, button, image, date, countdown, timeline blocks — applies to caption on image)
 BlockStyle.fontSize         â†’ block-level size choice (heading/text support presets + "custom")
 BlockStyle.fontSizePx       â†’ heading/text custom size in px (applies when fontSize="custom")
 BlockStyle.fontWeight       â†’ block-level weight choice (where supported)
@@ -1557,7 +1583,7 @@ These decisions are final. Don't revisit or suggest alternatives:
 - Email/password + Google OAuth signup/login
 - User dashboard (project list)
 - Template gallery (8-12 templates as section+block presets)
-- Block-based editor with section presets (including blank) and 12 block types
+- Block-based editor with section presets (including blank) and 15 block types
 - Three-panel editor: left sections list, center canvas, right settings
 - Drag-to-reorder sections (left sidebar), groups (left sidebar tree), and blocks (right sidebar + focused canvas drag)
 - Layout templates (1-col, 2-col, 3-col) with visual picker
@@ -1705,6 +1731,7 @@ This contract ensures AI output can be validated and loaded directly into the ed
 
 ---
 
+*Document Version: 3.79 - Added new `timeline` block. `BlockType` now includes `"timeline"`. New block component `TimelineBlock.tsx` renders an alternating timeline layout (title/subtitle + icon + description), collapses responsively on mobile, and supports countdown-style flow scale control via `editableStyles.scale` (25–300, step 5). `blockRegistry.ts` now includes timeline repeater content (`timeline[]` with `title`, `subtitle`, `icon`, `description`) plus timeline color settings (`titleColor`, `subtitleColor`, `descriptionColor`). `sectionRegistry.ts` allowed block lists now include `timeline` across section profiles. `BlockSettings.tsx` and `StylePanel.tsx` now include `timeline` in block-level Font Family override support. `editorStore.ts` seeds new timeline blocks with theme-aware default title/description colors and global primary subtitle color. `RepeaterControl.tsx` now supports `icon-picker` subfields so timeline items can select icons from the existing icon library.*
 *Document Version: 3.78 - Fixed absolute block editor/preview parity by adding anchor-aware coordinates. `BlockStyle` now includes `positionAnchor` (`"top-left" | "center"`). New absolute blocks default to `positionAnchor: "center"` with `positionX` / `positionY` stored as offsets from group center. `GroupRenderer.tsx` now renders/drags absolute blocks using anchor-aware math with legacy `top-left` fallback, so existing saved blocks still render correctly while new center-anchored blocks keep placement aligned across editor and preview widths. `PositionPanel.tsx` now switches Flow -> Absolute using center anchoring by default.*
 *Document Version: 3.77 - Added divider line weight control. `BlockStyle` now includes `lineWeight` (`"thin" | "medium" | "thick"`). `blockRegistry.ts` divider entry now includes a Weight size-picker (Thin/Medium/Thick) with default `lineWeight: "thin"`. `DividerBlock.tsx` now maps this to inline `<hr>` thickness (`1px`, `2px`, `4px`) while preserving existing width/custom-width and opacity behavior.*
 *Document Version: 3.76 - Added new `countdown` block. `BlockType` now includes `"countdown"`. New block component `CountdownBlock.tsx` renders a live countdown using `eventDate` + `eventTime`, supports per-unit toggles (`showDays`, `showHours`, `showMinutes`, `showSeconds`), and supports block-scale control via `editableStyles.scale` (25–300, step 5). `blockRegistry.ts` now includes the `countdown` entry and `sectionRegistry.ts` allowed block lists now include `countdown` across section profiles. `BlockSettings.tsx` and `StylePanel.tsx` now include `countdown` in block-level Font Family override support. New countdown blocks prefill date/time from an existing `date` block in the current group/section when available (`editorStore.ts` addBlock flow).*

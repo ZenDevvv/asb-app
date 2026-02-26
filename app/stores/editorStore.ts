@@ -689,6 +689,28 @@ export const useEditorStore = create<EditorState & EditorActions>()(
           }
         }
 
+        if (blockType === "timeline") {
+          const isDarkTheme = state.globalStyle.themeMode === "dark";
+          if (
+            typeof newBlockProps.titleColor !== "string" ||
+            newBlockProps.titleColor.trim().length === 0
+          ) {
+            newBlockProps.titleColor = isDarkTheme ? "#ffffff" : "#111111";
+          }
+          if (
+            typeof newBlockProps.subtitleColor !== "string" ||
+            newBlockProps.subtitleColor.trim().length === 0
+          ) {
+            newBlockProps.subtitleColor = state.globalStyle.primaryColor || "#00e5a0";
+          }
+          if (
+            typeof newBlockProps.descriptionColor !== "string" ||
+            newBlockProps.descriptionColor.trim().length === 0
+          ) {
+            newBlockProps.descriptionColor = isDarkTheme ? "#a1a1aa" : "#6b7280";
+          }
+        }
+
         const newBlock: Block = {
           id: nanoid(10),
           type: blockType,

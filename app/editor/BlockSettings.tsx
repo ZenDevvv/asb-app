@@ -47,7 +47,8 @@ export function BlockSettings({
 		block.type === "button" ||
 		block.type === "image" ||
 		block.type === "date" ||
-		block.type === "countdown";
+		block.type === "countdown" ||
+		block.type === "timeline";
 	const [fontModalOpen, setFontModalOpen] = useState(false);
 	const effectiveFontValue = block.style.fontFamily || globalStyle.fontFamily;
 

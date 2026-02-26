@@ -91,7 +91,8 @@ export function StylePanel({
 		block.type === "button" ||
 		block.type === "image" ||
 		block.type === "date" ||
-		block.type === "countdown";
+		block.type === "countdown" ||
+		block.type === "timeline";
 	const effectiveFontValue = block.style.fontFamily || globalFontFamily;
 	const selectedFont = resolveFontOption(effectiveFontValue);
 	const hasBlockFontOverride =

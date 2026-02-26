@@ -12,6 +12,7 @@ import { ListBlock } from "~/blocks/ListBlock";
 import { QuoteBlock } from "~/blocks/QuoteBlock";
 import { DateBlock } from "~/blocks/DateBlock";
 import { CountdownBlock } from "~/blocks/CountdownBlock";
+import { TimelineBlock } from "~/blocks/TimelineBlock";
 import { RsvpBlock } from "~/blocks/RsvpBlock";
 
 export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
@@ -706,6 +707,73 @@ export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
     ],
     inlineEditable: false,
     colorOptions: { hasText: true, hasAccent: false },
+  },
+
+  timeline: {
+    component: TimelineBlock,
+    label: "Timeline",
+    icon: "timeline",
+    category: "content",
+    defaultProps: {
+      timeline: [
+        {
+          title: "The Ceremony",
+          subtitle: "4:30 PM",
+          icon: "celebration",
+          description: "Exchange of vows in the garden courtyard.",
+        },
+        {
+          title: "Cocktail Hour",
+          subtitle: "5:30 PM",
+          icon: "schedule",
+          description: "Sip on signature cocktails and enjoy light bites as the sun sets.",
+        },
+        {
+          title: "Dinner",
+          subtitle: "7:00 PM",
+          icon: "favorite",
+          description: "A farm-to-table feast under the twinkling lights.",
+        },
+        {
+          title: "Dancing",
+          subtitle: "9:00 PM",
+          icon: "music_note",
+          description: "Put on your dancing shoes and party until midnight.",
+        },
+      ],
+      titleColor: "",
+      subtitleColor: "",
+      descriptionColor: "",
+    },
+    defaultStyle: {
+      scale: 100,
+    },
+    editableProps: [
+      {
+        key: "timeline",
+        label: "Timeline Items",
+        type: "repeater",
+        subFields: [
+          { key: "title", label: "Title", type: "short-text", defaultValue: "Timeline Event" },
+          { key: "subtitle", label: "Subtitle", type: "short-text", defaultValue: "6:00 PM" },
+          { key: "icon", label: "Icon", type: "icon-picker", defaultValue: "schedule" },
+          {
+            key: "description",
+            label: "Description",
+            type: "long-text",
+            defaultValue: "Add a short description for this timeline entry.",
+          },
+        ],
+      },
+      { key: "titleColor", label: "Title Color", type: "color" },
+      { key: "subtitleColor", label: "Subtitle Color", type: "color" },
+      { key: "descriptionColor", label: "Description Color", type: "color" },
+    ],
+    editableStyles: [
+      { key: "scale", label: "Scale", type: "slider", min: 25, max: 300, step: 5 },
+    ],
+    inlineEditable: false,
+    colorOptions: { hasText: false, hasAccent: false },
   },
 
   rsvp: {
