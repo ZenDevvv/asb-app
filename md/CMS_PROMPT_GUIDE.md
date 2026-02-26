@@ -200,6 +200,8 @@ Current pattern:
 7. Current hardcoded state: two templates sourced from exported debug JSON:
    - `Canvas Background as a video` (portrait)
    - `multiple video in canvas` (landscape)
+8. Fresh start behavior: when no saved localStorage snapshot exists, CMS auto-loads `multiple-video-in-canvas` as the initial canvas state
+9. `multiple video in canvas` currently reflects the latest exported snapshot (updated video URLs and layout positions)
 
 ---
 
@@ -326,3 +328,4 @@ As of this guide version:
 14. Header shows an explicit `Template` label and uses orientation-filtered preset dropdowns.
 15. CMS `image` and `video` blocks fill the entire container and do not use container alignment controls.
 16. Block settings header uses minimal icon-only actions, including duplicate and delete.
+17. On fresh start (no saved local state), CMS bootstraps the canvas from `multiple-video-in-canvas`.

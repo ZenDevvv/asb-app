@@ -6,6 +6,7 @@ import type { BlockStyle, BlockType, GlobalStyle } from "~/types/editor";
 
 export const CMS_DISPLAY_STORAGE_KEY = "asb-cms-display";
 const LEGACY_DISPLAY_STORAGE_KEY = "asb-tv-display";
+const DEFAULT_STARTUP_TEMPLATE_ID = "multiple-video-in-canvas";
 
 export type CMSBlockType = Exclude<BlockType, "button" | "rsvp">;
 
@@ -162,7 +163,7 @@ export const CMS_TEMPLATE_LIBRARY: CMSTemplate[] = [
 	},
 	{
 		id: "multiple-video-in-canvas",
-		label: "Multiple video in canvas",
+		label: "multiple video in canvas",
 		description: "Imported from CMS debug snapshot with multiple video blocks in landscape.",
 		resolution: { label: "1080p Landscape", width: 1920, height: 1080 },
 		globalStyle: {
@@ -186,7 +187,7 @@ export const CMS_TEMPLATE_LIBRARY: CMSTemplate[] = [
 				w: 26.6,
 				h: 37.4,
 				props: {
-					src: "https://www.pexels.com/download/video/6463443/",
+					src: "https://www.pexels.com/download/video/3738655/",
 					alt: "",
 					caption: "",
 					containerHorizontalAlign: "center",
@@ -207,12 +208,12 @@ export const CMS_TEMPLATE_LIBRARY: CMSTemplate[] = [
 			},
 			{
 				type: "video",
-				x: 75.45456418124112,
-				y: 5.070672545770201,
+				x: 72.36365370316939,
+				y: 4.1009780421401505,
 				w: 21.1,
 				h: 49.8,
 				props: {
-					src: "https://www.pexels.com/download/video/6463443/",
+					src: "https://www.pexels.com/download/video/3189188/",
 					alt: "",
 					caption: "",
 					containerHorizontalAlign: "center",
@@ -233,12 +234,12 @@ export const CMS_TEMPLATE_LIBRARY: CMSTemplate[] = [
 			},
 			{
 				type: "video",
-				x: 42.27274877374823,
-				y: 7.717139658301766,
+				x: 42.63639346036045,
+				y: 9.97976838699495,
 				w: 21.9,
 				h: 29.3,
 				props: {
-					src: "https://www.pexels.com/download/video/6463443/",
+					src: "https://www.pexels.com/download/video/3197534/",
 					alt: "",
 					caption: "",
 					containerHorizontalAlign: "center",
@@ -259,12 +260,12 @@ export const CMS_TEMPLATE_LIBRARY: CMSTemplate[] = [
 			},
 			{
 				type: "video",
-				x: 5.545477433638148,
-				y: 51.89895537405304,
+				x: 10.818200544877492,
+				y: 55.616132023358595,
 				w: 36.7,
 				h: 33.8,
 				props: {
-					src: "https://www.pexels.com/download/video/6463443/",
+					src: "https://www.pexels.com/download/video/3326745/",
 					alt: "",
 					caption: "",
 					containerHorizontalAlign: "center",
@@ -285,12 +286,12 @@ export const CMS_TEMPLATE_LIBRARY: CMSTemplate[] = [
 			},
 			{
 				type: "video",
-				x: 57.72729284113104,
-				y: 61.65654222892993,
-				w: 34.9,
-				h: 30,
+				x: 59.72729006680575,
+				y: 58.262605301057455,
+				w: 26.3,
+				h: 34.7,
 				props: {
-					src: "https://www.pexels.com/download/video/6463443/",
+					src: "https://www.pexels.com/download/video/8308977/",
 					alt: "",
 					caption: "",
 					containerHorizontalAlign: "center",
@@ -518,6 +519,30 @@ function createBlockFromTemplateSeed(seed: CMSTemplateBlockSeed): CMSBlock | nul
 	};
 }
 
+function createSnapshotFromTemplate(template: CMSTemplate): Pick<
+	CMSDisplaySnapshot,
+	"resolution" | "blocks" | "activeTemplateId" | "canvasBackground" | "globalStyle"
+> {
+	const resolution = normalizeResolution(template.resolution);
+	const blocks = template.blocks
+		.map((seed) => createBlockFromTemplateSeed(seed))
+		.filter((block): block is CMSBlock => block !== null);
+	const canvasBackground = template.canvasBackground
+		? normalizeCanvasBackground(template.canvasBackground)
+		: { ...DEFAULT_CANVAS_BACKGROUND };
+	const globalStyle = template.globalStyle
+		? { ...DEFAULT_GLOBAL_STYLE, ...template.globalStyle }
+		: { ...DEFAULT_GLOBAL_STYLE };
+
+	return {
+		resolution,
+		blocks,
+		activeTemplateId: template.id,
+		canvasBackground,
+		globalStyle,
+	};
+}
+
 export const useDisplayStore = create<CMSDisplayState & CMSDisplayActions>()(
 	immer((set, get) => {
 		const persist = () => {
@@ -686,25 +711,16 @@ export const useDisplayStore = create<CMSDisplayState & CMSDisplayActions>()(
 				const template = resolveTemplate(templateId);
 				if (!template) return;
 
-				const normalizedResolution = normalizeResolution(template.resolution);
-				const seededBlocks = template.blocks
-					.map((seed) => createBlockFromTemplateSeed(seed))
-					.filter((block): block is CMSBlock => block !== null);
-				const normalizedTemplateBackground = template.canvasBackground
-					? normalizeCanvasBackground(template.canvasBackground)
-					: { ...DEFAULT_CANVAS_BACKGROUND };
-				const normalizedTemplateGlobalStyle = template.globalStyle
-					? { ...DEFAULT_GLOBAL_STYLE, ...template.globalStyle }
-					: { ...DEFAULT_GLOBAL_STYLE };
+				const templateSnapshot = createSnapshotFromTemplate(template);
 
 				set((state) => {
-					state.resolution = normalizedResolution;
+					state.resolution = templateSnapshot.resolution;
 					state.zoom = DEFAULT_ZOOM;
-					state.blocks = seededBlocks;
+					state.blocks = templateSnapshot.blocks;
 					state.selectedBlockId = null;
-					state.activeTemplateId = template.id;
-					state.canvasBackground = normalizedTemplateBackground;
-					state.globalStyle = normalizedTemplateGlobalStyle;
+					state.activeTemplateId = templateSnapshot.activeTemplateId;
+					state.canvasBackground = templateSnapshot.canvasBackground;
+					state.globalStyle = templateSnapshot.globalStyle;
 				});
 
 				persist();
@@ -727,7 +743,18 @@ export const useDisplayStore = create<CMSDisplayState & CMSDisplayActions>()(
 			loadFromLocalStorage: () => {
 				const storage = getStorage();
 				if (!storage) {
+					const startupTemplate = resolveTemplate(DEFAULT_STARTUP_TEMPLATE_ID);
 					set((state) => {
+						if (startupTemplate) {
+							const templateSnapshot = createSnapshotFromTemplate(startupTemplate);
+							state.resolution = templateSnapshot.resolution;
+							state.zoom = DEFAULT_ZOOM;
+							state.blocks = templateSnapshot.blocks;
+							state.selectedBlockId = null;
+							state.activeTemplateId = templateSnapshot.activeTemplateId;
+							state.canvasBackground = templateSnapshot.canvasBackground;
+							state.globalStyle = templateSnapshot.globalStyle;
+						}
 						state.isHydrated = true;
 					});
 					return;
@@ -738,7 +765,18 @@ export const useDisplayStore = create<CMSDisplayState & CMSDisplayActions>()(
 						storage.getItem(CMS_DISPLAY_STORAGE_KEY) ??
 						storage.getItem(LEGACY_DISPLAY_STORAGE_KEY);
 					if (!raw) {
+						const startupTemplate = resolveTemplate(DEFAULT_STARTUP_TEMPLATE_ID);
 						set((state) => {
+							if (startupTemplate) {
+								const templateSnapshot = createSnapshotFromTemplate(startupTemplate);
+								state.resolution = templateSnapshot.resolution;
+								state.zoom = DEFAULT_ZOOM;
+								state.blocks = templateSnapshot.blocks;
+								state.selectedBlockId = null;
+								state.activeTemplateId = templateSnapshot.activeTemplateId;
+								state.canvasBackground = templateSnapshot.canvasBackground;
+								state.globalStyle = templateSnapshot.globalStyle;
+							}
 							state.isHydrated = true;
 						});
 						return;
@@ -788,4 +826,3 @@ export const useDisplayStore = create<CMSDisplayState & CMSDisplayActions>()(
 		};
 	}),
 );
-
