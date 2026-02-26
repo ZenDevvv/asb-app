@@ -93,8 +93,9 @@ Avoid touching:
 
 1. Fixed resolution canvas scaled to viewport
 2. Drag blocks by pointer
-3. Block positions/width stored as percentages
-4. Orientation switch (landscape/portrait) supported in header
+3. Resize block containers by dragging edges and corners (8 handles)
+4. Block positions and dimensions (`x`, `y`, `w`, `h`) are stored as canvas percentages
+5. Orientation switch (landscape/portrait) supported in header
 
 ---
 
@@ -125,6 +126,20 @@ Key actions include:
 9. `resetCanvas`
 10. `saveToLocalStorage`
 11. `loadFromLocalStorage`
+
+---
+
+## Free Canvas Resizing Rules
+
+Because CMS is a free canvas editor, each block has a resizable container.
+
+Rules:
+
+1. Resize must work from edges and corners.
+2. Resizing updates container width and height, not only content style.
+3. Width and height are persisted as percentages for responsive scaling across resolutions.
+4. Images and videos must visually resize with the container when dragged.
+5. Keep this behavior CMS-only; do not port to page-builder editor modes.
 
 ---
 
@@ -253,4 +268,4 @@ As of this guide version:
 4. CMS supports background settings (color/image/video).
 5. CMS video playback defaults to autoplay/muted/loop without controls.
 6. CMS library uses grid cards.
-
+7. CMS blocks support drag-resize containers using edge/corner handles.

@@ -497,13 +497,29 @@ export function CMSBlockSettings({ block, className }: CMSBlockSettingsProps) {
 							Width ({block.w.toFixed(1)}%)
 						</span>
 						<Slider
-							min={10}
+							min={8}
 							max={100}
 							step={0.5}
 							value={[block.w]}
 							onValueChange={(value) =>
 								updateBlock(block.id, {
 									w: value[0] ?? block.w,
+								})
+							}
+						/>
+					</div>
+					<div className="space-y-1.5">
+						<span className="text-xs text-muted-foreground">
+							Height ({block.h.toFixed(1)}%)
+						</span>
+						<Slider
+							min={6}
+							max={100}
+							step={0.5}
+							value={[block.h]}
+							onValueChange={(value) =>
+								updateBlock(block.id, {
+									h: value[0] ?? block.h,
 								})
 							}
 						/>

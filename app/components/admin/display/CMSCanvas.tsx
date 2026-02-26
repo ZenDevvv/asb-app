@@ -21,10 +21,53 @@ interface DragState {
 	startY: number;
 	startScale: number;
 	blockWidth: number;
+	blockHeight: number;
+}
+
+type ResizeHandle = "n" | "s" | "e" | "w" | "ne" | "nw" | "se" | "sw";
+
+interface ResizeState {
+	blockId: string;
+	pointerId: number;
+	handle: ResizeHandle;
+	startClientX: number;
+	startClientY: number;
+	startX: number;
+	startY: number;
+	startW: number;
+	startH: number;
+	startScale: number;
 }
 
 function clamp(value: number, min: number, max: number): number {
 	return Math.min(max, Math.max(min, value));
+}
+
+const RESIZE_HANDLES: ResizeHandle[] = ["n", "s", "e", "w", "ne", "nw", "se", "sw"];
+const MIN_BLOCK_WIDTH = 8;
+const MIN_BLOCK_HEIGHT = 6;
+
+function getResizeHandleClass(handle: ResizeHandle): string {
+	switch (handle) {
+		case "n":
+			return "left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 cursor-ns-resize";
+		case "s":
+			return "bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 cursor-ns-resize";
+		case "e":
+			return "right-0 top-1/2 translate-x-1/2 -translate-y-1/2 cursor-ew-resize";
+		case "w":
+			return "left-0 top-1/2 -translate-x-1/2 -translate-y-1/2 cursor-ew-resize";
+		case "ne":
+			return "right-0 top-0 translate-x-1/2 -translate-y-1/2 cursor-nesw-resize";
+		case "nw":
+			return "left-0 top-0 -translate-x-1/2 -translate-y-1/2 cursor-nwse-resize";
+		case "se":
+			return "bottom-0 right-0 translate-x-1/2 translate-y-1/2 cursor-nwse-resize";
+		case "sw":
+			return "bottom-0 left-0 -translate-x-1/2 translate-y-1/2 cursor-nesw-resize";
+		default:
+			return "";
+	}
 }
 
 export function CMSCanvas({ className }: CMSCanvasProps) {
@@ -39,12 +82,14 @@ export function CMSCanvas({ className }: CMSCanvasProps) {
 
 	const viewportRef = useRef<HTMLDivElement | null>(null);
 	const dragStateRef = useRef<DragState | null>(null);
+	const resizeStateRef = useRef<ResizeState | null>(null);
 
 	const [viewportSize, setViewportSize] = useState<CanvasViewportSize>({
 		width: 0,
 		height: 0,
 	});
 	const [draggingBlockId, setDraggingBlockId] = useState<string | null>(null);
+	const [resizingBlockId, setResizingBlockId] = useState<string | null>(null);
 
 	useEffect(() => {
 		const element = viewportRef.current;
@@ -102,6 +147,7 @@ export function CMSCanvas({ className }: CMSCanvasProps) {
 
 	const handleBlockPointerDown = (event: React.PointerEvent<HTMLDivElement>, block: CMSBlock) => {
 		if (event.button !== 0) return;
+		if (resizeStateRef.current) return;
 
 		event.preventDefault();
 		event.stopPropagation();
@@ -115,6 +161,7 @@ export function CMSCanvas({ className }: CMSCanvasProps) {
 			startY: block.y,
 			startScale: displayScale,
 			blockWidth: block.w,
+			blockHeight: block.h,
 		};
 		setDraggingBlockId(block.id);
 		selectBlock(block.id);
@@ -133,9 +180,93 @@ export function CMSCanvas({ className }: CMSCanvasProps) {
 			0,
 			100 - drag.blockWidth,
 		);
-		const nextY = clamp(drag.startY + (deltaCanvasY / resolution.height) * 100, 0, 100);
+		const nextY = clamp(
+			drag.startY + (deltaCanvasY / resolution.height) * 100,
+			0,
+			100 - drag.blockHeight,
+		);
 
 		updateBlock(drag.blockId, { x: nextX, y: nextY });
+	};
+
+	const handleResizePointerDown = (
+		event: React.PointerEvent<HTMLDivElement>,
+		block: CMSBlock,
+		handle: ResizeHandle,
+	) => {
+		if (event.button !== 0) return;
+
+		event.preventDefault();
+		event.stopPropagation();
+
+		dragStateRef.current = null;
+		setDraggingBlockId(null);
+		resizeStateRef.current = {
+			blockId: block.id,
+			pointerId: event.pointerId,
+			handle,
+			startClientX: event.clientX,
+			startClientY: event.clientY,
+			startX: block.x,
+			startY: block.y,
+			startW: block.w,
+			startH: block.h,
+			startScale: displayScale,
+		};
+		setResizingBlockId(block.id);
+		selectBlock(block.id);
+		event.currentTarget.setPointerCapture(event.pointerId);
+	};
+
+	const handleResizePointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+		const resize = resizeStateRef.current;
+		if (!resize) return;
+		if (resize.pointerId !== event.pointerId) return;
+
+		const deltaCanvasX = (event.clientX - resize.startClientX) / resize.startScale;
+		const deltaCanvasY = (event.clientY - resize.startClientY) / resize.startScale;
+		const deltaXPct = (deltaCanvasX / resolution.width) * 100;
+		const deltaYPct = (deltaCanvasY / resolution.height) * 100;
+
+		let nextX = resize.startX;
+		let nextY = resize.startY;
+		let nextW = resize.startW;
+		let nextH = resize.startH;
+
+		if (resize.handle.includes("e")) {
+			nextW = clamp(resize.startW + deltaXPct, MIN_BLOCK_WIDTH, 100 - resize.startX);
+		}
+		if (resize.handle.includes("s")) {
+			nextH = clamp(resize.startH + deltaYPct, MIN_BLOCK_HEIGHT, 100 - resize.startY);
+		}
+		if (resize.handle.includes("w")) {
+			nextX = clamp(
+				resize.startX + deltaXPct,
+				0,
+				resize.startX + resize.startW - MIN_BLOCK_WIDTH,
+			);
+			nextW = resize.startW - (nextX - resize.startX);
+		}
+		if (resize.handle.includes("n")) {
+			nextY = clamp(
+				resize.startY + deltaYPct,
+				0,
+				resize.startY + resize.startH - MIN_BLOCK_HEIGHT,
+			);
+			nextH = resize.startH - (nextY - resize.startY);
+		}
+
+		nextW = clamp(nextW, MIN_BLOCK_WIDTH, 100);
+		nextH = clamp(nextH, MIN_BLOCK_HEIGHT, 100);
+		nextX = clamp(nextX, 0, 100 - nextW);
+		nextY = clamp(nextY, 0, 100 - nextH);
+
+		updateBlock(resize.blockId, {
+			x: nextX,
+			y: nextY,
+			w: nextW,
+			h: nextH,
+		});
 	};
 
 	const endDrag = (event: React.PointerEvent<HTMLDivElement>) => {
@@ -144,6 +275,18 @@ export function CMSCanvas({ className }: CMSCanvasProps) {
 		dragStateRef.current = null;
 		setDraggingBlockId(null);
 		event.currentTarget.releasePointerCapture(event.pointerId);
+	};
+
+	const endResize = (event: React.PointerEvent<HTMLDivElement>) => {
+		const resize = resizeStateRef.current;
+		if (!resize || resize.pointerId !== event.pointerId) return;
+		resizeStateRef.current = null;
+		setResizingBlockId(null);
+		try {
+			event.currentTarget.releasePointerCapture(event.pointerId);
+		} catch {
+			// Ignore release failures when pointer capture is already cleared.
+		}
 	};
 
 	return (
@@ -204,6 +347,7 @@ export function CMSCanvas({ className }: CMSCanvasProps) {
 							{blocks.map((block) => {
 								const isSelected = selectedBlockId === block.id;
 								const isDragging = draggingBlockId === block.id;
+								const isResizing = resizingBlockId === block.id;
 
 								return (
 									<div
@@ -219,6 +363,7 @@ export function CMSCanvas({ className }: CMSCanvasProps) {
 											left: `${block.x}%`,
 											top: `${block.y}%`,
 											width: `${block.w}%`,
+											height: `${block.h}%`,
 											zIndex:
 												typeof block.style.zIndex === "number"
 													? block.style.zIndex
@@ -232,12 +377,41 @@ export function CMSCanvas({ className }: CMSCanvasProps) {
 										onPointerMove={handleBlockPointerMove}
 										onPointerUp={endDrag}
 										onPointerCancel={endDrag}>
-										<div className="pointer-events-none p-1.5">
+										<div className="pointer-events-none h-full w-full overflow-hidden">
 											<CMSBlockRenderer
 												block={block}
 												globalStyle={globalStyle}
+												canvasHeight={resolution.height}
 											/>
 										</div>
+
+										{isSelected
+											? RESIZE_HANDLES.map((handle) => (
+													<div
+														key={handle}
+														role="button"
+														tabIndex={-1}
+														aria-label={`Resize ${handle}`}
+														className={cn(
+															"absolute z-50 h-3.5 w-3.5 rounded-full border border-primary bg-background shadow-sm",
+															getResizeHandleClass(handle),
+															isResizing
+																? "opacity-100"
+																: "opacity-90",
+														)}
+														onPointerDown={(event) =>
+															handleResizePointerDown(
+																event,
+																block,
+																handle,
+															)
+														}
+														onPointerMove={handleResizePointerMove}
+														onPointerUp={endResize}
+														onPointerCancel={endResize}
+													/>
+												))
+											: null}
 									</div>
 								);
 							})}

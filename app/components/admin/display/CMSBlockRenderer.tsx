@@ -6,11 +6,12 @@ import type { CMSBlock } from "~/stores/displayStore";
 interface CMSBlockRendererProps {
 	block: CMSBlock;
 	globalStyle: GlobalStyle;
+	canvasHeight: number;
 }
 
 const DISPLAY_SECTION_STYLE: SectionStyle = {};
 
-export function CMSBlockRenderer({ block, globalStyle }: CMSBlockRendererProps) {
+export function CMSBlockRenderer({ block, globalStyle, canvasHeight }: CMSBlockRendererProps) {
 	const editorBlock = useMemo<Block>(
 		() => ({
 			id: block.id,
@@ -27,9 +28,15 @@ export function CMSBlockRenderer({ block, globalStyle }: CMSBlockRendererProps) 
 							loop: true,
 						}
 					: { ...block.props },
-			style: { ...block.style },
+			style:
+				block.type === "image" || block.type === "video"
+					? {
+							...block.style,
+							height: Math.max(24, Math.round((block.h / 100) * canvasHeight)),
+						}
+					: { ...block.style },
 		}),
-		[block],
+		[block, canvasHeight],
 	);
 
 	return (

@@ -17,6 +17,7 @@ export interface CMSBlock {
 	x: number;
 	y: number;
 	w: number;
+	h: number;
 }
 
 export interface CMSResolution {
@@ -50,6 +51,7 @@ export interface CMSBlockPatch {
 	x?: number;
 	y?: number;
 	w?: number;
+	h?: number;
 }
 
 export interface CMSTemplateBlockSeed {
@@ -57,6 +59,7 @@ export interface CMSTemplateBlockSeed {
 	x: number;
 	y: number;
 	w?: number;
+	h?: number;
 	props?: Record<string, unknown>;
 	style?: Partial<BlockStyle>;
 }
@@ -444,6 +447,26 @@ const DEFAULT_WIDTH_BY_TYPE: Partial<Record<CMSBlockType, number>> = {
 	timeline: 62,
 };
 
+const DEFAULT_HEIGHT_BY_TYPE: Partial<Record<CMSBlockType, number>> = {
+	heading: 16,
+	text: 18,
+	card: 28,
+	image: 30,
+	video: 30,
+	icon: 12,
+	spacer: 10,
+	divider: 10,
+	badge: 12,
+	list: 24,
+	quote: 20,
+	date: 18,
+	countdown: 18,
+	timeline: 26,
+};
+
+const MIN_BLOCK_WIDTH = 8;
+const MIN_BLOCK_HEIGHT = 6;
+
 function clamp(value: number, min: number, max: number): number {
 	return Math.min(max, Math.max(min, value));
 }
@@ -493,9 +516,12 @@ function normalizeBlock(raw: unknown): CMSBlock | null {
 	if (!value.id || typeof value.id !== "string") return null;
 	if (!isCMSBlockType(value.type)) return null;
 
+	const defaultHeight = getDefaultHeight(value.type);
 	const x = typeof value.x === "number" ? clamp(value.x, 0, 100) : 40;
 	const y = typeof value.y === "number" ? clamp(value.y, 0, 100) : 40;
-	const width = typeof value.w === "number" ? clamp(value.w, 10, 100) : 32;
+	const width = typeof value.w === "number" ? clamp(value.w, MIN_BLOCK_WIDTH, 100) : 32;
+	const height =
+		typeof value.h === "number" ? clamp(value.h, MIN_BLOCK_HEIGHT, 100) : defaultHeight;
 
 	return {
 		id: value.id,
@@ -508,9 +534,10 @@ function normalizeBlock(raw: unknown): CMSBlock | null {
 			value.style && typeof value.style === "object"
 				? (value.style as Partial<BlockStyle>)
 				: {},
-		x,
-		y,
+		x: clamp(x, 0, 100 - width),
+		y: clamp(y, 0, 100 - height),
 		w: width,
+		h: height,
 	};
 }
 
@@ -533,7 +560,11 @@ function createDefaultState(): CMSDisplayState {
 }
 
 function getDefaultWidth(type: CMSBlockType): number {
-	return clamp(DEFAULT_WIDTH_BY_TYPE[type] ?? 32, 10, 100);
+	return clamp(DEFAULT_WIDTH_BY_TYPE[type] ?? 32, MIN_BLOCK_WIDTH, 100);
+}
+
+function getDefaultHeight(type: CMSBlockType): number {
+	return clamp(DEFAULT_HEIGHT_BY_TYPE[type] ?? 18, MIN_BLOCK_HEIGHT, 100);
 }
 
 function resolveTemplate(templateId: string): CMSTemplate | undefined {
@@ -548,11 +579,16 @@ function createBlockFromTemplateSeed(seed: CMSTemplateBlockSeed): CMSBlock | nul
 
 	const width = clamp(
 		typeof seed.w === "number" ? Math.round(seed.w * 10) / 10 : getDefaultWidth(seed.type),
-		10,
+		MIN_BLOCK_WIDTH,
+		100,
+	);
+	const height = clamp(
+		typeof seed.h === "number" ? Math.round(seed.h * 10) / 10 : getDefaultHeight(seed.type),
+		MIN_BLOCK_HEIGHT,
 		100,
 	);
 	const x = clamp(seed.x, 0, 100 - width);
-	const y = clamp(seed.y, 0, 100);
+	const y = clamp(seed.y, 0, 100 - height);
 
 	return {
 		id: nanoid(10),
@@ -568,6 +604,7 @@ function createBlockFromTemplateSeed(seed: CMSTemplateBlockSeed): CMSBlock | nul
 		x,
 		y,
 		w: width,
+		h: height,
 	};
 }
 
@@ -606,14 +643,16 @@ export const useDisplayStore = create<CMSDisplayState & CMSDisplayActions>()(
 
 				set((state) => {
 					const width = getDefaultWidth(type);
+					const height = getDefaultHeight(type);
 					const next: CMSBlock = {
 						id: nanoid(10),
 						type,
 						props: { ...entry.defaultProps },
 						style: { ...entry.defaultStyle },
 						x: clamp(50 - width / 2, 0, 100 - width),
-						y: 42,
+						y: clamp(42, 0, 100 - height),
 						w: width,
+						h: height,
 					};
 					state.blocks.push(next);
 					state.selectedBlockId = next.id;
@@ -648,12 +687,18 @@ export const useDisplayStore = create<CMSDisplayState & CMSDisplayActions>()(
 						block.x = clamp(patch.x, 0, 100 - block.w);
 					}
 					if (typeof patch.y === "number") {
-						block.y = clamp(patch.y, 0, 100);
+						block.y = clamp(patch.y, 0, 100 - block.h);
 					}
 					if (typeof patch.w === "number") {
-						block.w = clamp(Math.round(patch.w * 10) / 10, 10, 100);
+						block.w = clamp(Math.round(patch.w * 10) / 10, MIN_BLOCK_WIDTH, 100);
 						block.x = clamp(block.x, 0, 100 - block.w);
 					}
+					if (typeof patch.h === "number") {
+						block.h = clamp(Math.round(patch.h * 10) / 10, MIN_BLOCK_HEIGHT, 100);
+						block.y = clamp(block.y, 0, 100 - block.h);
+					}
+					block.x = clamp(block.x, 0, 100 - block.w);
+					block.y = clamp(block.y, 0, 100 - block.h);
 				});
 
 				persist();
