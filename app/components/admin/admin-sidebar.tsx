@@ -3,6 +3,7 @@ import {
 	LayoutGrid,
 	Layers,
 	Users,
+	Monitor,
 	BarChart3,
 	Settings,
 	Bot,
@@ -22,6 +23,12 @@ const mainNavItems = [
 	{ href: "/admin", icon: LayoutGrid, label: "Overview", end: true },
 	{ href: "/admin/templates", icon: Layers, label: "Templates", end: false },
 	{ href: "/admin/users", icon: Users, label: "Users", end: false },
+	{
+		href: "/cms",
+		icon: Monitor,
+		label: "Content Management",
+		end: false,
+	},
 	{ href: "/admin/analytics", icon: BarChart3, label: "Analytics", end: false },
 ];
 

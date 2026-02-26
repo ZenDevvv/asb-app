@@ -110,12 +110,20 @@ const VERTICAL_ALIGN_CLASSES: Record<string, string> = {
 };
 
 export function VideoBlock({ block, globalStyle }: BlockComponentProps) {
-	const { src, alt, caption } = block.props as {
+	const { src, alt, caption, autoPlay, controls, muted, loop } = block.props as {
 		src: string;
 		alt: string;
 		caption?: string;
+		autoPlay?: boolean;
+		controls?: boolean;
+		muted?: boolean;
+		loop?: boolean;
 	};
 	const s = block.style;
+	const shouldAutoplay = typeof autoPlay === "boolean" ? autoPlay : false;
+	const shouldShowControls = typeof controls === "boolean" ? controls : true;
+	const shouldMute = typeof muted === "boolean" ? muted : shouldAutoplay;
+	const shouldLoop = typeof loop === "boolean" ? loop : shouldAutoplay;
 
 	const widthClass = WIDTH_MAP[s.width || "full"] || "w-full";
 	const radiusKey = s.borderRadius || globalStyle.borderRadius || "md";
@@ -204,7 +212,10 @@ export function VideoBlock({ block, globalStyle }: BlockComponentProps) {
 			<video
 				src={src}
 				aria-label={alt || undefined}
-				controls
+				autoPlay={shouldAutoplay}
+				controls={shouldShowControls}
+				muted={shouldMute}
+				loop={shouldLoop}
 				playsInline
 				preload="metadata"
 				className="h-full w-full object-cover"
