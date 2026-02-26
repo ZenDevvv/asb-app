@@ -313,12 +313,14 @@ export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
     defaultProps: { src: "", alt: "", caption: "" },
     defaultStyle: {
       width: "full",
+      borderWidth: 0,
       tilt: 0,
       fontSize: "xl",
       fontWeight: "bold",
       fontStyle: "normal",
       letterSpacing: 0,
       textAlign: "center",
+      shadowSize: "none",
       captionVerticalAlign: "center",
     },
     editableProps: [
@@ -350,9 +352,23 @@ export const BLOCK_REGISTRY: Record<BlockType, BlockRegistryEntry> = {
           { label: "Full", value: "full" },
         ],
       },
+      { key: "borderWidth", label: "Border Width", type: "slider", min: 0, max: 24, step: 1 },
+      { key: "borderColor", label: "Border Color", type: "color" },
       { key: "opacity", label: "Opacity", type: "slider", min: 0, max: 100, step: 5 },
       { key: "height", label: "Height", type: "slider", min: 0, max: 800, step: 8 },
       { key: "tilt", label: "Tilt", type: "slider", min: -180, max: 180, step: 1 },
+      {
+        key: "shadowSize",
+        label: "Shadow",
+        type: "size-picker",
+        options: [
+          { label: "None", value: "none" },
+          { label: "S", value: "sm" },
+          { label: "M", value: "md" },
+          { label: "L", value: "lg" },
+        ],
+      },
+      { key: "shadowColor", label: "Shadow Color", type: "color" },
       {
         key: "fontSize",
         label: "Text Size",

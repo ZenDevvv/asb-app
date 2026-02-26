@@ -38,8 +38,12 @@ export interface BlockStyle {
   width?: "auto" | "sm" | "md" | "lg" | "full" | "custom";
   widthPx?: number;
   borderRadius?: "none" | "sm" | "md" | "lg" | "full";
+  borderWidth?: number;
+  borderColor?: string;
   height?: number;
   tilt?: number;
+  shadowSize?: "none" | "sm" | "md" | "lg";
+  shadowColor?: string;
   opacity?: number;
   overlayEffect?: "none" | "dots" | "grid" | "dim" | "vignette";
   overlayIntensity?: number;

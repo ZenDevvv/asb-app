@@ -219,6 +219,23 @@ export function StylePanel({
 				)}
 
 				{editableStyles.map((styleField) => {
+					const shadowSizeValue =
+						block.style.shadowSize ?? defaultStyle.shadowSize ?? "none";
+					const borderWidthValue =
+						typeof block.style.borderWidth === "number"
+							? block.style.borderWidth
+							: typeof defaultStyle.borderWidth === "number"
+								? defaultStyle.borderWidth
+								: 0;
+
+					if (styleField.key === "shadowColor" && shadowSizeValue === "none") {
+						return null;
+					}
+
+					if (styleField.key === "borderColor" && borderWidthValue <= 0) {
+						return null;
+					}
+
 					const globalFallbackValue =
 						(block.type === "button" || block.type === "image") &&
 						styleField.key === "borderRadius"

@@ -40,6 +40,13 @@ const TEXT_ALIGN_MAP: Record<string, string> = {
   right: "text-right",
 };
 
+const SHADOW_MAP: Record<string, string> = {
+  none: "none",
+  sm: "0 2px 8px",
+  md: "0 4px 16px",
+  lg: "0 8px 32px",
+};
+
 const CUSTOM_CAPTION_SIZE_MIN = 12;
 const CUSTOM_CAPTION_SIZE_MAX = 200;
 
@@ -121,6 +128,21 @@ export function ImageBlock({ block, globalStyle }: BlockComponentProps) {
       : 0;
   const tiltStyle: React.CSSProperties =
     tilt === 0 ? {} : { transform: `rotate(${tilt}deg)`, transformOrigin: "center" };
+  const baseBorderWidth =
+    typeof s.borderWidth === "number" && Number.isFinite(s.borderWidth)
+      ? Math.max(0, s.borderWidth)
+      : 0;
+  const borderWidth = baseBorderWidth;
+  const borderColor = s.borderColor || (isLightTheme ? "#334155" : "#ffffff");
+  const shadowSize = s.shadowSize || "none";
+  const shadowColor = s.shadowColor || "rgba(0,0,0,0.35)";
+  const shadowBase = SHADOW_MAP[shadowSize] ?? "none";
+  const imageSurfaceStyle: React.CSSProperties = {
+    ...heightStyle,
+    ...tiltStyle,
+    ...(borderWidth > 0 ? { border: `${borderWidth}px solid ${borderColor}` } : {}),
+    ...(shadowBase !== "none" ? { boxShadow: `${shadowBase} ${shadowColor}` } : {}),
+  };
   const overlayStyle = getOverlayStyle(s.overlayEffect, s.overlayIntensity ?? 40);
 
   // Caption styles
@@ -153,8 +175,7 @@ export function ImageBlock({ block, globalStyle }: BlockComponentProps) {
           marginTop: s.marginTop ?? 0,
           marginBottom: s.marginBottom ?? 0,
           backgroundColor: isLightTheme ? "rgba(16,26,22,0.06)" : "rgba(255,255,255,0.05)",
-          ...heightStyle,
-          ...tiltStyle,
+          ...imageSurfaceStyle,
         }}
       >
         <span
@@ -176,8 +197,7 @@ export function ImageBlock({ block, globalStyle }: BlockComponentProps) {
       style={{
         marginTop: s.marginTop ?? 0,
         marginBottom: s.marginBottom ?? 0,
-        ...heightStyle,
-        ...tiltStyle,
+        ...imageSurfaceStyle,
       }}
     >
       <img
