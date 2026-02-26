@@ -123,16 +123,17 @@ Key state includes:
 Key actions include:
 
 1. `addBlock`
-2. `removeBlock`
-3. `updateBlock`
-4. `selectBlock`
-5. `setResolution`
-6. `setZoom`
-7. `setCanvasBackground`
-8. `applyTemplate`
-9. `resetCanvas`
-10. `saveToLocalStorage`
-11. `loadFromLocalStorage`
+2. `duplicateBlock`
+3. `removeBlock`
+4. `updateBlock`
+5. `selectBlock`
+6. `setResolution`
+7. `setZoom`
+8. `setCanvasBackground`
+9. `applyTemplate`
+10. `resetCanvas`
+11. `saveToLocalStorage`
+12. `loadFromLocalStorage`
 
 ---
 
@@ -322,3 +323,4 @@ As of this guide version:
 13. CMS template library currently contains one hardcoded portrait template imported from debug snapshot JSON.
 14. Header shows an explicit `Template` label and uses orientation-filtered preset dropdowns.
 15. CMS `image` and `video` blocks fill the entire container and do not use container alignment controls.
+16. Block settings header uses minimal icon-only actions, including duplicate and delete.

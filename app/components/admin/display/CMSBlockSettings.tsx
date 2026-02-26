@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronLeft, Trash2 } from "lucide-react";
+import { ChevronLeft, Copy, Trash2 } from "lucide-react";
 import { BLOCK_REGISTRY } from "~/config/blockRegistry";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -461,6 +461,7 @@ function renderContentFields(
 
 export function CMSBlockSettings({ block, className }: CMSBlockSettingsProps) {
 	const updateBlock = useDisplayStore((state) => state.updateBlock);
+	const duplicateBlock = useDisplayStore((state) => state.duplicateBlock);
 	const removeBlock = useDisplayStore((state) => state.removeBlock);
 	const selectBlock = useDisplayStore((state) => state.selectBlock);
 	const globalStyle = useDisplayStore((state) => state.globalStyle);
@@ -532,15 +533,28 @@ export function CMSBlockSettings({ block, className }: CMSBlockSettingsProps) {
 						</p>
 					</div>
 				</div>
-				<Button
-					type="button"
-					variant="destructive"
-					size="sm"
-					onClick={() => removeBlock(block.id)}
-					className="h-8 px-2.5">
-					<Trash2 className="h-3.5 w-3.5" />
-					Delete
-				</Button>
+				<div className="flex items-center gap-1">
+					<Button
+						type="button"
+						variant="outline"
+						size="sm"
+						onClick={() => duplicateBlock(block.id)}
+						className="h-8 w-8 p-0"
+						aria-label="Duplicate block"
+						title="Duplicate block">
+						<Copy className="h-3.5 w-3.5" />
+					</Button>
+					<Button
+						type="button"
+						variant="outline"
+						size="sm"
+						onClick={() => removeBlock(block.id)}
+						className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+						aria-label="Delete block"
+						title="Delete block">
+						<Trash2 className="h-3.5 w-3.5" />
+					</Button>
+				</div>
 			</div>
 
 			<div className="minimal-scrollbar flex-1 space-y-3 overflow-y-auto px-4 py-3">

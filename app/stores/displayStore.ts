@@ -80,6 +80,7 @@ interface CMSDisplayState extends CMSDisplaySnapshot {
 
 interface CMSDisplayActions {
 	addBlock: (type: CMSBlockType) => void;
+	duplicateBlock: (id: string) => void;
 	removeBlock: (id: string) => void;
 	updateBlock: (id: string, patch: CMSBlockPatch) => void;
 	selectBlock: (id: string | null) => void;
@@ -217,6 +218,7 @@ const MIN_BLOCK_WIDTH = 8;
 const MIN_BLOCK_HEIGHT = 6;
 const BLOCK_POSITION_MIN = -200;
 const BLOCK_POSITION_MAX = 200;
+const BLOCK_DUPLICATE_OFFSET = 2;
 
 function clamp(value: number, min: number, max: number): number {
 	return Math.min(max, Math.max(min, value));
@@ -413,6 +415,37 @@ export const useDisplayStore = create<CMSDisplayState & CMSDisplayActions>()(
 					};
 					state.blocks.push(next);
 					state.selectedBlockId = next.id;
+				});
+
+				persist();
+			},
+
+			duplicateBlock: (id: string) => {
+				set((state) => {
+					const source = state.blocks.find((block) => block.id === id);
+					if (!source) return;
+
+					const duplicate: CMSBlock = {
+						id: nanoid(10),
+						type: source.type,
+						props: { ...source.props },
+						style: { ...source.style },
+						x: clamp(
+							source.x + BLOCK_DUPLICATE_OFFSET,
+							BLOCK_POSITION_MIN,
+							BLOCK_POSITION_MAX,
+						),
+						y: clamp(
+							source.y + BLOCK_DUPLICATE_OFFSET,
+							BLOCK_POSITION_MIN,
+							BLOCK_POSITION_MAX,
+						),
+						w: source.w,
+						h: source.h,
+					};
+
+					state.blocks.push(duplicate);
+					state.selectedBlockId = duplicate.id;
 				});
 
 				persist();
