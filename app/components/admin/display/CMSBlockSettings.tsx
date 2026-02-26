@@ -1,9 +1,12 @@
+import { useState } from "react";
 import { ChevronLeft, Trash2 } from "lucide-react";
 import { BLOCK_REGISTRY } from "~/config/blockRegistry";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Slider } from "~/components/ui/slider";
 import { Textarea } from "~/components/ui/textarea";
+import { FontFamilyModal } from "~/editor/FontFamilyModal";
+import { resolveFontOption } from "~/editor/fontFamilyOptions";
 import { cn } from "~/lib/utils";
 import { useDisplayStore, type CMSBlock } from "~/stores/displayStore";
 import type { BlockStyle } from "~/types/editor";
@@ -12,6 +15,8 @@ interface CMSBlockSettingsProps {
 	block: CMSBlock;
 	className?: string;
 }
+
+type FontModalTarget = "fontFamily" | "secondaryFontFamily";
 
 function getString(value: unknown, fallback = ""): string {
 	return typeof value === "string" ? value : fallback;
@@ -84,6 +89,22 @@ function linesToTimelineItems(value: string): Array<{
 				icon: icon || "schedule",
 			};
 		});
+}
+
+function supportsFontOverride(type: CMSBlock["type"]): boolean {
+	return (
+		type === "heading" ||
+		type === "text" ||
+		type === "badge" ||
+		type === "list" ||
+		type === "quote" ||
+		type === "card" ||
+		type === "image" ||
+		type === "video" ||
+		type === "date" ||
+		type === "countdown" ||
+		type === "timeline"
+	);
 }
 
 function renderContentFields(
@@ -410,7 +431,35 @@ export function CMSBlockSettings({ block, className }: CMSBlockSettingsProps) {
 	const updateBlock = useDisplayStore((state) => state.updateBlock);
 	const removeBlock = useDisplayStore((state) => state.removeBlock);
 	const selectBlock = useDisplayStore((state) => state.selectBlock);
+	const globalStyle = useDisplayStore((state) => state.globalStyle);
 	const entry = BLOCK_REGISTRY[block.type];
+	const [fontModalOpen, setFontModalOpen] = useState(false);
+	const [fontModalTarget, setFontModalTarget] = useState<FontModalTarget>("fontFamily");
+	const showFontOverride = supportsFontOverride(block.type);
+	const isTimelineBlock = block.type === "timeline";
+
+	const getFontState = (styleKey: FontModalTarget) => {
+		const raw = block.style[styleKey];
+		const overrideValue = typeof raw === "string" ? raw.trim() : "";
+		const hasOverride = overrideValue.length > 0 && overrideValue !== globalStyle.fontFamily;
+		const effectiveValue = hasOverride ? overrideValue : globalStyle.fontFamily;
+		return {
+			hasOverride,
+			selectedFont: resolveFontOption(effectiveValue),
+		};
+	};
+
+	const primaryFontState = getFontState("fontFamily");
+	const secondaryFontState = getFontState("secondaryFontFamily");
+	const effectiveFontValue =
+		(fontModalTarget === "secondaryFontFamily"
+			? getString(block.style.secondaryFontFamily, "")
+			: getString(block.style.fontFamily, "")) || globalStyle.fontFamily;
+	const fontModalDescription = isTimelineBlock
+		? fontModalTarget === "secondaryFontFamily"
+			? "Choose a font for subtitle and description text in this timeline block."
+			: "Choose a font for title text in this timeline block."
+		: "Choose a font for this block.";
 
 	const updateSelectedProps = (props: Record<string, unknown>) => {
 		updateBlock(block.id, { props });
@@ -418,6 +467,11 @@ export function CMSBlockSettings({ block, className }: CMSBlockSettingsProps) {
 
 	const updateSelectedStyle = (style: Partial<BlockStyle>) => {
 		updateBlock(block.id, { style });
+	};
+
+	const openFontModal = (target: FontModalTarget) => {
+		setFontModalTarget(target);
+		setFontModalOpen(true);
 	};
 
 	return (
@@ -454,6 +508,75 @@ export function CMSBlockSettings({ block, className }: CMSBlockSettingsProps) {
 			</div>
 
 			<div className="minimal-scrollbar flex-1 space-y-3 overflow-y-auto px-4 py-3">
+				{showFontOverride ? (
+					<div className="space-y-2 rounded-xl border border-sidebar-border bg-sidebar-accent/35 p-3">
+						<p className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+							Typography
+						</p>
+						<div className="space-y-1.5">
+							<label className="text-xs text-muted-foreground">
+								{isTimelineBlock ? "Title Font" : "Font Family"}
+							</label>
+							<button
+								type="button"
+								onClick={() => openFontModal("fontFamily")}
+								className="group flex w-full items-center justify-between rounded-xl border border-sidebar-border bg-background/50 px-3 py-2 text-left transition-colors hover:border-primary/40">
+								<div>
+									<p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+										{primaryFontState.hasOverride
+											? "Block Override"
+											: "Using Global"}
+									</p>
+									<p
+										className="text-sm text-sidebar-foreground"
+										style={{
+											fontFamily: primaryFontState.selectedFont.fontFamily,
+										}}>
+										{primaryFontState.selectedFont.label}
+									</p>
+								</div>
+								<span
+									className="material-symbols-outlined text-muted-foreground transition-colors group-hover:text-foreground"
+									style={{ fontSize: 18 }}>
+									tune
+								</span>
+							</button>
+						</div>
+						{isTimelineBlock ? (
+							<div className="space-y-1.5">
+								<label className="text-xs text-muted-foreground">
+									Subtitle + Description Font
+								</label>
+								<button
+									type="button"
+									onClick={() => openFontModal("secondaryFontFamily")}
+									className="group flex w-full items-center justify-between rounded-xl border border-sidebar-border bg-background/50 px-3 py-2 text-left transition-colors hover:border-primary/40">
+									<div>
+										<p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+											{secondaryFontState.hasOverride
+												? "Block Override"
+												: "Using Global"}
+										</p>
+										<p
+											className="text-sm text-sidebar-foreground"
+											style={{
+												fontFamily:
+													secondaryFontState.selectedFont.fontFamily,
+											}}>
+											{secondaryFontState.selectedFont.label}
+										</p>
+									</div>
+									<span
+										className="material-symbols-outlined text-muted-foreground transition-colors group-hover:text-foreground"
+										style={{ fontSize: 18 }}>
+										tune
+									</span>
+								</button>
+							</div>
+						) : null}
+					</div>
+				) : null}
+
 				{renderContentFields(block, updateSelectedProps, updateSelectedStyle)}
 
 				<div className="space-y-2 rounded-xl border border-sidebar-border bg-sidebar-accent/35 p-3">
@@ -526,6 +649,23 @@ export function CMSBlockSettings({ block, className }: CMSBlockSettingsProps) {
 					</div>
 				</div>
 			</div>
+
+			{showFontOverride ? (
+				<FontFamilyModal
+					open={fontModalOpen}
+					onOpenChange={setFontModalOpen}
+					value={effectiveFontValue}
+					onApply={(fontFamily) =>
+						updateSelectedStyle({
+							[fontModalTarget]:
+								fontFamily === globalStyle.fontFamily ? "" : fontFamily,
+						} as Partial<BlockStyle>)
+					}
+					title="Typography Settings"
+					description={fontModalDescription}
+					applyLabel="Apply Font"
+				/>
+			) : null}
 		</section>
 	);
 }

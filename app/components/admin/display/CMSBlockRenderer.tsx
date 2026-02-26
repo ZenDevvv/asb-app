@@ -12,6 +12,10 @@ interface CMSBlockRendererProps {
 const DISPLAY_SECTION_STYLE: SectionStyle = {};
 
 export function CMSBlockRenderer({ block, globalStyle, canvasHeight }: CMSBlockRendererProps) {
+	const overrideFontFamily =
+		typeof block.style.fontFamily === "string" && block.style.fontFamily.trim().length > 0
+			? block.style.fontFamily
+			: globalStyle.fontFamily;
 	const editorBlock = useMemo<Block>(
 		() => ({
 			id: block.id,
@@ -40,13 +44,15 @@ export function CMSBlockRenderer({ block, globalStyle, canvasHeight }: CMSBlockR
 	);
 
 	return (
-		<BlockRenderer
-			block={editorBlock}
-			sectionStyle={DISPLAY_SECTION_STYLE}
-			globalStyle={globalStyle}
-			isEditing
-			isSelected={false}
-			onUpdateProp={() => undefined}
-		/>
+		<div className="h-full w-full" style={{ fontFamily: overrideFontFamily }}>
+			<BlockRenderer
+				block={editorBlock}
+				sectionStyle={DISPLAY_SECTION_STYLE}
+				globalStyle={globalStyle}
+				isEditing
+				isSelected={false}
+				onUpdateProp={() => undefined}
+			/>
+		</div>
 	);
 }

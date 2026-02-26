@@ -16,6 +16,7 @@ That means:
 3. Do not introduce section/group logic into CMS.
 4. Do not wire CMS to backend APIs yet.
 5. Keep CMS state local-only using the CMS store + localStorage key.
+6. Do not modify shared page-builder components for CMS-only features; keep behavior isolated in CMS files for easy revert.
 
 ---
 
@@ -51,6 +52,7 @@ Avoid touching:
 1. `app/editor/*`
 2. `app/stores/editorStore.ts`
 3. Existing page-builder section/group/block editor contracts
+4. Shared block component behavior when the requirement is CMS-only
 
 ### Persistence
 
@@ -217,6 +219,24 @@ This behavior is CMS-context specific and should not unintentionally change norm
 
 ---
 
+## Typography In CMS
+
+Font selection is supported for all CMS blocks with text content.
+
+Rules:
+
+1. Use the same font library and typography modal pattern as the main editor.
+2. Text-bearing CMS blocks expose a Font Family selector in block settings.
+3. Timeline exposes two selectors:
+   - `fontFamily` for title text
+   - `secondaryFontFamily` for subtitle + description text
+4. Store block font overrides on `BlockStyle`:
+   - `fontFamily`
+   - `secondaryFontFamily` (timeline only)
+5. Keep implementation CMS-only (settings + CMS renderer wiring), so page builder editor files remain unchanged.
+
+---
+
 ## UI Controls Standard
 
 In CMS, dropdown controls should use shadcn `Select` (not native `<select>`):
@@ -224,6 +244,7 @@ In CMS, dropdown controls should use shadcn `Select` (not native `<select>`):
 1. Template selector
 2. Resolution selector
 3. Background type selector
+4. Typography uses the same modal + font library pattern as editor typography settings
 
 ---
 
@@ -269,3 +290,4 @@ As of this guide version:
 5. CMS video playback defaults to autoplay/muted/loop without controls.
 6. CMS library uses grid cards.
 7. CMS blocks support drag-resize containers using edge/corner handles.
+8. CMS text blocks support font-family selection via Typography Settings modal.
