@@ -1,5 +1,6 @@
 import {
 	ArrowLeft,
+	Download,
 	Layers3,
 	RotateCcw,
 	ScreenShare,
@@ -8,7 +9,7 @@ import {
 	ZoomOut,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 import { CMSCanvas } from "~/components/admin/display/CMSCanvas";
 import { CMSSidebar } from "~/components/admin/display/CMSSidebar";
 import { SplashScreen } from "~/components/admin/splash-screen";
@@ -22,10 +23,21 @@ import {
 	SelectValue,
 } from "~/components/ui/select";
 import { useAuth } from "~/hooks/use-auth";
-import { CMS_PRESETS, CMS_TEMPLATE_LIBRARY, useDisplayStore } from "~/stores/displayStore";
+import {
+	CMS_PRESETS,
+	CMS_TEMPLATE_LIBRARY,
+	useDisplayStore,
+	type CMSDisplaySnapshot,
+} from "~/stores/displayStore";
 
 function clamp(value: number, min: number, max: number): number {
 	return Math.min(max, Math.max(min, value));
+}
+
+function isDebugQueryEnabled(value: string | null): boolean {
+	if (!value) return false;
+	const normalized = value.trim().toLowerCase();
+	return normalized === "true" || normalized === "1" || normalized === "yes";
 }
 
 function getPresetLabel(width: number, height: number): string {
@@ -37,6 +49,7 @@ function getPresetLabel(width: number, height: number): string {
 
 export default function CmsEditorPage() {
 	const navigate = useNavigate();
+	const [searchParams] = useSearchParams();
 	const { isLoading } = useAuth();
 
 	const isHydrated = useDisplayStore((state) => state.isHydrated);
@@ -50,6 +63,8 @@ export default function CmsEditorPage() {
 	const resetCanvas = useDisplayStore((state) => state.resetCanvas);
 	const selectedBlockId = useDisplayStore((state) => state.selectedBlockId);
 	const activeTemplateId = useDisplayStore((state) => state.activeTemplateId);
+	const canvasBackground = useDisplayStore((state) => state.canvasBackground);
+	const globalStyle = useDisplayStore((state) => state.globalStyle);
 
 	useEffect(() => {
 		if (isHydrated) return;
@@ -66,6 +81,17 @@ export default function CmsEditorPage() {
 	);
 	const isCustomPreset = selectedPresetLabel === "Custom";
 	const orientation = resolution.width >= resolution.height ? "landscape" : "portrait";
+	const isDebugMode = isDebugQueryEnabled(searchParams.get("debug"));
+
+	const buildSnapshotForExport = (): CMSDisplaySnapshot => ({
+		resolution,
+		zoom,
+		blocks,
+		selectedBlockId,
+		activeTemplateId,
+		canvasBackground,
+		globalStyle,
+	});
 
 	const handleTemplateChange = (templateId: string) => {
 		if (!templateId || templateId === activeTemplateId) return;
@@ -125,6 +151,31 @@ export default function CmsEditorPage() {
 		if (confirmed) {
 			resetCanvas();
 		}
+	};
+
+	const handleDownloadDebugState = () => {
+		if (typeof window === "undefined") return;
+
+		const payload = {
+			exportedAt: new Date().toISOString(),
+			source: "asb-cms-debug",
+			snapshot: buildSnapshotForExport(),
+		};
+		const json = JSON.stringify(payload, null, 2);
+		const blob = new Blob([json], { type: "application/json" });
+		const objectUrl = window.URL.createObjectURL(blob);
+		const anchor = document.createElement("a");
+		const timestamp = new Date()
+			.toISOString()
+			.replace(/[:]/g, "-")
+			.replace(/[.]/g, "-");
+
+		anchor.href = objectUrl;
+		anchor.download = `cms-canvas-state-${timestamp}.json`;
+		document.body.append(anchor);
+		anchor.click();
+		anchor.remove();
+		window.URL.revokeObjectURL(objectUrl);
 	};
 
 	if (isLoading) {
@@ -257,6 +308,18 @@ export default function CmsEditorPage() {
 						<RotateCcw className="h-3.5 w-3.5" />
 						Reset
 					</Button>
+
+					{isDebugMode ? (
+						<Button
+							type="button"
+							variant="outline"
+							size="sm"
+							onClick={handleDownloadDebugState}
+							className="border-sidebar-border bg-sidebar-accent/30 hover:bg-sidebar-accent/50">
+							<Download className="h-3.5 w-3.5" />
+							Export JSON
+						</Button>
+					) : null}
 				</div>
 			</header>
 

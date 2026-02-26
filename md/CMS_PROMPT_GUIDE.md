@@ -32,6 +32,7 @@ Current behavior:
 4. Right panel switches mode:
    - If a block is selected: show block settings.
    - If no block is selected: show CMS library.
+5. Debug export: if `/cms?debug=true`, header shows `Export JSON` button to download current CMS snapshot.
 
 ---
 
@@ -252,6 +253,19 @@ In CMS, dropdown controls should use shadcn `Select` (not native `<select>`):
 
 ---
 
+## Debug Export Mode
+
+Use URL query `debug=true` to enable CMS snapshot export.
+
+Rules:
+
+1. Debug export control appears only when debug query is enabled.
+2. Export downloads current canvas/store snapshot as JSON.
+3. Export is local-only; no backend upload.
+4. Snapshot is intended for creating/updating hardcoded CMS templates.
+
+---
+
 ## Prompting Checklist (For Future CMS Tasks)
 
 When creating a CMS prompt, include these constraints:
@@ -297,3 +311,4 @@ As of this guide version:
 8. CMS text blocks support font-family selection via Typography Settings modal.
 9. CMS blocks can be dragged outside canvas bounds (no edge clamp on drag).
 10. CMS block settings include horizontal and vertical alignment controls for content placement inside block containers.
+11. `/cms?debug=true` shows `Export JSON` button that downloads the current CMS snapshot.
