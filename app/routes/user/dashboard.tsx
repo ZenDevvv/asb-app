@@ -114,7 +114,7 @@ export default function UserDashboard() {
 
 	function handleGenerate() {
 		if (!prompt.trim()) return;
-		navigate(`/editor?prompt=${encodeURIComponent(prompt.trim())}&tone=${tone}`);
+		// navigate(`/editor?prompt=${encodeURIComponent(prompt.trim())}&tone=${tone}`);
 	}
 
 	const displayName = user?.userName || user?.email?.split("@")[0] || "Creator";
