@@ -510,8 +510,9 @@ interface SectionStyle {
   gradientTo?: string;            // Hex color (if gradient)
   gradientDirection?: string;     // "to bottom" | "to right" | etc.
   paddingY?: number;              // Continuous value (px), controlled by slider
-  backgroundEffect?: "none" | "dots" | "grid" | "dim" | "vignette";  // CSS overlay pattern layered via multiple backgrounds
+  backgroundEffect?: "none" | "dots" | "grid" | "overlay" | "dim" | "vignette";  // CSS overlay pattern layered via multiple backgrounds (`dim` kept as legacy alias)
   backgroundEffectIntensity?: number; // 0-100 strength for the selected backgroundEffect
+  backgroundEffectColor?: string; // Hex color for "overlay" (defaults to #000000 for legacy dim behavior)
   fullHeight?: boolean;           // When true, section renders with min-height: 100vh (fills screen)
   groupVerticalAlign?: "top" | "center" | "bottom"; // Vertical alignment for stacked groups within section height
   colorMode?: "global" | "custom"; // "global" follows global palette tokens; "custom" uses section overrides
@@ -900,7 +901,7 @@ When a section is selected (not a specific group/block):
 
 - Shows section-level actions (duplicate/delete)
 - Shows **Layout** panel: Fill screen height toggle + Group Alignment buttons (top/center/bottom) for vertically stacked groups
-- Shows **Background** panel: background type (solid/gradient/image), colors, effect, effect intensity, paddingY
+- Shows **Background** panel: background type (solid/gradient/image), colors, effect, overlay color (for Overlay), effect intensity, paddingY
 - **No text/accent color controls at section level** — colors are block-level only
 - Code organization: `SettingsPanel.tsx` routes to dedicated mode components (`SectionModeSettings`, `GroupModeSettings`, `BlockSettings`, `GlobalSettingsPanel`)
 - Group list and group reordering are handled in the LEFT sidebar section tree when a section is focused
@@ -935,7 +936,7 @@ When a specific block is selected (click a block on the canvas):
 - Header includes block actions: **Duplicate** (`content_copy`) and **Delete** (`delete`).
 - `heading` and `text` block Size controls now include an icon-only **Custom Size** option (`tune`). When selected, Block Mode shows a px slider + numeric input (12-200px) and stores the value in `BlockStyle.fontSizePx`.
 - `divider` Width control also includes an icon-only **Custom Width** option (`tune`). When selected, Block Mode shows a px slider + numeric input (40-1600px) and stores the value in `BlockStyle.widthPx` with `BlockStyle.width="custom"`.
-- `image` blocks have an **Overlay** panel (rendered by `ImageOverlayPanel.tsx`) — 5 effect buttons (none/dots/grid/dim/vignette) identical to the section background overlay, plus an **Intensity** slider (0–100). The overlay is rendered as an absolutely positioned `<div>` layered over the `<img>` inside a `relative overflow-hidden` wrapper. State stored in `BlockStyle.overlayEffect` and `BlockStyle.overlayIntensity`.
+- `image` blocks have an **Overlay** panel (rendered by `ImageOverlayPanel.tsx`) — 5 effect buttons (none/dots/grid/dim/vignette) plus an **Intensity** slider (0–100). The overlay is rendered as an absolutely positioned `<div>` layered over the `<img>` inside a `relative overflow-hidden` wrapper. State stored in `BlockStyle.overlayEffect` and `BlockStyle.overlayIntensity`.
 - Block Mode UI is componentized under `app/editor/block-settings/` (header, per-panel components, and shared helpers/constants), while `BlockSettings.tsx` remains the store-wiring/orchestration layer.
 
 ```
@@ -996,19 +997,22 @@ The Background section in the right sidebar is a **composite control** with:
    - **Solid**: single color picker — falls back to scheme color as initial value if none saved
    - **Gradient**: two color pickers (“From” / “To”) + direction selector (shadcn Select, always visible for gradient type)
    - **Image**: URL input (always visible; not affected by Color Source toggle)
-4. **Overlay Effect selector** — 5-button icon row: None | Dots | Grid | Dim | Vignette
+4. **Overlay Effect selector** — 5-button icon row: None | Dots | Grid | Overlay | Vignette
    - Implemented via `SectionStyle.backgroundEffect`
    - Rendered as CSS multiple background layers (no extra DOM elements, no z-index issues)
    - `none` â†' no overlay (default)
    - `dots` â†' `radial-gradient` dot pattern, 24px grid
    - `grid` â†' 1px line grid via two `linear-gradient` layers, 40px grid
-   - `dim` â†' uniform dark overlay via `linear-gradient`, useful for improving foreground contrast on bright/image backgrounds
+   - `overlay` -> uniform color overlay via `linear-gradient`; color is user-selectable for contrast and style
    - `vignette` â†' radial darkening toward edges via `radial-gradient`, useful for drawing focus toward centered content
    - Colors adapt to `globalStyle.themeMode`: light dots/lines use dark rgba, dark uses white rgba
    - Effect layers stack on top of the background via CSS background-image chaining (effect layer first, bg layer second)
-4. **Effect Intensity slider** â€” continuous Radix Slider (0-100) bound to `SectionStyle.backgroundEffectIntensity`
-   - Applied to all non-`none` effects (`dots`, `grid`, `dim`, `vignette`) to control overlay strength
-5. **Y-axis padding slider** â€” continuous Radix Slider from Small (e.g., 20px) to Large (e.g., 160px)
+5. **Overlay Color picker** - shown when effect = `overlay`
+   - Stored in `SectionStyle.backgroundEffectColor`
+   - Defaults to `#000000`, matching the previous `dim` look
+6. **Effect Intensity slider** â€” continuous Radix Slider (0-100) bound to `SectionStyle.backgroundEffectIntensity`
+   - Applied to all non-`none` effects (`dots`, `grid`, `overlay`, `vignette`) to control overlay strength
+7. **Y-axis padding slider** â€” continuous Radix Slider from Small (e.g., 20px) to Large (e.g., 160px)
 
 
 - `list` blocks support an `Inline Row` toggle (useful for horizontal navigation links).
@@ -1646,7 +1650,7 @@ This contract ensures AI output can be validated and loaded directly into the ed
 | **Section Label** | Editable display name saved on each section instance. Starts from preset label but is user-controlled in Section Settings. |
 | **Block Registry** | Central config mapping block types to components, default props/styles, and editable fields. |
 | **Block Style** | Constrained visual options for a block (fontFamily override, fontSize, optional heading/text `fontSizePx` for custom size, fontWeight, fontStyle, letterSpacing, textAlign, width, optional `widthPx` for custom divider width, opacity, spacing, positioning mode, scale). Never raw CSS. |
-| **Section Style** | Design data for a section (backgroundColor/backgroundType/gradient fields, backgroundEffect, backgroundEffectIntensity, paddingY, fullHeight, groupVerticalAlign). |
+| **Section Style** | Design data for a section (backgroundColor/backgroundType/gradient fields, backgroundEffect, backgroundEffectIntensity, backgroundEffectColor, paddingY, fullHeight, groupVerticalAlign). |
 | **Global Style** | Page-wide design settings (themeMode, fontFamily, primaryColor, colorScheme, borderRadius). `fontFamily` is the default text font across the page and can be overridden by supported blocks. |
 | **Style Inheritance** | The cascade: Global â†’ Section â†’ Block. Each level can override the parent. |
 | **Canvas** | The center panel where sections and blocks are rendered WYSIWYG. |
@@ -1658,7 +1662,7 @@ This contract ensures AI output can be validated and loaded directly into the ed
 | **InlineText** | The Tiptap-based component that makes text directly editable on the canvas. Used by heading and text blocks. |
 | **Control** | A right sidebar input component (ColorControl, SliderControl, SizePickerControl, etc.). |
 | **FieldRenderer** | The switch component that renders the correct control based on field type. |
-| **Background Control** | Composite control: type selector (solid/gradient/image) + picker + overlay effect + effect intensity + padding slider. |
+| **Background Control** | Composite control: type selector (solid/gradient/image) + picker + overlay effect + overlay color + effect intensity + padding slider. |
 | **Preset** | A starter section blueprint (layout + groups + blocks + style) used by Add Section. Presets seed data; sections are still fully editable. |
 | **Slug** | URL-friendly project name used as the subdomain (my-landing-page.builder.app). |
 | **Publishing** | Rendering sections and blocks to static HTML and deploying to a subdomain. |
@@ -1667,6 +1671,7 @@ This contract ensures AI output can be validated and loaded directly into the ed
 
 ---
 
+*Document Version: 3.73 - Replaced section `Dim` overlay with a colorable `Overlay` effect in `BackgroundControl`. Added `SectionStyle.backgroundEffectColor` and updated `SectionRenderer` so legacy `backgroundEffect: "dim"` still renders as the same black overlay by default.*
 *Document Version: 3.72 - Added block-level Font Family selector support to `date` block. `BlockSettings.tsx` and `StylePanel.tsx` updated `supportsFontOverride` to include `block.type === "date"`, so date blocks can override `globalStyle.fontFamily` using the same Typography Settings modal as heading/text/button/image blocks.*
 *Document Version: 3.71 - Added vertical section spacing control to `date` block. `blockRegistry.ts` date entry now includes `defaultStyle.dateSectionGap = 24` and a Section Spacing slider (`dateSectionGap`, 0–160, step 2). `DateBlock.tsx` now applies this value as the gap between the weekday, center row, and year sections (scale-aware), so users can tighten or expand vertical spacing.*
 *Document Version: 3.70 - Added width control to `date` block. `blockRegistry.ts` date entry now includes `defaultStyle.widthPx = 920` and a Width slider (`widthPx`, 320–1600, step 10). `DateBlock.tsx` now applies `style.maxWidth` from `block.style.widthPx`, allowing the month/time parallel lines to shrink instead of always stretching full width.*
@@ -1716,9 +1721,11 @@ This contract ensures AI output can be validated and loaded directly into the ed
 *Document Version: 3.31 - Moved color settings from section level to block level. Removed `textColor`, `accentColor`, `colorMode` from `SectionStyle`. Added `textColor`, `accentColor`, `colorMode` to `BlockStyle`. Each block now has a dedicated Colors panel (Global Palette / Custom) in the right sidebar. Added `colorOptions: { hasText, hasAccent }` to `BlockRegistryEntry` to control which color pickers are shown per block type. Added `app/lib/blockColors.ts` with `resolveTextColor` and `resolveAccentColor` helpers used by all block components.*
 *Document Version: 3.57 - Added Global/Custom Color Source toggle to `BackgroundControl` for Solid and Gradient background types. `SectionStyle.colorMode` now controls whether the section uses the global palette (`"global"`) or the user's exact picked color (`"custom"`). Color pickers are only shown in `"custom"` mode. Fixed `SectionRenderer.getRenderSectionStyle` to no longer apply `lightenForLightMode` to custom background colors in light mode — custom colors are used exactly as chosen. Text/accent colors are still adapted for light-mode readability. `SectionModeSettings.handleBackgroundChange` now respects explicit `colorMode` changes without overriding them.*
 *Document Version: 3.56 - `EditorToolbar` now accepts `templateName` and `onRenameTemplate` props from `EditorPage`. On `/editor/:templateId`, clicking the template name activates an inline `border-b`-only input; blur or Enter commits the rename via `useUpdateTemplateProject({ name })`; Escape cancels; noop if unchanged or empty. Guest `/editor` shows a static fallback name.*
-*Last Updated: February 25, 2026*
+*Last Updated: February 26, 2026*
 *Keep this document updated as architecture decisions change.*
 *For colors and theming, always reference the separate Style Guide file.*
+
+
 
 
 

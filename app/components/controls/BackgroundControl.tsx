@@ -28,7 +28,7 @@ const EFFECT_TYPES = [
 	{ id: "none" as const, icon: "do_not_disturb_on", label: "None" },
 	{ id: "dots" as const, icon: "scatter_plot", label: "Dots" },
 	{ id: "grid" as const, icon: "grid_4x4", label: "Grid" },
-	{ id: "dim" as const, icon: "brightness_low", label: "Dim" },
+	{ id: "overlay" as const, icon: "format_color_fill", label: "Overlay" },
 	{ id: "vignette" as const, icon: "vignette", label: "Vignette" },
 ];
 
@@ -43,6 +43,11 @@ export function BackgroundControl({
 	const bgType = style.backgroundType || "solid";
 	const colorMode = style.colorMode ?? "global";
 	const effectIntensity = style.backgroundEffectIntensity ?? DEFAULT_EFFECT_INTENSITY;
+	const activeEffect =
+		(style.backgroundEffect ?? "none") === "dim"
+			? "overlay"
+			: (style.backgroundEffect ?? "none");
+	const overlayColor = style.backgroundEffectColor || "#000000";
 	const scheme = resolveSectionColorScheme({
 		primaryColor: globalStyle?.primaryColor || "#00e5a0",
 		themeMode: globalStyle?.themeMode ?? "dark",
@@ -129,9 +134,7 @@ export function BackgroundControl({
 
 			{bgType === "gradient" && (
 				<div className="space-y-1.5">
-					<label className="text-xs font-medium text-muted-foreground">
-						Direction
-					</label>
+					<label className="text-xs font-medium text-muted-foreground">Direction</label>
 					<Select
 						value={style.gradientDirection || "to bottom"}
 						onValueChange={(value) => onChange({ gradientDirection: value })}>
@@ -165,7 +168,7 @@ export function BackgroundControl({
 				<label className="text-xs font-medium text-muted-foreground">Overlay Effect</label>
 				<div className="flex gap-1.5">
 					{EFFECT_TYPES.map((t) => {
-						const active = (style.backgroundEffect ?? "none") === t.id;
+						const active = activeEffect === t.id;
 						return (
 							<button
 								key={t.id}
@@ -187,6 +190,14 @@ export function BackgroundControl({
 					})}
 				</div>
 			</div>
+
+			{activeEffect === "overlay" && (
+				<ColorControl
+					label="Overlay Color"
+					value={overlayColor}
+					onChange={(v) => onChange({ backgroundEffectColor: v })}
+				/>
+			)}
 
 			<SliderControl
 				label="Effect Intensity"

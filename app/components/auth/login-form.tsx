@@ -27,6 +27,7 @@ export function LoginForm() {
 
 	const [identifier, setIdentifier] = useState("");
 	const [password, setPassword] = useState("");
+	const [showPassword, setShowPassword] = useState(false);
 	const [rememberMe, setRememberMe] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
 
@@ -163,14 +164,25 @@ export function LoginForm() {
 						</span>
 						<Input
 							id="password"
-							type="password"
+							type={showPassword ? "text" : "password"}
 							placeholder="••••••••"
 							value={password}
 							onChange={(e) => setPassword(e.target.value)}
 							required
 							disabled={isLoading}
-							className="pl-10 h-11 bg-input border-border text-foreground placeholder:text-muted-foreground"
+							className="pl-10 pr-10 h-11 bg-input border-border text-foreground placeholder:text-muted-foreground"
 						/>
+						<button
+							type="button"
+							className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+							onClick={() => setShowPassword(!showPassword)}
+							disabled={isLoading}
+							aria-label={showPassword ? "Hide password" : "Show password"}>
+							<Icon
+								name={showPassword ? "visibility_off" : "visibility"}
+								className="text-lg"
+							/>
+						</button>
 					</div>
 				</div>
 

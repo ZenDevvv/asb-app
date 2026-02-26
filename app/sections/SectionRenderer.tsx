@@ -173,6 +173,7 @@ function getEffectPattern(
 	effect: SectionStyle["backgroundEffect"],
 	themeMode: GlobalStyle["themeMode"],
 	intensityValue: SectionStyle["backgroundEffectIntensity"],
+	overlayColorValue: SectionStyle["backgroundEffectColor"],
 ): EffectPattern | null {
 	if (!effect || effect === "none") return null;
 
@@ -206,10 +207,15 @@ function getEffectPattern(
 		};
 	}
 
-	if (effect === "dim") {
+	if (effect === "overlay" || effect === "dim") {
+		const overlayColor = parseHexColor(overlayColorValue || "#000000") || {
+			r: 0,
+			g: 0,
+			b: 0,
+		};
 		const alpha = toAlpha(0.7 * intensity);
 		return {
-			image: `linear-gradient(rgba(0,0,0,${alpha}), rgba(0,0,0,${alpha}))`,
+			image: `linear-gradient(rgba(${overlayColor.r},${overlayColor.g},${overlayColor.b},${alpha}), rgba(${overlayColor.r},${overlayColor.g},${overlayColor.b},${alpha}))`,
 			size: "auto",
 			position: "left top",
 		};
@@ -233,7 +239,12 @@ function getSectionBackground(
 	themeMode: GlobalStyle["themeMode"],
 ): React.CSSProperties {
 	const s = sectionStyle;
-	const effect = getEffectPattern(s.backgroundEffect, themeMode, s.backgroundEffectIntensity);
+	const effect = getEffectPattern(
+		s.backgroundEffect,
+		themeMode,
+		s.backgroundEffectIntensity,
+		s.backgroundEffectColor,
+	);
 	const style: React.CSSProperties = {
 		paddingTop: s.paddingY ?? 80,
 		paddingBottom: s.paddingY ?? 80,

@@ -82,8 +82,9 @@ export interface SectionStyle {
   gradientTo?: string;
   gradientDirection?: string;
   paddingY?: number;
-  backgroundEffect?: "none" | "dots" | "grid" | "dim" | "vignette";
-  backgroundEffectIntensity?: number; // 0-100; controls strength for dots/grid/dim/vignette overlays
+  backgroundEffect?: "none" | "dots" | "grid" | "overlay" | "dim" | "vignette";
+  backgroundEffectIntensity?: number; // 0-100; controls strength for dots/grid/overlay/vignette overlays
+  backgroundEffectColor?: string; // Hex color used by the "overlay" effect (defaults to black)
   fullHeight?: boolean;         // When true, section has min-height: 100vh (fills screen)
   groupVerticalAlign?: "top" | "center" | "bottom";
   colorMode?: "global" | "custom";
