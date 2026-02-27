@@ -163,7 +163,7 @@ export const CMS_TEMPLATE_LIBRARY: CMSTemplate[] = [
 	},
 	{
 		id: "multiple-video-in-canvas",
-		label: "multiple video in canvas",
+		label: "Multiple video in canvas",
 		description: "Imported from CMS debug snapshot with multiple video blocks in landscape.",
 		resolution: { label: "1080p Landscape", width: 1920, height: 1080 },
 		globalStyle: {
@@ -174,9 +174,10 @@ export const CMS_TEMPLATE_LIBRARY: CMSTemplate[] = [
 			themeMode: "dark",
 		},
 		canvasBackground: {
-			type: "color",
+			type: "image",
 			color: "#2e2e2e",
-			imageUrl: "",
+			imageUrl:
+				"https://static.vecteezy.com/system/resources/thumbnails/072/257/502/small_2x/charming-floral-pattern-featuring-pink-roses-and-green-leaves-photo.jpg",
 			videoUrl: "",
 		},
 		blocks: [
