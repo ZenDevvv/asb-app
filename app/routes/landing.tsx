@@ -11,6 +11,7 @@ import { Link } from "react-router";
 import { useEffect, useRef, useState } from "react";
 import { PAGE_TITLES } from "~/config/page-titles";
 import { Icon } from "~/components/ui/icon";
+import { SiteHeader } from "~/components/organisms/site-header";
 
 export function meta({}: Route.MetaArgs) {
 	return [{ title: PAGE_TITLES.landing }];
@@ -298,7 +299,7 @@ export default function LandingPage() {
 		: fadeUp;
 
 	return (
-		<div className="relative flex min-h-screen flex-col overflow-hidden bg-background text-foreground">
+		<div className="relative flex min-h-screen flex-col overflow-hidden minimal-scrollbar bg-background text-foreground">
 			{/* ── Ambient Gradient Background ──────────────────────────── */}
 			<div className="pointer-events-none fixed inset-0 -z-10">
 				<motion.div
@@ -327,35 +328,18 @@ export default function LandingPage() {
 			</div>
 
 			{/* ── Header ───────────────────────────────────────────────── */}
-			<motion.header
-				className="sticky top-0 z-50 border-b border-border/40 bg-background/70 backdrop-blur-xl"
-				initial={{ opacity: 0, y: prefersReducedMotion ? 0 : -20 }}
-				animate={{ opacity: 1, y: 0 }}
-				transition={{ duration: prefersReducedMotion ? 0.2 : 0.45, ease: "easeOut" }}>
-				<div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-6 md:px-10">
-					{/* Logo */}
-					<div className="flex items-center gap-2.5">
-						<div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-md shadow-primary/40">
-							<Icon name="auto_awesome" size={16} filled />
-						</div>
-						<span className="text-lg font-bold tracking-tight">
-							AppSite<span className="text-primary">Builder</span>
-						</span>
-					</div>
-
-					{/* Nav */}
-					<nav className="hidden items-center gap-8 text-sm text-muted-foreground md:flex">
-						{NAV_LINKS.map((link) => (
-							<span
-								key={link}
-								className="cursor-default transition-colors duration-150 hover:text-foreground">
-								{link}
-							</span>
-						))}
-					</nav>
-
-					{/* Actions */}
-					<div className="flex items-center gap-2">
+			<SiteHeader
+				logoHref="/"
+				className="sticky top-0"
+				nav={NAV_LINKS.map((link) => (
+					<span
+						key={link}
+						className="cursor-default transition-colors duration-150 hover:text-foreground">
+						{link}
+					</span>
+				))}
+				actions={
+					<>
 						<Link
 							to="/login"
 							className="hidden rounded-full px-4 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground md:inline-flex">
@@ -367,9 +351,9 @@ export default function LandingPage() {
 							<Icon name="bolt" size={15} filled />
 							Get Started
 						</Link>
-					</div>
-				</div>
-			</motion.header>
+					</>
+				}
+			/>
 
 			{/* ── HERO ─────────────────────────────────────────────────── */}
 			<section className="relative mx-auto flex w-full max-w-7xl flex-col items-center px-6 pb-24 pt-20 text-center md:px-10">

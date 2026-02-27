@@ -7,6 +7,7 @@ import { Loader2 } from "lucide-react";
 import { useAuth } from "~/hooks/use-auth";
 import { useNavigate, Link } from "react-router";
 import { Icon } from "./icon";
+import asbLogo from "~/assets/images/asb_logo.png";
 
 const DEV_LOGIN_PRESETS = {
 	admin: {
@@ -52,6 +53,11 @@ export function LoginForm() {
 		<div className="w-full max-w-[420px] rounded-2xl bg-card border border-border p-8 space-y-6 shadow-2xl">
 			{/* Header */}
 			<div className="space-y-1.5 text-center">
+				<div className="flex justify-center pb-1">
+					<Link to="/" className="inline-flex items-center">
+						<img src={asbLogo} alt="ASB logo" className="h-10 w-auto" />
+					</Link>
+				</div>
 				<h2 className="text-2xl font-bold text-foreground">Welcome Back, Creator</h2>
 				<p className="text-sm text-muted-foreground">
 					Log in to generate your next masterpiece.

@@ -1,9 +1,10 @@
-import { Outlet, Link, useNavigate } from "react-router";
+import { Outlet, useNavigate } from "react-router";
 import { useEffect, useRef, useState } from "react";
-import { motion, useReducedMotion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "~/hooks/use-auth";
 import { SplashScreen } from "@/components/admin/splash-screen";
 import { Icon } from "~/components/ui/icon";
+import { SiteHeader } from "~/components/organisms/site-header";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function getInitials(name?: string, email?: string): string {
@@ -121,7 +122,6 @@ function UserMenu({
 export default function UserLayout() {
 	const { user, isLoading, logout } = useAuth();
 	const navigate = useNavigate();
-	const prefersReducedMotion = useReducedMotion();
 
 	useEffect(() => {
 		if (!isLoading && !user) {
@@ -146,48 +146,33 @@ export default function UserLayout() {
 		<div className="flex h-screen overflow-hidden bg-background">
 			<div className="flex-1 flex flex-col min-w-0 h-full">
 				{/* ── Header ──────────────────────────────────────────── */}
-				<motion.header
-					className="shrink-0 border-b border-border/40 bg-background/75 backdrop-blur-xl z-50"
-					initial={{ opacity: 0, y: prefersReducedMotion ? 0 : -20 }}
-					animate={{ opacity: 1, y: 0 }}
-					transition={{ duration: 0.4, ease: "easeOut" }}
-				>
-					<div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-6 md:px-10">
-						{/* Logo */}
-						<Link to="/" className="flex items-center gap-2.5">
-							<div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-md shadow-primary/40">
-								<Icon name="auto_awesome" size={16} filled />
-							</div>
-							<span className="text-lg font-bold tracking-tight">
-								AppSite<span className="text-primary">Builder</span>
-							</span>
-						</Link>
-
-						{/* Nav */}
-						<nav className="hidden items-center gap-1 md:flex">
-							{[
-								{ label: "Dashboard", icon: "dashboard", active: true },
-								{ label: "My Projects", icon: "folder_open", active: false },
-								{ label: "Templates", icon: "grid_view", active: false },
-								{ label: "Settings", icon: "settings", active: false },
-							].map(({ label, icon, active }) => (
-								<button
-									key={label}
-									type="button"
-									className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-medium transition-all ${
-										active
-											? "bg-primary/15 text-primary"
-											: "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
-									}`}
-								>
-									<Icon name={icon} size={14} />
-									{label}
-								</button>
-							))}
-						</nav>
-
-						{/* Right actions */}
-						<div className="flex items-center gap-3">
+				<SiteHeader
+					logoHref="/"
+					className="shrink-0 bg-background/75"
+					navClassName="hidden items-center gap-1 md:flex"
+					actionsClassName="flex items-center gap-3"
+					animationDuration={0.4}
+					nav={[
+						{ label: "Dashboard", icon: "dashboard", active: true },
+						{ label: "My Projects", icon: "folder_open", active: false },
+						{ label: "Templates", icon: "grid_view", active: false },
+						{ label: "Settings", icon: "settings", active: false },
+					].map(({ label, icon, active }) => (
+						<button
+							key={label}
+							type="button"
+							className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-medium transition-all ${
+								active
+									? "bg-primary/15 text-primary"
+									: "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+							}`}
+						>
+							<Icon name={icon} size={14} />
+							{label}
+						</button>
+					))}
+					actions={
+						<>
 							<button
 								type="button"
 								// onClick={() => navigate("/editor")}
@@ -206,9 +191,9 @@ export default function UserLayout() {
 							</button>
 
 							<UserMenu user={user} onLogout={handleLogout} />
-						</div>
-					</div>
-				</motion.header>
+						</>
+					}
+				/>
 
 				{/* ── Page content ────────────────────────────────────── */}
 				<main className="minimal-scrollbar flex-1 overflow-y-auto">
