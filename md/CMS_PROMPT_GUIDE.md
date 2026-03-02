@@ -25,6 +25,12 @@ Admin-only CMS routes:
 2. `/admin/cms/editor/:templateId`
 3. `/admin/cms/view/:templateId`
 
+Layout ownership:
+
+1. `/admin/cms` is rendered inside `AdminLayout`
+2. `/admin/cms/editor/:templateId` is rendered outside `AdminLayout` (standalone editor shell)
+3. `/admin/cms/view/:templateId` remains an admin-only CMS route
+
 Back-compat redirects:
 
 1. `/cms` -> `/admin/cms`
@@ -156,7 +162,7 @@ When writing CMS prompts, include:
 ## Current Status Summary
 
 1. CMS template management lives at `/admin/cms`
-2. CMS editor is template-bound at `/admin/cms/editor/:templateId`
+2. CMS editor is template-bound at `/admin/cms/editor/:templateId` and rendered outside `AdminLayout`
 3. CMS admin view route exists at `/admin/cms/view/:templateId`
 4. Template schema includes `editorMode` and `cmsState`
 5. Backend enforces admin-only CMS access and blocks CMS public/fork access

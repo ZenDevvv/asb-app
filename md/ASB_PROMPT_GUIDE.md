@@ -25,6 +25,7 @@ CMS is now merged into ASB as an admin-only template mode, not an isolated local
    - `/admin/cms`
    - `/admin/cms/editor/:templateId`
    - `/admin/cms/view/:templateId`
+   - Layout rule: `/admin/cms` stays in `AdminLayout`; `/admin/cms/editor/:templateId` is standalone (outside `AdminLayout`)
 2. Redirects:
    - `/cms` -> `/admin/cms`
    - `/admin/display` -> `/admin/cms`

@@ -1,83 +1,27 @@
-import {
-	AlertTriangle,
-	ArrowLeft,
-	Eye,
-	Loader2,
-	RotateCcw,
-	Save,
-	ScreenShare,
-	WifiOff,
-	ZoomIn,
-	ZoomOut,
-} from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router";
+import { CmsEditorHeader } from "~/cms/editor/CmsEditorHeader";
+import { CmsEditorStatusBanner } from "~/cms/editor/CmsEditorStatusBanner";
+import {
+	CmsEditorLoadErrorState,
+	CmsEditorMissingTemplateState,
+} from "~/cms/editor/CmsEditorStates";
+import {
+	LANDSCAPE_PRESETS,
+	PORTRAIT_PRESETS,
+	clamp,
+	createSaveHash,
+	getOrientationFromResolution,
+	getPresetLabel,
+	type PresetOrientation,
+} from "~/cms/editor/cmsEditorHelpers";
 import { CMSCanvas } from "~/components/admin/display/CMSCanvas";
 import { CMSSidebar } from "~/components/admin/display/CMSSidebar";
 import { SplashScreen } from "~/components/admin/splash-screen";
-import { Button } from "~/components/ui/button";
-import { Input } from "~/components/ui/input";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "~/components/ui/select";
 import { useAuth } from "~/hooks/use-auth";
-import {
-	useGetTemplateProjectById,
-	useUpdateTemplateProject,
-} from "~/hooks/use-template-project";
+import { useGetTemplateProjectById, useUpdateTemplateProject } from "~/hooks/use-template-project";
 import { resolveTemplateEditorMode } from "~/lib/template-project-utils";
-import {
-	CMS_PRESETS,
-	useDisplayStore,
-	type CMSResolution,
-} from "~/stores/displayStore";
-
-function clamp(value: number, min: number, max: number): number {
-	return Math.min(max, Math.max(min, value));
-}
-
-function getPresetLabel(width: number, height: number): string {
-	const bySize = CMS_PRESETS.find(
-		(preset) => preset.label !== "Custom" && preset.width === width && preset.height === height,
-	);
-	return bySize ? bySize.label : "Custom";
-}
-
-type PresetOrientation = "landscape" | "portrait";
-
-function getOrientationFromResolution(resolution: CMSResolution): PresetOrientation {
-	return resolution.width >= resolution.height ? "landscape" : "portrait";
-}
-
-const LANDSCAPE_PRESETS = CMS_PRESETS.filter(
-	(preset) => preset.label !== "Custom" && preset.width >= preset.height,
-);
-
-const PORTRAIT_PRESETS = CMS_PRESETS.filter(
-	(preset) => preset.label !== "Custom" && preset.width < preset.height,
-);
-
-function createSaveHash(params: {
-	resolution: CMSResolution;
-	zoom: number;
-	blocks: unknown;
-	activeTemplateId: string | null;
-	canvasBackground: unknown;
-	globalStyle: unknown;
-}): string {
-	return JSON.stringify({
-		resolution: params.resolution,
-		zoom: params.zoom,
-		blocks: params.blocks,
-		activeTemplateId: params.activeTemplateId,
-		canvasBackground: params.canvasBackground,
-		globalStyle: params.globalStyle,
-	});
-}
+import { useDisplayStore, type CMSResolution } from "~/stores/displayStore";
 
 export default function CmsEditorPage() {
 	const navigate = useNavigate();
@@ -345,7 +289,8 @@ export default function CmsEditorPage() {
 		setResolution({
 			label: "Custom",
 			width: key === "width" ? clamp(parsed, 320, 7680) : clamp(resolution.width, 320, 7680),
-			height: key === "height" ? clamp(parsed, 320, 4320) : clamp(resolution.height, 320, 4320),
+			height:
+				key === "height" ? clamp(parsed, 320, 4320) : clamp(resolution.height, 320, 4320),
 		});
 	};
 
@@ -373,28 +318,15 @@ export default function CmsEditorPage() {
 	}
 
 	if (!templateId) {
-		return (
-			<div className="flex h-screen items-center justify-center bg-background text-sm text-muted-foreground">
-				Missing CMS template id.
-			</div>
-		);
+		return <CmsEditorMissingTemplateState />;
 	}
 
 	if (isTemplateError && !isHydrated) {
 		return (
-			<div className="flex h-screen items-center justify-center bg-background px-4">
-				<div className="w-full max-w-xl rounded-xl border border-destructive/40 bg-destructive/10 p-4 text-sm text-destructive">
-					<div className="font-semibold">Unable to load CMS template</div>
-					<div className="mt-2 text-muted-foreground">
-						{templateError instanceof Error ? templateError.message : "Please try again."}
-					</div>
-					<div className="mt-4">
-						<Button type="button" onClick={() => navigate("/admin/cms")}>
-							Back to CMS Templates
-						</Button>
-					</div>
-				</div>
-			</div>
+			<CmsEditorLoadErrorState
+				error={templateError}
+				onBackToTemplates={() => navigate("/admin/cms")}
+			/>
 		);
 	}
 
@@ -402,129 +334,31 @@ export default function CmsEditorPage() {
 
 	return (
 		<div className="flex h-screen flex-col overflow-hidden bg-background">
-			<header className="flex min-h-14 shrink-0 flex-wrap items-center justify-between gap-3 border-b border-sidebar-border bg-sidebar px-4 py-2">
-				<div className="flex items-center gap-3">
-					<Button
-						type="button"
-						variant="ghost"
-						size="icon"
-						onClick={() => navigate("/admin/cms")}
-						className="size-8 text-muted-foreground hover:bg-sidebar-accent hover:text-foreground"
-						title="Back to CMS templates">
-						<ArrowLeft className="h-4 w-4" />
-					</Button>
-					<div className="flex size-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
-						<ScreenShare className="h-4 w-4" />
-					</div>
-					<div>
-						<div className="text-sm font-semibold text-sidebar-foreground">{templateName}</div>
-						<div className="text-[10px] text-muted-foreground">{statusMessage}</div>
-					</div>
-				</div>
+			<CmsEditorHeader
+				templateName={templateName}
+				statusMessage={statusMessage}
+				presetOrientation={presetOrientation}
+				onSetOrientation={setOrientation}
+				selectedPresetLabel={selectedPresetLabel}
+				selectedPresetTriggerLabel={selectedPresetTriggerLabel}
+				orientationPresets={orientationPresets}
+				isCustomPreset={isCustomPreset}
+				resolution={resolution}
+				onPresetChange={handlePresetChange}
+				onCustomDimensionChange={handleCustomDimensionChange}
+				zoom={zoom}
+				onZoomChange={setZoom}
+				isSaving={isSaving}
+				onBackToTemplates={() => navigate("/admin/cms")}
+				onOpenPreview={() => navigate(`/admin/cms/view/${templateId}`)}
+				onSave={() => void saveNow()}
+				onReset={handleReset}
+			/>
 
-				<div className="flex flex-wrap items-center gap-2">
-					<div className="flex items-center rounded-xl border border-sidebar-border bg-sidebar-accent/50 p-0.5">
-						<Button
-							type="button"
-							size="sm"
-							variant={presetOrientation === "landscape" ? "default" : "ghost"}
-							onClick={() => setOrientation("landscape")}
-							className="h-7 rounded-lg px-2.5 text-xs">
-							Landscape
-						</Button>
-						<Button
-							type="button"
-							size="sm"
-							variant={presetOrientation === "portrait" ? "default" : "ghost"}
-							onClick={() => setOrientation("portrait")}
-							className="h-7 rounded-lg px-2.5 text-xs">
-							Portrait
-						</Button>
-					</div>
-
-					<Select value={selectedPresetLabel} onValueChange={handlePresetChange}>
-						<SelectTrigger
-							size="sm"
-							className="h-8 rounded-lg border-sidebar-border bg-sidebar-accent/30 text-xs text-sidebar-foreground hover:bg-sidebar-accent/50">
-							<SelectValue>{selectedPresetTriggerLabel}</SelectValue>
-						</SelectTrigger>
-						<SelectContent className="border-sidebar-border bg-sidebar text-sidebar-foreground">
-							{orientationPresets.map((preset) => (
-								<SelectItem key={preset.label} value={preset.label}>
-									{preset.label}
-								</SelectItem>
-							))}
-							<SelectItem value="Custom">Custom</SelectItem>
-						</SelectContent>
-					</Select>
-
-					{isCustomPreset ? (
-						<div className="flex items-center gap-1">
-							<Input
-								type="number"
-								min={320}
-								max={7680}
-								value={resolution.width}
-								onChange={(event) => handleCustomDimensionChange("width", event.target.value)}
-								className="h-8 w-20 rounded-lg border-sidebar-border bg-sidebar-accent/30 text-xs"
-							/>
-							<span className="text-xs text-muted-foreground">x</span>
-							<Input
-								type="number"
-								min={320}
-								max={4320}
-								value={resolution.height}
-								onChange={(event) => handleCustomDimensionChange("height", event.target.value)}
-								className="h-8 w-20 rounded-lg border-sidebar-border bg-sidebar-accent/30 text-xs"
-							/>
-						</div>
-					) : null}
-
-					<div className="flex items-center rounded-xl border border-sidebar-border bg-sidebar-accent/50 p-0.5">
-						<button
-							type="button"
-							onClick={() => setZoom(zoom - 10)}
-							className="flex size-7 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground">
-							<ZoomOut className="h-3.5 w-3.5" />
-						</button>
-						<span className="min-w-[44px] text-center text-xs font-medium text-sidebar-foreground">
-							{zoom}%
-						</span>
-						<button
-							type="button"
-							onClick={() => setZoom(zoom + 10)}
-							className="flex size-7 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground">
-							<ZoomIn className="h-3.5 w-3.5" />
-						</button>
-					</div>
-
-					<Button
-						type="button"
-						variant="outline"
-						size="sm"
-						onClick={() => navigate(`/admin/cms/view/${templateId}`)}>
-						<Eye className="h-3.5 w-3.5" />
-						Preview
-					</Button>
-
-					<Button type="button" variant="outline" size="sm" onClick={() => void saveNow()}>
-						{isSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
-						Save
-					</Button>
-
-					<Button type="button" variant="destructive" size="sm" onClick={handleReset}>
-						<RotateCcw className="h-3.5 w-3.5" />
-						Reset
-					</Button>
-				</div>
-			</header>
-
-			{saveError ? (
-				<div className="flex items-center gap-2 border-b border-amber-500/30 bg-amber-500/10 px-4 py-2 text-xs text-amber-200">
-					{offlineDraftRecovered ? <WifiOff className="h-3.5 w-3.5" /> : <AlertTriangle className="h-3.5 w-3.5" />}
-					<span>{saveError}</span>
-				</div>
-			) : null}
+			<CmsEditorStatusBanner
+				saveError={saveError}
+				offlineDraftRecovered={offlineDraftRecovered}
+			/>
 
 			<div className="flex flex-1 flex-col overflow-hidden lg:flex-row">
 				<CMSCanvas />
