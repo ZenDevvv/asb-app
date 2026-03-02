@@ -123,8 +123,8 @@ const FEATURES = [
 	},
 	{
 		icon: "content_copy",
-		title: "Curated Templates",
-		desc: "Fork a professionally designed template in one click. Your copy is fully independent — template updates never affect your project.",
+		title: "Website Templates",
+		desc: "Fork a professionally designed website template in one click. Your copy is fully independent — template updates never affect your project.",
 	},
 	{
 		icon: "cloud_upload",
@@ -270,6 +270,29 @@ const TEMPLATES = [
 	},
 ];
 
+const CMS_FEATURES = [
+	{
+		icon: "open_with",
+		title: "Free-Canvas Editor",
+		desc: "Place any block anywhere — no grid constraints, pure creative freedom.",
+	},
+	{
+		icon: "rotate_right",
+		title: "Rotation & Layering",
+		desc: "Rotate elements to any angle and layer them with full z-index control.",
+	},
+	{
+		icon: "aspect_ratio",
+		title: "Multi-Resolution Presets",
+		desc: "Design for 4K, FHD, portrait kiosks, and custom screen dimensions.",
+	},
+	{
+		icon: "wallpaper",
+		title: "Rich Backgrounds",
+		desc: "Set canvas backgrounds to solid colour, image, or live video feeds.",
+	},
+];
+
 const NAV_LINKS = ["Showcase", "Templates", "Pricing", "Docs"];
 
 // ─── Page Component ───────────────────────────────────────────────────────────
@@ -285,6 +308,7 @@ export default function LandingPage() {
 	const testimonialsRef = useRef<HTMLElement>(null);
 	const statsRef = useRef<HTMLElement>(null);
 	const ctaRef = useRef<HTMLElement>(null);
+	const cmsRef = useRef<HTMLElement>(null);
 
 	const featuresInView = useInView(featuresRef, { once: true, margin: "-80px" });
 	const stepsInView = useInView(stepsRef, { once: true, margin: "-80px" });
@@ -293,6 +317,7 @@ export default function LandingPage() {
 	const testimonialsInView = useInView(testimonialsRef, { once: true, margin: "-80px" });
 	const statsInView = useInView(statsRef, { once: true, margin: "-80px" });
 	const ctaInView = useInView(ctaRef, { once: true, margin: "-80px" });
+	const cmsInView = useInView(cmsRef, { once: true, margin: "-80px" });
 
 	const safeFadeUp = prefersReducedMotion
 		? ({ hidden: { opacity: 0 }, show: { opacity: 1, transition: { duration: 0.2 } } } as Variants)
@@ -668,7 +693,220 @@ export default function LandingPage() {
 				</motion.div>
 			</motion.section>
 
-			{/* ── TEMPLATES ────────────────────────────────────────────── */}
+			{/* ── CMS STUDIO ───────────────────────────────────────────── */}
+			<motion.section
+				ref={cmsRef}
+				variants={stagger}
+				initial="hidden"
+				animate={cmsInView ? "show" : "hidden"}
+				className="mx-auto w-full max-w-7xl px-6 py-20 md:px-10">
+				<div className="relative overflow-hidden rounded-[2.5rem] border border-border/60 bg-card/40 p-8 shadow-xl backdrop-blur-sm md:p-12 lg:p-16">
+					{/* Ambient glow orbs */}
+					<div className="pointer-events-none absolute -right-40 -top-40 h-96 w-96 rounded-full bg-violet-500/12 blur-3xl" />
+					<div className="pointer-events-none absolute -bottom-24 left-1/4 h-72 w-72 rounded-full bg-primary/8 blur-3xl" />
+
+					<div className="relative grid gap-12 lg:grid-cols-[1fr_1.2fr] lg:items-center">
+						{/* ── Left: Copy ── */}
+						<motion.div variants={safeFadeUp}>
+							<div className="mb-5 inline-flex items-center gap-2 rounded-full border border-violet-500/30 bg-violet-500/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-violet-400">
+								<Icon name="tv" size={12} filled />
+								CMS Studio
+							</div>
+							<h2 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
+								Pixel-perfect displays,
+								<br />
+								<span className="bg-gradient-to-r from-violet-400 via-purple-400 to-fuchsia-400 bg-clip-text text-transparent">
+									free-canvas freedom.
+								</span>
+							</h2>
+							<p className="mt-4 max-w-sm text-muted-foreground">
+								Place every block exactly where you want it — no grid, no constraints.
+							</p>
+
+							<div className="mt-7 flex flex-wrap gap-2">
+								{CMS_FEATURES.map(({ icon, title }) => (
+									<div
+										key={title}
+										className="flex items-center gap-1.5 rounded-full border border-violet-500/20 bg-violet-500/8 px-3 py-1.5 text-xs font-medium text-violet-300">
+										<Icon name={icon} className="shrink-0" size={13} filled />
+										{title}
+									</div>
+								))}
+							</div>
+
+							<div className="mt-8">
+								<Link
+									to="/login"
+									className="inline-flex items-center gap-2 rounded-full bg-violet-600 px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-violet-500/30 transition-all hover:brightness-110 active:scale-95">
+									<Icon name="content_copy" size={15} filled />
+									Browse CMS Templates
+								</Link>
+							</div>
+						</motion.div>
+
+						{/* ── Right: Canvas Mockup ── */}
+						<motion.div variants={safeFadeUp} className="relative">
+							{/* Glow halo behind editor */}
+							<div className="pointer-events-none absolute inset-0 scale-95 rounded-2xl bg-violet-500/15 blur-2xl" />
+
+							{/* Editor shell */}
+							<div className="relative overflow-hidden rounded-2xl border border-violet-500/20 bg-[#09090b] shadow-2xl shadow-violet-500/10">
+								{/* Titlebar */}
+								<div className="flex items-center justify-between border-b border-white/[0.06] bg-zinc-900/80 px-4 py-2.5">
+									<div className="flex items-center gap-1.5">
+										<span className="h-2.5 w-2.5 rounded-full bg-red-500/70" />
+										<span className="h-2.5 w-2.5 rounded-full bg-amber-400/70" />
+										<span className="h-2.5 w-2.5 rounded-full bg-emerald-400/70" />
+									</div>
+									<div className="flex items-center gap-1.5 rounded-md bg-white/[0.06] px-3 py-1 font-mono text-[10px] text-zinc-400">
+										<Icon name="monitor" size={10} />
+										1920 × 1080
+									</div>
+									<div className="flex items-center gap-1.5">
+										<span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
+										<span className="text-[10px] text-zinc-500">Auto-saved</span>
+									</div>
+								</div>
+
+								{/* Canvas area */}
+								<div
+									className="relative aspect-[16/9] overflow-hidden"
+									style={{
+										backgroundImage:
+											"linear-gradient(rgba(255,255,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.03) 1px,transparent 1px)",
+										backgroundSize: "28px 28px",
+										backgroundColor: "#09090b",
+									}}>
+									{/* Canvas ambient gradient */}
+									<div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_28%_22%,rgba(139,92,246,0.20),transparent_55%),radial-gradient(ellipse_at_82%_75%,rgba(99,102,241,0.12),transparent_50%)]" />
+
+									{/* Ruler — left strip */}
+									<div className="absolute inset-y-0 left-0 w-5 border-r border-white/[0.05] bg-zinc-900/70" />
+									{/* Ruler — top strip */}
+									<div className="absolute inset-x-5 top-0 h-4 border-b border-white/[0.05] bg-zinc-900/70" />
+
+									{/* ── Canvas Blocks ── */}
+
+									{/* Hero heading block */}
+									<div
+										className="absolute left-[10%] top-[15%] w-[46%] rounded-lg border border-violet-400/25 bg-violet-500/15 px-3.5 py-3 backdrop-blur-sm"
+										style={{ transform: "rotate(-1.2deg)" }}>
+										<div className="h-2 w-4/5 rounded-full bg-violet-300/55" />
+										<div className="mt-1.5 h-1.5 w-3/5 rounded-full bg-violet-300/30" />
+										<div className="mt-3 h-5 w-16 rounded-full bg-violet-500/55" />
+										<span className="absolute -top-4 left-0 whitespace-nowrap font-mono text-[7px] text-violet-400/60">
+											x:10% y:15% ↻ -1.2°
+										</span>
+									</div>
+
+									{/* Image block (selected with handles) */}
+									<div
+										className="absolute right-[7%] top-[8%] h-[37%] w-[26%] overflow-hidden rounded-xl border border-cyan-400/25 bg-gradient-to-br from-cyan-500/20 to-blue-600/10 backdrop-blur-sm"
+										style={{ transform: "rotate(2.5deg)" }}>
+										<div className="absolute inset-0 flex items-center justify-center opacity-50">
+											<Icon name="image" className="text-cyan-300" size={26} />
+										</div>
+										{/* Selection ring */}
+										<div className="absolute inset-0 rounded-xl ring-2 ring-violet-400/60" />
+										{/* Corner resize handles */}
+										{(["-top-1 -left-1", "-top-1 -right-1", "-bottom-1 -left-1", "-bottom-1 -right-1"] as const).map(
+											(pos) => (
+												<div
+													key={pos}
+													className={`absolute ${pos} h-2 w-2 rounded-sm border border-violet-400/80 bg-[#09090b]`}
+												/>
+											),
+										)}
+										<span className="absolute -top-4 left-0 whitespace-nowrap font-mono text-[7px] text-cyan-400/60">
+											x:67% y:8% ↻ 2.5°
+										</span>
+									</div>
+
+									{/* Badge block */}
+									<div
+										className="absolute left-[12%] top-[53%] rounded-full border border-emerald-400/30 bg-emerald-500/15 px-3 py-1 backdrop-blur-sm"
+										style={{ transform: "rotate(2.8deg)" }}>
+										<div className="h-1.5 w-14 rounded-full bg-emerald-300/55" />
+									</div>
+
+									{/* Text body block */}
+									<div
+										className="absolute bottom-[22%] left-[8%] w-[37%] space-y-1.5 rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 py-2.5 backdrop-blur-sm"
+										style={{ transform: "rotate(-0.8deg)" }}>
+										<div className="h-1.5 w-full rounded-full bg-white/22" />
+										<div className="h-1.5 w-5/6 rounded-full bg-white/15" />
+										<div className="h-1.5 w-2/3 rounded-full bg-white/10" />
+									</div>
+
+									{/* CTA Button block */}
+									<div
+										className="absolute bottom-[12%] right-[9%] rounded-full border border-violet-400/35 bg-violet-500/20 px-5 py-2 backdrop-blur-sm"
+										style={{ transform: "rotate(-1.5deg)" }}>
+										<div className="h-2 w-14 rounded-full bg-violet-300/60" />
+									</div>
+
+									{/* Divider block */}
+									<div
+										className="absolute right-[7%] bottom-[48%] w-[26%] border-t border-dashed border-zinc-500/35"
+										style={{ transform: "rotate(2.5deg)" }}
+									/>
+								</div>
+
+								{/* Bottom block-picker toolbar */}
+								<div className="flex items-center justify-between border-t border-white/[0.06] bg-zinc-900/80 px-4 py-2.5">
+									<div className="flex items-center gap-1.5">
+										{["title", "image", "smart_button", "label", "format_quote", "height"].map((ic) => (
+											<div
+												key={ic}
+												className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg bg-white/[0.05] text-zinc-500 transition-colors hover:bg-white/[0.10] hover:text-zinc-200">
+												<Icon name={ic} size={13} />
+											</div>
+										))}
+									</div>
+									<div className="flex items-center gap-2">
+										<div className="rounded-md border border-violet-500/25 bg-violet-500/12 px-3 py-1 text-[10px] font-semibold text-violet-400">
+											Preview
+										</div>
+										<div className="rounded-md bg-violet-600 px-3 py-1 text-[10px] font-semibold text-white">Publish</div>
+									</div>
+								</div>
+							</div>
+
+							{/* Floating badge — bottom left */}
+							<motion.div
+								className="absolute -bottom-5 -left-5 rounded-2xl border border-border/60 bg-card/90 p-3 shadow-xl backdrop-blur-xl"
+								animate={prefersReducedMotion ? {} : { y: [0, -7, 0] }}
+								transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}>
+								<div className="flex items-center gap-2.5">
+									<div className="flex h-9 w-9 items-center justify-center rounded-xl bg-violet-500/20">
+										<Icon name="layers" className="text-violet-400" size={18} filled />
+									</div>
+									<div>
+										<p className="text-xs font-bold">Free Canvas</p>
+										<p className="text-[10px] text-muted-foreground">Drag · Rotate · Scale</p>
+									</div>
+								</div>
+							</motion.div>
+
+							{/* Floating badge — top right */}
+							<motion.div
+								className="absolute -right-5 -top-5 rounded-2xl border border-border/60 bg-card/90 p-3 shadow-xl backdrop-blur-xl"
+								animate={prefersReducedMotion ? {} : { y: [0, 8, 0] }}
+								transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 0.6 }}>
+								<div className="flex items-center gap-2">
+									<Icon name="display_settings" className="text-violet-400" size={16} filled />
+									<div>
+										<p className="text-xs font-bold">Multi-Resolution</p>
+										<p className="text-[10px] text-muted-foreground">4K · FHD · Portrait</p>
+									</div>
+								</div>
+							</motion.div>
+						</motion.div>
+					</div>
+				</div>
+			</motion.section>
+
+			{/* ── WEBSITE TEMPLATES ─────────────────────────────────────── */}
 			<motion.section
 				ref={templatesRef}
 				variants={stagger}
@@ -677,7 +915,7 @@ export default function LandingPage() {
 				className="mx-auto w-full max-w-7xl px-6 py-20 md:px-10">
 				<motion.div variants={safeFadeUp} className="mb-14 text-center">
 					<p className="mb-2 text-xs font-semibold uppercase tracking-widest text-primary">
-						Templates
+						Website Templates
 					</p>
 					<h2 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
 						Start with something
@@ -685,7 +923,7 @@ export default function LandingPage() {
 						<span className="text-muted-foreground">beautiful.</span>
 					</h2>
 					<p className="mx-auto mt-4 max-w-xl text-muted-foreground">
-						Pick a professionally designed template, fork it with one click, and make it yours.
+						Pick a professionally designed website template, fork it with one click, and make it yours.
 						Your copy is fully independent — template updates never touch your project.
 					</p>
 				</motion.div>
@@ -773,7 +1011,7 @@ export default function LandingPage() {
 						type="button"
 						className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-card/60 px-7 py-3 text-sm font-semibold backdrop-blur transition-all hover:border-primary/40 hover:bg-primary/10 hover:text-foreground active:scale-95">
 						<Icon name="grid_view" size={16} />
-						Browse all 85+ templates
+						Browse all 85+ website templates
 						<Icon name="arrow_forward" size={16} />
 					</button>
 				</motion.div>
