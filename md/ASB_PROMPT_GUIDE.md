@@ -17,6 +17,31 @@
 
 ---
 
+## CMS Merge Update (2026-03-02)
+
+CMS is now merged into ASB as an admin-only template mode, not an isolated local tool.
+
+1. CMS routes:
+   - `/admin/cms`
+   - `/admin/cms/editor/:templateId`
+   - `/admin/cms/view/:templateId`
+2. Redirects:
+   - `/cms` -> `/admin/cms`
+   - `/admin/display` -> `/admin/cms`
+3. Template model additions:
+   - `editorMode: "website" | "cms"` (legacy missing values resolve to `"website"`)
+   - `cmsState` (JSON CMS free-canvas payload)
+4. Mode separation rules:
+   - Website flows must filter to website mode
+   - CMS flows must filter to CMS mode
+   - CMS templates are admin-only, non-public, and cannot be forked
+5. CMS persistence rules:
+   - Server `templateProject.cmsState` is the single source of truth
+   - Local storage is fallback cache only (`asb-cms-display:<templateId>`)
+6. CMS block settings should reuse shared editor-core panels where possible, with CMS-only position controls layered on top.
+
+---
+
 ## Core Context
 
 ```

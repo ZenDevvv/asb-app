@@ -1,331 +1,163 @@
-# AI Prompt Context - CMS App (Isolated From Page Builder)
+# AI Prompt Context - CMS Mode Inside ASB
 
-> Use this guide for all AI prompts related to the CMS app (`/cms`).
-> This CMS is intentionally isolated from the existing page builder editor.
+> Use this guide for CMS work inside AppSiteBuilder.
+> CMS is no longer an isolated local-only tool. It is an admin-only template mode backed by `TemplateProject`.
 
 ---
 
 ## Core Rule (Do Not Break)
 
-The CMS app must not overlap with the existing page builder editor for now.
+CMS and Website templates share one template system but must remain mode-separated.
 
-That means:
-
-1. Do not change `app/editor/*` for CMS feature work.
-2. Do not change `app/stores/editorStore.ts` for CMS feature work.
-3. Do not introduce section/group logic into CMS.
-4. Do not wire CMS to backend APIs yet.
-5. Keep CMS state local-only using the CMS store + localStorage key.
-6. Do not modify shared page-builder components for CMS-only features; keep behavior isolated in CMS files for easy revert.
+1. Use `editorMode` on template documents to separate concerns.
+2. `editorMode: "website"` templates belong to website editor flows.
+3. `editorMode: "cms"` templates belong to admin CMS flows.
+4. Do not let website routes edit/render CMS templates.
+5. Do not let public template view routes access CMS templates.
 
 ---
 
-## Product Scope
+## Route Contract
 
-The CMS app is a standalone visual display editor for TV/signage style content.
+Admin-only CMS routes:
 
-Current behavior:
+1. `/admin/cms`
+2. `/admin/cms/editor/:templateId`
+3. `/admin/cms/view/:templateId`
 
-1. Route: `/cms` (standalone page, not inside admin layout shell).
-2. Admin sidebar links to CMS with label `Content Management`.
-3. Canvas is freeform absolute positioning.
-4. Right panel switches mode:
-   - If a block is selected: show block settings.
-   - If no block is selected: show CMS library.
-5. Debug export: if `/cms?debug=true`, header shows `Export JSON` button to download current CMS snapshot.
+Back-compat redirects:
 
----
-
-## Technical Boundaries
-
-### Keep CMS isolated
-
-Use only these areas for CMS changes:
-
-1. `app/cms/*`
-2. `app/components/admin/display/*`
-3. `app/stores/displayStore.ts`
-4. `app/routes/cms.tsx`
-5. Admin navigation link wiring only
-
-Avoid touching:
-
-1. `app/editor/*`
-2. `app/stores/editorStore.ts`
-3. Existing page-builder section/group/block editor contracts
-4. Shared block component behavior when the requirement is CMS-only
-
-### Persistence
-
-1. Storage key: `asb-cms-display`
-2. Legacy fallback key supported: `asb-tv-display`
-3. No server save calls for CMS state
+1. `/cms` -> `/admin/cms`
+2. `/admin/display` -> `/admin/cms`
 
 ---
 
-## CMS Architecture
-
-### Page composition
-
-`CmsEditorPage` composes:
-
-1. Header controls
-2. Center `CMSCanvas`
-3. Right `CMSSidebar`
-4. Optional left overview panel
-
-### Sidebar behavior
-
-`CMSSidebar`:
-
-1. Selected block exists -> `CMSBlockSettings`
-2. No selected block -> `CMSLibrary`
-
-### Library behavior
-
-`CMSLibrary`:
-
-1. Grid layout for block picker (not list rows)
-2. Categories: Basic, Media, Layout, Content
-3. No "Add to canvas" helper text
-4. Includes canvas background settings panel
-
-### Canvas behavior
-
-`CMSCanvas`:
-
-1. Fixed resolution canvas scaled to viewport
-2. Drag blocks by pointer, including outside canvas bounds
-3. Resize block containers by dragging edges and corners (8 handles)
-4. Block positions and dimensions (`x`, `y`, `w`, `h`) are stored as canvas percentages
-5. Header orientation toggle is merged with presets: selecting `Landscape` shows only landscape presets, selecting `Portrait` shows only portrait presets
-6. Selected block supports horizontal/vertical content alignment inside its own container in settings
-7. Alignment controls in settings use icon-only buttons (with accessible labels), not text labels
-8. Selected block supports rotation via slider (`-180` to `180` degrees)
-9. `image` and `video` blocks always occupy the whole block container (alignment controls are hidden for media)
-
----
-
-## Store Contract (`displayStore.ts`)
-
-CMS state is managed by `useDisplayStore` (Zustand + Immer), separate from page builder store.
-
-Key state includes:
-
-1. `resolution`
-2. `zoom`
-3. `blocks`
-4. `selectedBlockId`
-5. `activeTemplateId`
-6. `canvasBackground` (`color | image | video`)
-7. `globalStyle`
-
-Key actions include:
-
-1. `addBlock`
-2. `duplicateBlock`
-3. `removeBlock`
-4. `updateBlock`
-5. `selectBlock`
-6. `setResolution`
-7. `setZoom`
-8. `setCanvasBackground`
-9. `applyTemplate`
-10. `resetCanvas`
-11. `saveToLocalStorage`
-12. `loadFromLocalStorage`
-
----
-
-## Free Canvas Resizing Rules
-
-Because CMS is a free canvas editor, each block has a resizable container.
-
-Rules:
-
-1. Resize must work from edges and corners.
-2. Resizing updates container width and height, not only content style.
-3. Width and height are persisted as percentages for responsive scaling across resolutions.
-4. Images and videos must visually resize with the container when dragged.
-5. Dragging is not edge-clamped: `x`/`y` can move outside 0-100 so blocks may be placed off-canvas.
-6. Alignment controls support quick horizontal (`left|center|right`) and vertical (`top|middle|bottom`) content placement inside each block container.
-7. Rotation control updates block container tilt and applies to all CMS block types.
-8. `image` and `video` blocks fill their container bounds and are resized via container resize handles.
-9. Keep this behavior CMS-only; do not port to page-builder editor modes.
-
----
-
-## Block Rules
-
-Allowed CMS blocks (visual-only):
-
-1. `heading`
-2. `text`
-3. `badge`
-4. `list`
-5. `image`
-6. `video`
-7. `icon`
-8. `spacer`
-9. `divider`
-10. `card`
-11. `quote`
-12. `date`
-13. `countdown`
-14. `timeline`
-
-Excluded from CMS:
-
-1. `button`
-2. `rsvp`
-
-Terminology:
-
-1. Use `CMS*` naming (not `Tv*` naming).
-
----
-
-## Template System
-
-Templates are local CMS presets that inject prefilled blocks into canvas.
-
-Current pattern:
-
-1. Template catalog: `CMS_TEMPLATE_LIBRARY`
-2. Header template control uses shadcn `Select` and an explicit `Template` label
-3. Applying a template replaces current blocks (with confirmation if canvas is not empty)
-4. Templates can include prefilled blocks, typography, and canvas background settings
-5. Applying a template also applies template `globalStyle` and template `canvasBackground`
-6. `activeTemplateId` is persisted
-7. Current hardcoded state: two templates sourced from exported debug JSON:
-   - `Canvas Background as a video` (portrait)
-   - `multiple video in canvas` (landscape)
-8. Fresh start behavior: when no saved localStorage snapshot exists, CMS auto-loads `multiple-video-in-canvas` as the initial canvas state
-9. `multiple video in canvas` currently reflects the latest exported snapshot (updated video URLs and layout positions)
-
----
-
-## Canvas Background Settings
-
-Canvas background has dedicated CMS settings:
-
-1. Type: `color`, `image`, or `video`
-2. `color`: hex value via color picker
-3. `image`: URL
-4. `video`: URL
-
-Rendering rules:
-
-1. Background renders behind all blocks
-2. Image uses cover behavior
-3. Video background autoplays, muted, looped, no controls
-
----
-
-## Video Behavior in CMS
-
-For CMS-rendered `video` blocks:
-
-1. `autoPlay: true`
-2. `controls: false`
-3. `muted: true`
-4. `loop: true`
-
-This behavior is CMS-context specific and should not unintentionally change normal page builder behavior.
-
----
-
-## Typography In CMS
-
-Font selection is supported for all CMS blocks with text content.
-
-Rules:
-
-1. Use the same font library and typography modal pattern as the main editor.
-2. Text-bearing CMS blocks expose a Font Family selector in block settings.
-3. Timeline exposes two selectors:
-   - `fontFamily` for title text
-   - `secondaryFontFamily` for subtitle + description text
-4. Store block font overrides on `BlockStyle`:
-   - `fontFamily`
-   - `secondaryFontFamily` (timeline only)
-5. Keep implementation CMS-only (settings + CMS renderer wiring), so page builder editor files remain unchanged.
-
----
-
-## UI Controls Standard
-
-In CMS, dropdown controls should use shadcn `Select` (not native `<select>`):
-
-1. Template selector
-2. Orientation-filtered resolution selector
-3. Background type selector
-4. Typography uses the same modal + font library pattern as editor typography settings
-
----
-
-## Debug Export Mode
-
-Use URL query `debug=true` to enable CMS snapshot export.
-
-Rules:
-
-1. Debug export control appears only when debug query is enabled.
-2. Export downloads current canvas/store snapshot as JSON.
-3. Export is local-only; no backend upload.
-4. Snapshot is intended for creating/updating hardcoded CMS templates.
-
----
-
-## Prompting Checklist (For Future CMS Tasks)
-
-When creating a CMS prompt, include these constraints:
-
-1. "Work only in CMS files (`app/cms`, `app/components/admin/display`, `app/stores/displayStore.ts`)."
-2. "Do not modify page builder editor (`app/editor/*`, `editorStore.ts`)."
-3. "No backend integration. Keep CMS localStorage-only."
-4. "Preserve right-panel mode switch: selected block -> settings, no selection -> library."
-5. "Preserve free canvas absolute-position model."
-6. "Use shadcn components for dropdown/select inputs."
-
----
-
-## Example Prompt Starter
-
-```md
-Implement this feature in the CMS app only.
-
-Constraints:
-1. Do not modify `app/editor/*` or `app/stores/editorStore.ts`.
-2. Keep CMS state local-only in `useDisplayStore` (`asb-cms-display`).
-3. Preserve CMS architecture: standalone `/cms` page, free canvas, right panel mode switch.
-4. Use shadcn UI components for new selects/dropdowns.
-5. Keep naming in CMS domain (`CMS*`), not TV naming.
-
-Feature request:
-[describe feature]
+## Data Contract
+
+Template documents now include:
+
+1. `editorMode: "website" | "cms"` (runtime fallback for legacy missing value -> `"website"`)
+2. `cmsState: Json` for CMS canvas payload
+3. `globalStyle: Json` shared by website and CMS modes
+
+### `cmsState` contract (v1)
+
+```ts
+{
+  version: 1,
+  resolution: { label: string; width: number; height: number },
+  zoom: number,
+  blocks: CMSBlock[],
+  activeTemplateId: string | null,
+  canvasBackground: {
+    type: "color" | "image" | "video",
+    color: string,
+    imageUrl: string,
+    videoUrl: string,
+  }
+}
 ```
+
+Server persistence excludes ephemeral selection state (`selectedBlockId`).
+
+---
+
+## Persistence Model
+
+Source of truth for CMS templates:
+
+1. Server `templateProject.cmsState`
+
+Local resilience only:
+
+1. Per-template draft cache key: `asb-cms-display:<templateId>`
+2. Local cache is fallback for network failures
+3. No one-time import from legacy `asb-cms-display` snapshot
+
+Store APIs:
+
+1. `hydrateFromServer(...)`
+2. `hydrateFromLocalDraft(...)`
+3. `exportForServer()`
+4. `saveDraftToLocalStorage(...)`
+
+---
+
+## Backend Authorization Rules
+
+1. CMS template create/update/delete: admin only
+2. CMS template reads: admin only
+3. CMS template public-access (`X-Public-Access`) reads: rejected
+4. CMS template fork endpoint: rejected
+5. Website template behavior remains unchanged
+6. List endpoint supports mode filtering: `filter=editorMode:cms` or `filter=editorMode:website`
+
+---
+
+## Frontend Mode Rules
+
+1. Admin CMS list only requests `editorMode:cms`
+2. Website admin/user/public flows request website mode (`editorMode:website` plus legacy null fallback)
+3. Wrong-mode route access must redirect with clear message:
+   - CMS template in website editor -> redirect to CMS editor/admin area
+   - Website template in CMS editor/view -> redirect to website editor
+
+---
+
+## CMS Editor Behavior
+
+`/admin/cms/editor/:templateId` remains free-canvas CMS editing with:
+
+1. Absolute-position drag (including outside canvas bounds)
+2. 8-handle resize
+3. Rotation
+4. Percent geometry (`x`, `y`, `w`, `h`)
+5. Canvas background (`color` | `image` | `video`)
+
+Save behavior:
+
+1. Debounced autosave (3s) to template API
+2. Ctrl/Cmd+S immediate save
+3. Save payload includes `cmsState + globalStyle`
+
+---
+
+## Shared Core Reuse
+
+CMS settings should reuse ASB editor block-settings internals where possible.
+
+Use shared panel components:
+
+1. `ContentPanel`
+2. `StylePanel`
+3. `ColorsPanel`
+4. `SpacingPanel`
+5. `VariantPanel`
+
+Keep CMS-only panel logic for:
+
+1. Position controls (`x`, `y`, `w`, `h`, `rotation`)
+2. Container alignment controls for free-canvas blocks
+
+---
+
+## Prompting Checklist
+
+When writing CMS prompts, include:
+
+1. "CMS is admin-only template mode (`editorMode: cms`) inside ASB, not isolated local tool."
+2. "Persist to `templateProject.cmsState`; local cache is fallback only."
+3. "Preserve CMS free-canvas behavior and percent geometry."
+4. "Reuse shared editor block-settings panels before adding CMS-specific UI."
+5. "Keep website and CMS template flows separated by `editorMode`."
 
 ---
 
 ## Current Status Summary
 
-As of this guide version:
-
-1. CMS is available at `/cms`.
-2. CMS uses isolated store and local persistence.
-3. CMS supports template injection from hardcoded snapshot data (portrait + landscape templates).
-4. CMS supports background settings (color/image/video).
-5. CMS video playback defaults to autoplay/muted/loop without controls.
-6. CMS library uses grid cards.
-7. CMS blocks support drag-resize containers using edge/corner handles.
-8. CMS text blocks support font-family selection via Typography Settings modal.
-9. CMS blocks can be dragged outside canvas bounds (no edge clamp on drag).
-10. CMS block settings include horizontal and vertical alignment controls for content placement inside block containers.
-11. `/cms?debug=true` shows `Export JSON` button that downloads the current CMS snapshot.
-12. CMS block settings include a rotation slider for all blocks and the canvas renders rotated containers.
-13. CMS template library currently contains two hardcoded templates imported from debug snapshot JSON.
-14. Header shows an explicit `Template` label and uses orientation-filtered preset dropdowns.
-15. CMS `image` and `video` blocks fill the entire container and do not use container alignment controls.
-16. Block settings header uses minimal icon-only actions, including duplicate and delete.
-17. On fresh start (no saved local state), CMS bootstraps the canvas from `multiple-video-in-canvas`.
+1. CMS template management lives at `/admin/cms`
+2. CMS editor is template-bound at `/admin/cms/editor/:templateId`
+3. CMS admin view route exists at `/admin/cms/view/:templateId`
+4. Template schema includes `editorMode` and `cmsState`
+5. Backend enforces admin-only CMS access and blocks CMS public/fork access
+6. Website template flows are filtered away from CMS templates by default

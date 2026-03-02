@@ -6,6 +6,7 @@ import { CreateTemplateModal } from "~/components/admin/CreateTemplateModal";
 import { cn } from "~/lib/utils";
 import { useGetTemplateProjects } from "~/hooks/use-template-project";
 import type { TemplateProject } from "~/zod/templateProject.zod";
+import { TEMPLATE_PROJECT_FIELDS, WEBSITE_TEMPLATE_FILTER } from "~/lib/template-project-utils";
 
 type TemplateStatus = "active" | "draft" | "archived";
 type TemplateTab = "all" | TemplateStatus;
@@ -111,14 +112,13 @@ export default function AdminTemplatesRoute() {
 	const [selectedTab, setSelectedTab] = useState<TemplateTab>("all");
 	const [searchQuery, setSearchQuery] = useState("");
 	const [createTemplateModalOpen, setCreateTemplateModalOpen] = useState(false);
-	const fields =
-		"id,name,description,category,thumbnail,createdById,pages,globalStyle,seo,isActive,usageCount,isDeleted,createdAt,updatedAt,createdBy";
 
 	const { data, isLoading, isError, error } = useGetTemplateProjects({
 		page: 1,
 		limit: 100,
-		fields,
+		fields: TEMPLATE_PROJECT_FIELDS,
 		query: searchQuery.trim(),
+		filter: WEBSITE_TEMPLATE_FILTER,
 		sort: "updatedAt",
 		order: "desc",
 		document: true,

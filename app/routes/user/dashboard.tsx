@@ -13,6 +13,7 @@ import {
 	TEMPLATE_PROJECT_FIELDS,
 	getTemplateCategories,
 	getTemplateCategoryLabel,
+	WEBSITE_TEMPLATE_FILTER,
 } from "~/lib/template-project-utils";
 
 export function meta() {
@@ -60,6 +61,7 @@ export default function UserDashboard() {
 		page: 1,
 		limit: 60,
 		fields: TEMPLATE_PROJECT_FIELDS,
+		filter: WEBSITE_TEMPLATE_FILTER,
 		sort: "usageCount",
 		order: "desc",
 		document: true,

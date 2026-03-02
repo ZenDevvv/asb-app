@@ -1,15 +1,17 @@
 import {
+	AlertTriangle,
 	ArrowLeft,
-	Download,
-	Layers3,
+	Eye,
+	Loader2,
 	RotateCcw,
+	Save,
 	ScreenShare,
-	Sparkles,
+	WifiOff,
 	ZoomIn,
 	ZoomOut,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate, useParams } from "react-router";
 import { CMSCanvas } from "~/components/admin/display/CMSCanvas";
 import { CMSSidebar } from "~/components/admin/display/CMSSidebar";
 import { SplashScreen } from "~/components/admin/splash-screen";
@@ -24,21 +26,18 @@ import {
 } from "~/components/ui/select";
 import { useAuth } from "~/hooks/use-auth";
 import {
+	useGetTemplateProjectById,
+	useUpdateTemplateProject,
+} from "~/hooks/use-template-project";
+import { resolveTemplateEditorMode } from "~/lib/template-project-utils";
+import {
 	CMS_PRESETS,
-	CMS_TEMPLATE_LIBRARY,
 	useDisplayStore,
-	type CMSDisplaySnapshot,
 	type CMSResolution,
 } from "~/stores/displayStore";
 
 function clamp(value: number, min: number, max: number): number {
 	return Math.min(max, Math.max(min, value));
-}
-
-function isDebugQueryEnabled(value: string | null): boolean {
-	if (!value) return false;
-	const normalized = value.trim().toLowerCase();
-	return normalized === "true" || normalized === "1" || normalized === "yes";
 }
 
 function getPresetLabel(width: number, height: number): string {
@@ -62,32 +61,148 @@ const PORTRAIT_PRESETS = CMS_PRESETS.filter(
 	(preset) => preset.label !== "Custom" && preset.width < preset.height,
 );
 
+function createSaveHash(params: {
+	resolution: CMSResolution;
+	zoom: number;
+	blocks: unknown;
+	activeTemplateId: string | null;
+	canvasBackground: unknown;
+	globalStyle: unknown;
+}): string {
+	return JSON.stringify({
+		resolution: params.resolution,
+		zoom: params.zoom,
+		blocks: params.blocks,
+		activeTemplateId: params.activeTemplateId,
+		canvasBackground: params.canvasBackground,
+		globalStyle: params.globalStyle,
+	});
+}
+
 export default function CmsEditorPage() {
 	const navigate = useNavigate();
-	const [searchParams] = useSearchParams();
-	const { isLoading } = useAuth();
+	const { templateId } = useParams<{ templateId: string }>();
+	const { user, isLoading: isAuthLoading } = useAuth();
+	const { mutateAsync: updateTemplate, isPending: isSaving } = useUpdateTemplateProject();
+
+	const {
+		data: templateData,
+		isLoading: isTemplateLoading,
+		isError: isTemplateError,
+		error: templateError,
+	} = useGetTemplateProjectById(templateId ?? "", {
+		fields: "id,name,editorMode,cmsState,globalStyle,updatedAt",
+	});
 
 	const isHydrated = useDisplayStore((state) => state.isHydrated);
-	const loadFromLocalStorage = useDisplayStore((state) => state.loadFromLocalStorage);
-	const blocks = useDisplayStore((state) => state.blocks);
+	const selectedBlockId = useDisplayStore((state) => state.selectedBlockId);
 	const resolution = useDisplayStore((state) => state.resolution);
 	const zoom = useDisplayStore((state) => state.zoom);
-	const setResolution = useDisplayStore((state) => state.setResolution);
-	const setZoom = useDisplayStore((state) => state.setZoom);
-	const applyTemplate = useDisplayStore((state) => state.applyTemplate);
-	const resetCanvas = useDisplayStore((state) => state.resetCanvas);
-	const selectedBlockId = useDisplayStore((state) => state.selectedBlockId);
+	const blocks = useDisplayStore((state) => state.blocks);
 	const activeTemplateId = useDisplayStore((state) => state.activeTemplateId);
 	const canvasBackground = useDisplayStore((state) => state.canvasBackground);
 	const globalStyle = useDisplayStore((state) => state.globalStyle);
+	const setResolution = useDisplayStore((state) => state.setResolution);
+	const setZoom = useDisplayStore((state) => state.setZoom);
+	const resetCanvas = useDisplayStore((state) => state.resetCanvas);
+	const hydrateFromServer = useDisplayStore((state) => state.hydrateFromServer);
+	const hydrateFromLocalDraft = useDisplayStore((state) => state.hydrateFromLocalDraft);
+	const saveDraftToLocalStorage = useDisplayStore((state) => state.saveDraftToLocalStorage);
+
 	const [presetOrientation, setPresetOrientation] = useState<PresetOrientation>(
 		getOrientationFromResolution(resolution),
 	);
+	const [statusMessage, setStatusMessage] = useState("Waiting for changes");
+	const [offlineDraftRecovered, setOfflineDraftRecovered] = useState(false);
+	const [saveError, setSaveError] = useState<string | null>(null);
+
+	const isModeRedirectedRef = useRef(false);
+	const hasHydratedRef = useRef(false);
+	const hasDraftRecoveryAttemptedRef = useRef(false);
+	const lastSavedHashRef = useRef<string>("");
+	const autosaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
 	useEffect(() => {
-		if (isHydrated) return;
-		loadFromLocalStorage();
-	}, [isHydrated, loadFromLocalStorage]);
+		hasHydratedRef.current = false;
+		hasDraftRecoveryAttemptedRef.current = false;
+		isModeRedirectedRef.current = false;
+		lastSavedHashRef.current = "";
+		setOfflineDraftRecovered(false);
+		setSaveError(null);
+		setStatusMessage("Waiting for changes");
+		if (autosaveTimerRef.current) {
+			clearTimeout(autosaveTimerRef.current);
+			autosaveTimerRef.current = null;
+		}
+	}, [templateId]);
+
+	useEffect(() => {
+		if (isAuthLoading) return;
+		if (!user) {
+			navigate("/login", { replace: true });
+			return;
+		}
+		if (user.role !== "admin") {
+			navigate("/user/dashboard", { replace: true });
+		}
+	}, [isAuthLoading, navigate, user]);
+
+	useEffect(() => {
+		if (!templateId || !templateData || hasHydratedRef.current) return;
+
+		if (resolveTemplateEditorMode(templateData) !== "cms") {
+			if (!isModeRedirectedRef.current) {
+				isModeRedirectedRef.current = true;
+				if (typeof window !== "undefined") {
+					window.alert("This template uses website mode. Redirecting to Website Editor.");
+				}
+				navigate(`/editor/${templateId}`, { replace: true });
+			}
+			return;
+		}
+
+		hydrateFromServer({
+			templateId,
+			cmsState: templateData.cmsState,
+			globalStyle: templateData.globalStyle,
+		});
+
+		const state = useDisplayStore.getState();
+		lastSavedHashRef.current = createSaveHash({
+			resolution: state.resolution,
+			zoom: state.zoom,
+			blocks: state.blocks,
+			activeTemplateId: state.activeTemplateId,
+			canvasBackground: state.canvasBackground,
+			globalStyle: state.globalStyle,
+		});
+		hasHydratedRef.current = true;
+		setStatusMessage("Synced from server");
+		setSaveError(null);
+	}, [hydrateFromServer, navigate, templateData, templateId]);
+
+	useEffect(() => {
+		if (!templateId || !isTemplateError || hasDraftRecoveryAttemptedRef.current) return;
+
+		hasDraftRecoveryAttemptedRef.current = true;
+		const recovered = hydrateFromLocalDraft({ templateId });
+		if (recovered) {
+			hasHydratedRef.current = true;
+			setOfflineDraftRecovered(true);
+			setStatusMessage("Recovered local draft (offline)");
+			setSaveError("Unable to load template from server. Editing local fallback draft.");
+
+			const state = useDisplayStore.getState();
+			lastSavedHashRef.current = createSaveHash({
+				resolution: state.resolution,
+				zoom: state.zoom,
+				blocks: state.blocks,
+				activeTemplateId: state.activeTemplateId,
+				canvasBackground: state.canvasBackground,
+				globalStyle: state.globalStyle,
+			});
+		}
+	}, [hydrateFromLocalDraft, isTemplateError, templateId]);
 
 	useEffect(() => {
 		setPresetOrientation(getOrientationFromResolution(resolution));
@@ -97,44 +212,116 @@ export default function CmsEditorPage() {
 		() => (presetOrientation === "landscape" ? LANDSCAPE_PRESETS : PORTRAIT_PRESETS),
 		[presetOrientation],
 	);
+
 	const selectedPresetLabel = useMemo(() => {
 		const selected = orientationPresets.find(
 			(preset) => preset.width === resolution.width && preset.height === resolution.height,
 		);
 		return selected?.label ?? "Custom";
 	}, [orientationPresets, resolution.height, resolution.width]);
+
 	const selectedPresetTriggerLabel = useMemo(
 		() => getPresetLabel(resolution.width, resolution.height),
 		[resolution.height, resolution.width],
 	);
-	const activeTemplate = useMemo(
-		() => CMS_TEMPLATE_LIBRARY.find((template) => template.id === activeTemplateId) ?? null,
-		[activeTemplateId],
-	);
+
 	const isCustomPreset = selectedPresetLabel === "Custom";
-	const orientation = presetOrientation;
-	const isDebugMode = isDebugQueryEnabled(searchParams.get("debug"));
 
-	const buildSnapshotForExport = (): CMSDisplaySnapshot => ({
-		resolution,
-		zoom,
-		blocks,
-		selectedBlockId,
-		activeTemplateId,
-		canvasBackground,
-		globalStyle,
-	});
+	const currentSaveHash = useMemo(
+		() =>
+			createSaveHash({
+				resolution,
+				zoom,
+				blocks,
+				activeTemplateId,
+				canvasBackground,
+				globalStyle,
+			}),
+		[activeTemplateId, blocks, canvasBackground, globalStyle, resolution, zoom],
+	);
 
-	const handleTemplateChange = (templateId: string) => {
-		if (!templateId || templateId === activeTemplateId) return;
-		if (typeof window !== "undefined" && blocks.length > 0) {
-			const confirmed = window.confirm(
-				"Apply this template and replace all current CMS blocks?",
-			);
-			if (!confirmed) return;
+	const saveNow = useCallback(async () => {
+		if (!templateId) return;
+		if (!hasHydratedRef.current) return;
+
+		const state = useDisplayStore.getState();
+		const nextHash = createSaveHash({
+			resolution: state.resolution,
+			zoom: state.zoom,
+			blocks: state.blocks,
+			activeTemplateId: state.activeTemplateId,
+			canvasBackground: state.canvasBackground,
+			globalStyle: state.globalStyle,
+		});
+		if (nextHash === lastSavedHashRef.current) return;
+
+		setStatusMessage("Saving to server...");
+		setSaveError(null);
+		state.saveDraftToLocalStorage(templateId);
+
+		try {
+			const response = await updateTemplate({
+				templateProjectId: templateId,
+				data: {
+					editorMode: "cms",
+					cmsState: state.exportForServer(),
+					globalStyle: state.globalStyle,
+				},
+			});
+
+			lastSavedHashRef.current = nextHash;
+			setStatusMessage("Saved to server");
+			setOfflineDraftRecovered(false);
+
+			if (response?.templateProject?.updatedAt) {
+				const timestamp = new Date(response.templateProject.updatedAt).toLocaleTimeString();
+				setStatusMessage(`Saved ${timestamp}`);
+			}
+		} catch (error) {
+			state.saveDraftToLocalStorage(templateId);
+			setOfflineDraftRecovered(true);
+			setStatusMessage("Offline draft saved");
+			setSaveError(error instanceof Error ? error.message : "Failed to save CMS template.");
 		}
-		applyTemplate(templateId);
-	};
+	}, [templateId, updateTemplate]);
+
+	const scheduleAutosave = useCallback(() => {
+		if (autosaveTimerRef.current) {
+			clearTimeout(autosaveTimerRef.current);
+		}
+		autosaveTimerRef.current = setTimeout(() => {
+			void saveNow();
+		}, 3000);
+	}, [saveNow]);
+
+	useEffect(() => {
+		if (!templateId || !isHydrated || !hasHydratedRef.current) return;
+		saveDraftToLocalStorage(templateId);
+		if (currentSaveHash === lastSavedHashRef.current) return;
+		scheduleAutosave();
+	}, [currentSaveHash, isHydrated, saveDraftToLocalStorage, scheduleAutosave, templateId]);
+
+	useEffect(() => {
+		return () => {
+			if (autosaveTimerRef.current) {
+				clearTimeout(autosaveTimerRef.current);
+			}
+		};
+	}, []);
+
+	useEffect(() => {
+		const handleKeyDown = (event: KeyboardEvent) => {
+			if (!(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== "s") return;
+			event.preventDefault();
+			if (autosaveTimerRef.current) {
+				clearTimeout(autosaveTimerRef.current);
+			}
+			void saveNow();
+		};
+
+		window.addEventListener("keydown", handleKeyDown);
+		return () => window.removeEventListener("keydown", handleKeyDown);
+	}, [saveNow]);
 
 	const handlePresetChange = (value: string) => {
 		if (value === "Custom") {
@@ -148,7 +335,6 @@ export default function CmsEditorPage() {
 
 		const preset = orientationPresets.find((entry) => entry.label === value);
 		if (!preset) return;
-
 		setResolution(preset);
 	};
 
@@ -159,12 +345,11 @@ export default function CmsEditorPage() {
 		setResolution({
 			label: "Custom",
 			width: key === "width" ? clamp(parsed, 320, 7680) : clamp(resolution.width, 320, 7680),
-			height:
-				key === "height" ? clamp(parsed, 320, 4320) : clamp(resolution.height, 320, 4320),
+			height: key === "height" ? clamp(parsed, 320, 4320) : clamp(resolution.height, 320, 4320),
 		});
 	};
 
-	const setOrientation = (target: "landscape" | "portrait") => {
+	const setOrientation = (target: PresetOrientation) => {
 		setPresetOrientation(target);
 		const currentOrientation = getOrientationFromResolution(resolution);
 		if (currentOrientation === target) return;
@@ -183,86 +368,66 @@ export default function CmsEditorPage() {
 		}
 	};
 
-	const handleDownloadDebugState = () => {
-		if (typeof window === "undefined") return;
-
-		const payload = {
-			exportedAt: new Date().toISOString(),
-			source: "asb-cms-debug",
-			snapshot: buildSnapshotForExport(),
-		};
-		const json = JSON.stringify(payload, null, 2);
-		const blob = new Blob([json], { type: "application/json" });
-		const objectUrl = window.URL.createObjectURL(blob);
-		const anchor = document.createElement("a");
-		const timestamp = new Date().toISOString().replace(/[:]/g, "-").replace(/[.]/g, "-");
-
-		anchor.href = objectUrl;
-		anchor.download = `cms-canvas-state-${timestamp}.json`;
-		document.body.append(anchor);
-		anchor.click();
-		anchor.remove();
-		window.URL.revokeObjectURL(objectUrl);
-	};
-
-	if (isLoading) {
+	if (isAuthLoading || isTemplateLoading) {
 		return <SplashScreen mode="editor" />;
 	}
 
+	if (!templateId) {
+		return (
+			<div className="flex h-screen items-center justify-center bg-background text-sm text-muted-foreground">
+				Missing CMS template id.
+			</div>
+		);
+	}
+
+	if (isTemplateError && !isHydrated) {
+		return (
+			<div className="flex h-screen items-center justify-center bg-background px-4">
+				<div className="w-full max-w-xl rounded-xl border border-destructive/40 bg-destructive/10 p-4 text-sm text-destructive">
+					<div className="font-semibold">Unable to load CMS template</div>
+					<div className="mt-2 text-muted-foreground">
+						{templateError instanceof Error ? templateError.message : "Please try again."}
+					</div>
+					<div className="mt-4">
+						<Button type="button" onClick={() => navigate("/admin/cms")}>
+							Back to CMS Templates
+						</Button>
+					</div>
+				</div>
+			</div>
+		);
+	}
+
+	const templateName = templateData?.name ?? "CMS Template";
+
 	return (
 		<div className="flex h-screen flex-col overflow-hidden bg-background">
-			<header className="flex min-h-14 shrink-0 flex-wrap items-center justify-between gap-2 border-b border-sidebar-border bg-sidebar px-4 py-2">
+			<header className="flex min-h-14 shrink-0 flex-wrap items-center justify-between gap-3 border-b border-sidebar-border bg-sidebar px-4 py-2">
 				<div className="flex items-center gap-3">
 					<Button
 						type="button"
 						variant="ghost"
 						size="icon"
-						onClick={() => navigate("/admin")}
+						onClick={() => navigate("/admin/cms")}
 						className="size-8 text-muted-foreground hover:bg-sidebar-accent hover:text-foreground"
-						title="Back to admin">
+						title="Back to CMS templates">
 						<ArrowLeft className="h-4 w-4" />
 					</Button>
 					<div className="flex size-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
 						<ScreenShare className="h-4 w-4" />
 					</div>
 					<div>
-						<div className="text-sm font-semibold text-sidebar-foreground">
-							CMS Editor
-						</div>
-						<div className="text-[10px] text-muted-foreground">
-							{selectedBlockId ? "Editing selected block" : "Ready to add content"}
-						</div>
+						<div className="text-sm font-semibold text-sidebar-foreground">{templateName}</div>
+						<div className="text-[10px] text-muted-foreground">{statusMessage}</div>
 					</div>
 				</div>
 
 				<div className="flex flex-wrap items-center gap-2">
-					<div className="flex items-center gap-2">
-						<span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-							Template
-						</span>
-						<Select
-							value={activeTemplateId ?? undefined}
-							onValueChange={handleTemplateChange}>
-							<SelectTrigger
-								size="sm"
-								className="h-8 min-w-[220px] rounded-lg border-sidebar-border bg-sidebar-accent/30 text-xs text-sidebar-foreground hover:bg-sidebar-accent/50">
-								<SelectValue placeholder="Select template" />
-							</SelectTrigger>
-							<SelectContent className="border-sidebar-border bg-sidebar text-sidebar-foreground">
-								{CMS_TEMPLATE_LIBRARY.map((template) => (
-									<SelectItem key={template.id} value={template.id}>
-										{template.label}
-									</SelectItem>
-								))}
-							</SelectContent>
-						</Select>
-					</div>
-
 					<div className="flex items-center rounded-xl border border-sidebar-border bg-sidebar-accent/50 p-0.5">
 						<Button
 							type="button"
 							size="sm"
-							variant={orientation === "landscape" ? "default" : "ghost"}
+							variant={presetOrientation === "landscape" ? "default" : "ghost"}
 							onClick={() => setOrientation("landscape")}
 							className="h-7 rounded-lg px-2.5 text-xs">
 							Landscape
@@ -270,7 +435,7 @@ export default function CmsEditorPage() {
 						<Button
 							type="button"
 							size="sm"
-							variant={orientation === "portrait" ? "default" : "ghost"}
+							variant={presetOrientation === "portrait" ? "default" : "ghost"}
 							onClick={() => setOrientation("portrait")}
 							className="h-7 rounded-lg px-2.5 text-xs">
 							Portrait
@@ -300,9 +465,7 @@ export default function CmsEditorPage() {
 								min={320}
 								max={7680}
 								value={resolution.width}
-								onChange={(event) =>
-									handleCustomDimensionChange("width", event.target.value)
-								}
+								onChange={(event) => handleCustomDimensionChange("width", event.target.value)}
 								className="h-8 w-20 rounded-lg border-sidebar-border bg-sidebar-accent/30 text-xs"
 							/>
 							<span className="text-xs text-muted-foreground">x</span>
@@ -311,9 +474,7 @@ export default function CmsEditorPage() {
 								min={320}
 								max={4320}
 								value={resolution.height}
-								onChange={(event) =>
-									handleCustomDimensionChange("height", event.target.value)
-								}
+								onChange={(event) => handleCustomDimensionChange("height", event.target.value)}
 								className="h-8 w-20 rounded-lg border-sidebar-border bg-sidebar-accent/30 text-xs"
 							/>
 						</div>
@@ -337,78 +498,44 @@ export default function CmsEditorPage() {
 						</button>
 					</div>
 
+					<Button
+						type="button"
+						variant="outline"
+						size="sm"
+						onClick={() => navigate(`/admin/cms/view/${templateId}`)}>
+						<Eye className="h-3.5 w-3.5" />
+						Preview
+					</Button>
+
+					<Button type="button" variant="outline" size="sm" onClick={() => void saveNow()}>
+						{isSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
+						Save
+					</Button>
+
 					<Button type="button" variant="destructive" size="sm" onClick={handleReset}>
 						<RotateCcw className="h-3.5 w-3.5" />
 						Reset
 					</Button>
-
-					{isDebugMode ? (
-						<Button
-							type="button"
-							variant="outline"
-							size="sm"
-							onClick={handleDownloadDebugState}
-							className="border-sidebar-border bg-sidebar-accent/30 hover:bg-sidebar-accent/50">
-							<Download className="h-3.5 w-3.5" />
-							Export JSON
-						</Button>
-					) : null}
 				</div>
 			</header>
 
+			{saveError ? (
+				<div className="flex items-center gap-2 border-b border-amber-500/30 bg-amber-500/10 px-4 py-2 text-xs text-amber-200">
+					{offlineDraftRecovered ? <WifiOff className="h-3.5 w-3.5" /> : <AlertTriangle className="h-3.5 w-3.5" />}
+					<span>{saveError}</span>
+				</div>
+			) : null}
+
 			<div className="flex flex-1 flex-col overflow-hidden lg:flex-row">
-				<aside className="hidden h-full w-[240px] shrink-0 flex-col border-r border-sidebar-border bg-sidebar lg:flex">
-					<div className="flex items-center justify-between px-4 pb-2 pt-4">
-						<span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-							CMS Overview
-						</span>
-					</div>
-					<div className="minimal-scrollbar flex-1 space-y-2 overflow-y-auto px-3 pb-3">
-						<div className="rounded-xl border border-sidebar-border bg-sidebar-accent/35 p-3">
-							<div className="flex items-center gap-2 text-xs text-sidebar-foreground">
-								<Sparkles className="h-3.5 w-3.5 text-primary" />
-								{activeTemplate ? activeTemplate.label : "No Template"}
-							</div>
-							<div className="mt-1 text-[11px] text-muted-foreground">
-								{activeTemplate
-									? activeTemplate.description
-									: "Pick a template from the header to auto-seed blocks"}
-							</div>
-						</div>
-						<div className="rounded-xl border border-sidebar-border bg-sidebar-accent/35 p-3">
-							<div className="flex items-center gap-2 text-xs text-sidebar-foreground">
-								<Layers3 className="h-3.5 w-3.5 text-primary" />
-								{blocks.length} blocks
-							</div>
-							<div className="mt-1 text-[11px] text-muted-foreground">
-								Current canvas content
-							</div>
-						</div>
-						<div className="rounded-xl border border-sidebar-border bg-sidebar-accent/35 p-3">
-							<div className="flex items-center gap-2 text-xs text-sidebar-foreground">
-								<ScreenShare className="h-3.5 w-3.5 text-primary" />
-								{resolution.width} x {resolution.height}
-							</div>
-							<div className="mt-1 text-[11px] text-muted-foreground">
-								Display resolution
-							</div>
-						</div>
-						<div className="rounded-xl border border-sidebar-border bg-sidebar-accent/35 p-3">
-							<div className="flex items-center gap-2 text-xs text-sidebar-foreground">
-								<Sparkles className="h-3.5 w-3.5 text-primary" />
-								{selectedBlockId ? "Settings Active" : "CMS Library Active"}
-							</div>
-							<div className="mt-1 text-[11px] text-muted-foreground">
-								Right panel mode
-							</div>
-						</div>
-					</div>
-				</aside>
-
 				<CMSCanvas />
-
 				<CMSSidebar className="h-[44vh] w-full border-l-0 border-t border-sidebar-border lg:h-full lg:w-[320px] lg:border-l lg:border-t-0" />
 			</div>
+
+			{selectedBlockId ? null : (
+				<div className="border-t border-sidebar-border bg-sidebar/80 px-4 py-1.5 text-[10px] text-muted-foreground">
+					Tip: select a block to edit content/style. Press Ctrl/Cmd+S to save immediately.
+				</div>
+			)}
 		</div>
 	);
 }

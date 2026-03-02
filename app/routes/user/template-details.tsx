@@ -15,6 +15,8 @@ import {
 	getTemplateDescription,
 	getTemplatePageCount,
 	getTemplateStatusMeta,
+	resolveTemplateEditorMode,
+	WEBSITE_TEMPLATE_FILTER,
 } from "~/lib/template-project-utils";
 import { cn } from "~/lib/utils";
 import { SectionRenderer } from "~/sections/SectionRenderer";
@@ -30,7 +32,7 @@ type TemplatePagePreview = {
 };
 
 const TEMPLATE_DETAILS_FIELDS =
-	"id,name,description,category,thumbnail,createdById,pages,globalStyle,seo,isActive,usageCount,isDeleted,createdAt,updatedAt,createdBy";
+	"id,name,description,category,thumbnail,createdById,pages,globalStyle,editorMode,cmsState,seo,isActive,usageCount,isDeleted,createdAt,updatedAt,createdBy";
 
 const BORDER_RADIUS_VALUES: Array<GlobalStyle["borderRadius"]> = ["none", "sm", "md", "lg", "full"];
 
@@ -194,6 +196,7 @@ export default function UserTemplateDetailsRoute() {
 		page: 1,
 		limit: 40,
 		fields: TEMPLATE_PROJECT_FIELDS,
+		filter: WEBSITE_TEMPLATE_FILTER,
 		sort: "usageCount",
 		order: "desc",
 		document: true,
@@ -258,7 +261,11 @@ export default function UserTemplateDetailsRoute() {
 		);
 	}
 
-	if (isError || !templateData) {
+	if (
+		isError ||
+		!templateData ||
+		resolveTemplateEditorMode(templateData) !== "website"
+	) {
 		return (
 			<div className="mx-auto flex min-h-[60vh] w-full max-w-3xl items-center px-6 py-10 md:px-10">
 				<div className="w-full rounded-[2rem] border border-destructive/40 bg-destructive/10 p-7 text-left">

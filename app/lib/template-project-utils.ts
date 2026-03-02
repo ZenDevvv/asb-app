@@ -1,7 +1,9 @@
 import type { TemplateProject } from "~/zod/templateProject.zod";
 
 export const TEMPLATE_PROJECT_FIELDS =
-	"id,name,description,category,thumbnail,createdById,pages,globalStyle,seo,isActive,usageCount,isDeleted,createdAt,updatedAt,createdBy";
+	"id,name,description,category,thumbnail,createdById,pages,globalStyle,editorMode,cmsState,seo,isActive,usageCount,isDeleted,createdAt,updatedAt,createdBy";
+export const WEBSITE_TEMPLATE_FILTER = "editorMode:website,editorMode:null";
+export const CMS_TEMPLATE_FILTER = "editorMode:cms";
 
 type TemplateTheme = {
 	headerClassName: string;
@@ -73,6 +75,10 @@ function getTemplateStatusKey(template: TemplateProject): "active" | "draft" | "
 	if (template.isDeleted) return "archived";
 	if (template.isActive) return "active";
 	return "draft";
+}
+
+export function resolveTemplateEditorMode(template?: Pick<TemplateProject, "editorMode"> | null): "website" | "cms" {
+	return template?.editorMode === "cms" ? "cms" : "website";
 }
 
 export function getTemplateStatusMeta(template: TemplateProject): TemplateStatusMeta {

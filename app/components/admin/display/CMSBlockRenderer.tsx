@@ -7,6 +7,7 @@ interface CMSBlockRendererProps {
 	block: CMSBlock;
 	globalStyle: GlobalStyle;
 	canvasHeight: number;
+	isEditing?: boolean;
 }
 
 const DISPLAY_SECTION_STYLE: SectionStyle = {};
@@ -39,7 +40,12 @@ function getJustifyContent(
 	return "flex-end";
 }
 
-export function CMSBlockRenderer({ block, globalStyle, canvasHeight }: CMSBlockRendererProps) {
+export function CMSBlockRenderer({
+	block,
+	globalStyle,
+	canvasHeight,
+	isEditing = true,
+}: CMSBlockRendererProps) {
 	const isMediaBlock = block.type === "image" || block.type === "video";
 	const overrideFontFamily =
 		typeof block.style.fontFamily === "string" && block.style.fontFamily.trim().length > 0
@@ -86,7 +92,7 @@ export function CMSBlockRenderer({ block, globalStyle, canvasHeight }: CMSBlockR
 					block={editorBlock}
 					sectionStyle={DISPLAY_SECTION_STYLE}
 					globalStyle={globalStyle}
-					isEditing
+					isEditing={isEditing}
 					isSelected={false}
 					onUpdateProp={() => undefined}
 				/>
@@ -107,7 +113,7 @@ export function CMSBlockRenderer({ block, globalStyle, canvasHeight }: CMSBlockR
 					block={editorBlock}
 					sectionStyle={DISPLAY_SECTION_STYLE}
 					globalStyle={globalStyle}
-					isEditing
+					isEditing={isEditing}
 					isSelected={false}
 					onUpdateProp={() => undefined}
 				/>

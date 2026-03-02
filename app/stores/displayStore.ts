@@ -2,11 +2,11 @@ import { nanoid } from "nanoid";
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
 import { BLOCK_REGISTRY } from "~/config/blockRegistry";
+import { DEFAULT_GLOBAL_STYLE } from "~/stores/editorStore";
 import type { BlockStyle, BlockType, GlobalStyle } from "~/types/editor";
 
-export const CMS_DISPLAY_STORAGE_KEY = "asb-cms-display";
-const LEGACY_DISPLAY_STORAGE_KEY = "asb-tv-display";
-const DEFAULT_STARTUP_TEMPLATE_ID = "multiple-video-in-canvas";
+export const CMS_DISPLAY_DRAFT_STORAGE_KEY_PREFIX = "asb-cms-display:";
+export const CMS_PERSISTED_STATE_VERSION = 1;
 
 export type CMSBlockType = Exclude<BlockType, "button" | "rsvp">;
 
@@ -36,14 +36,23 @@ export interface CMSCanvasBackground {
 	videoUrl: string;
 }
 
-export interface CMSDisplaySnapshot {
+export interface CMSPersistedState {
+	version: 1;
 	resolution: CMSResolution;
 	zoom: number;
 	blocks: CMSBlock[];
-	selectedBlockId: string | null;
 	activeTemplateId: string | null;
 	canvasBackground: CMSCanvasBackground;
+}
+
+export interface CMSDisplaySnapshot extends CMSPersistedState {
+	selectedBlockId: string | null;
 	globalStyle: GlobalStyle;
+}
+
+interface CMSDisplayState extends CMSDisplaySnapshot {
+	isHydrated: boolean;
+	hydratedTemplateId: string | null;
 }
 
 export interface CMSBlockPatch {
@@ -55,30 +64,6 @@ export interface CMSBlockPatch {
 	h?: number;
 }
 
-export interface CMSTemplateBlockSeed {
-	type: CMSBlockType;
-	x: number;
-	y: number;
-	w?: number;
-	h?: number;
-	props?: Record<string, unknown>;
-	style?: Partial<BlockStyle>;
-}
-
-export interface CMSTemplate {
-	id: string;
-	label: string;
-	description: string;
-	resolution: CMSResolution;
-	globalStyle?: Partial<GlobalStyle>;
-	canvasBackground?: Partial<CMSCanvasBackground>;
-	blocks: CMSTemplateBlockSeed[];
-}
-
-interface CMSDisplayState extends CMSDisplaySnapshot {
-	isHydrated: boolean;
-}
-
 interface CMSDisplayActions {
 	addBlock: (type: CMSBlockType) => void;
 	duplicateBlock: (id: string) => void;
@@ -88,10 +73,27 @@ interface CMSDisplayActions {
 	setResolution: (resolution: CMSResolution) => void;
 	setZoom: (zoom: number) => void;
 	setCanvasBackground: (patch: Partial<CMSCanvasBackground>) => void;
-	applyTemplate: (templateId: string) => void;
+	setGlobalStyle: (patch: Partial<GlobalStyle>) => void;
 	resetCanvas: () => void;
-	saveToLocalStorage: () => void;
-	loadFromLocalStorage: () => void;
+	hydrateFromServer: (params: {
+		templateId: string;
+		cmsState: unknown;
+		globalStyle: unknown;
+	}) => void;
+	hydrateFromLocalDraft: (params: {
+		templateId: string;
+		fallbackGlobalStyle?: unknown;
+	}) => boolean;
+	exportForServer: () => CMSPersistedState;
+	getSnapshot: () => CMSDisplaySnapshot;
+	saveDraftToLocalStorage: (templateId?: string) => void;
+	clearDraftFromLocalStorage: (templateId?: string) => void;
+}
+
+interface CMSLocalDraftV1 {
+	version: 1;
+	savedAt: string;
+	snapshot: CMSDisplaySnapshot;
 }
 
 export const CMS_ALLOWED_BLOCKS: CMSBlockType[] = [
@@ -119,216 +121,14 @@ export const CMS_PRESETS: CMSResolution[] = [
 	{ label: "Custom", width: 1920, height: 1080 },
 ];
 
-export const CMS_TEMPLATE_LIBRARY: CMSTemplate[] = [
-	{
-		id: "portrait-menu",
-		label: "Canvas Background as a video",
-		description: "Imported from CMS debug snapshot with portrait video background.",
-		resolution: { label: "Portrait HD", width: 1080, height: 1920 },
-		globalStyle: {
-			themeMode: "dark",
-			primaryColor: "#34d399",
-			borderRadius: "lg",
-		},
-		canvasBackground: {
-			type: "video",
-			color: "#2e2e2e",
-			imageUrl: "",
-			videoUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
-		},
-		blocks: [
-			{
-				type: "heading",
-				x: 6.997464496507647,
-				y: 65.7768571677105,
-				w: 74.8,
-				h: 30,
-				props: {
-					text: "Canvas Background as a video",
-					textStyle: "default",
-					containerHorizontalAlign: "center",
-					containerVerticalAlign: "middle",
-				},
-				style: {
-					fontSize: "custom",
-					fontWeight: "bold",
-					fontStyle: "normal",
-					letterSpacing: 0,
-					textAlign: "left",
-					fontFamily: "EB Garamond",
-					fontSizePx: 120,
-				},
-			},
-		],
-	},
-	{
-		id: "multiple-video-in-canvas",
-		label: "Multiple video in canvas",
-		description: "Imported from CMS debug snapshot with multiple video blocks in landscape.",
-		resolution: { label: "1080p Landscape", width: 1920, height: 1080 },
-		globalStyle: {
-			fontFamily: "Inter",
-			primaryColor: "#34d399",
-			colorScheme: "monochromatic",
-			borderRadius: "lg",
-			themeMode: "dark",
-		},
-		canvasBackground: {
-			type: "image",
-			color: "#2e2e2e",
-			imageUrl:
-				"https://static.vecteezy.com/system/resources/thumbnails/072/257/502/small_2x/charming-floral-pattern-featuring-pink-roses-and-green-leaves-photo.jpg",
-			videoUrl: "",
-		},
-		blocks: [
-			{
-				type: "video",
-				x: 3.727287292480471,
-				y: 6.302995778093433,
-				w: 26.6,
-				h: 37.4,
-				props: {
-					src: "https://www.pexels.com/download/video/3738655/",
-					alt: "",
-					caption: "",
-					containerHorizontalAlign: "center",
-					containerVerticalAlign: "middle",
-				},
-				style: {
-					width: "full",
-					borderWidth: 0,
-					tilt: 0,
-					fontSize: "xl",
-					fontWeight: "bold",
-					fontStyle: "normal",
-					letterSpacing: 0,
-					textAlign: "center",
-					shadowSize: "none",
-					captionVerticalAlign: "center",
-				},
-			},
-			{
-				type: "video",
-				x: 72.36365370316939,
-				y: 4.1009780421401505,
-				w: 21.1,
-				h: 49.8,
-				props: {
-					src: "https://www.pexels.com/download/video/3189188/",
-					alt: "",
-					caption: "",
-					containerHorizontalAlign: "center",
-					containerVerticalAlign: "middle",
-				},
-				style: {
-					width: "full",
-					borderWidth: 0,
-					tilt: 0,
-					fontSize: "xl",
-					fontWeight: "bold",
-					fontStyle: "normal",
-					letterSpacing: 0,
-					textAlign: "center",
-					shadowSize: "none",
-					captionVerticalAlign: "center",
-				},
-			},
-			{
-				type: "video",
-				x: 42.63639346036045,
-				y: 9.97976838699495,
-				w: 21.9,
-				h: 29.3,
-				props: {
-					src: "https://www.pexels.com/download/video/3197534/",
-					alt: "",
-					caption: "",
-					containerHorizontalAlign: "center",
-					containerVerticalAlign: "middle",
-				},
-				style: {
-					width: "full",
-					borderWidth: 0,
-					tilt: 0,
-					fontSize: "xl",
-					fontWeight: "bold",
-					fontStyle: "normal",
-					letterSpacing: 0,
-					textAlign: "center",
-					shadowSize: "none",
-					captionVerticalAlign: "center",
-				},
-			},
-			{
-				type: "video",
-				x: 10.818200544877492,
-				y: 55.616132023358595,
-				w: 36.7,
-				h: 33.8,
-				props: {
-					src: "https://www.pexels.com/download/video/3326745/",
-					alt: "",
-					caption: "",
-					containerHorizontalAlign: "center",
-					containerVerticalAlign: "middle",
-				},
-				style: {
-					width: "full",
-					borderWidth: 0,
-					tilt: 0,
-					fontSize: "xl",
-					fontWeight: "bold",
-					fontStyle: "normal",
-					letterSpacing: 0,
-					textAlign: "center",
-					shadowSize: "none",
-					captionVerticalAlign: "center",
-				},
-			},
-			{
-				type: "video",
-				x: 59.72729006680575,
-				y: 58.262605301057455,
-				w: 26.3,
-				h: 34.7,
-				props: {
-					src: "https://www.pexels.com/download/video/8308977/",
-					alt: "",
-					caption: "",
-					containerHorizontalAlign: "center",
-					containerVerticalAlign: "middle",
-				},
-				style: {
-					width: "full",
-					borderWidth: 0,
-					tilt: 0,
-					fontSize: "xl",
-					fontWeight: "bold",
-					fontStyle: "normal",
-					letterSpacing: 0,
-					textAlign: "center",
-					shadowSize: "none",
-					captionVerticalAlign: "center",
-				},
-			},
-		],
-	},
-];
-
-const DEFAULT_GLOBAL_STYLE: GlobalStyle = {
-	fontFamily: "Inter",
-	primaryColor: "#00e5a0",
-	colorScheme: "monochromatic",
-	borderRadius: "md",
-	themeMode: "dark",
-};
-
 const DEFAULT_CANVAS_BACKGROUND: CMSCanvasBackground = {
 	type: "color",
 	color: "#2f2f2f",
 	imageUrl: "",
 	videoUrl: "",
 };
+
+const BORDER_RADIUS_VALUES: Array<GlobalStyle["borderRadius"]> = ["none", "sm", "md", "lg", "full"];
 
 const DEFAULT_RESOLUTION: CMSResolution = CMS_PRESETS[0];
 const DEFAULT_ZOOM = 100;
@@ -377,6 +177,11 @@ function clamp(value: number, min: number, max: number): number {
 	return Math.min(max, Math.max(min, value));
 }
 
+function getStorage(): Storage | null {
+	if (typeof window === "undefined") return null;
+	return window.localStorage;
+}
+
 function normalizeResolution(input: CMSResolution | null | undefined): CMSResolution {
 	if (!input) return { ...DEFAULT_RESOLUTION };
 	const width = clamp(Math.round(input.width), 320, 7680);
@@ -416,6 +221,14 @@ function isCMSBlockType(value: unknown): value is CMSBlockType {
 	return typeof value === "string" && CMS_ALLOWED_BLOCKS.includes(value as CMSBlockType);
 }
 
+function getDefaultWidth(type: CMSBlockType): number {
+	return clamp(DEFAULT_WIDTH_BY_TYPE[type] ?? 32, MIN_BLOCK_WIDTH, 100);
+}
+
+function getDefaultHeight(type: CMSBlockType): number {
+	return clamp(DEFAULT_HEIGHT_BY_TYPE[type] ?? 18, MIN_BLOCK_HEIGHT, 100);
+}
+
 function normalizeBlock(raw: unknown): CMSBlock | null {
 	if (!raw || typeof raw !== "object") return null;
 	const value = raw as Partial<CMSBlock>;
@@ -453,116 +266,130 @@ function normalizeBlock(raw: unknown): CMSBlock | null {
 	};
 }
 
-function getStorage(): Storage | null {
-	if (typeof window === "undefined") return null;
-	return window.localStorage;
+function normalizeGlobalStyle(input: unknown): GlobalStyle {
+	if (!input || typeof input !== "object" || Array.isArray(input)) {
+		return { ...DEFAULT_GLOBAL_STYLE };
+	}
+
+	const value = input as Partial<GlobalStyle>;
+	const borderRadius =
+		typeof value.borderRadius === "string" &&
+		BORDER_RADIUS_VALUES.includes(value.borderRadius as GlobalStyle["borderRadius"])
+			? (value.borderRadius as GlobalStyle["borderRadius"])
+			: DEFAULT_GLOBAL_STYLE.borderRadius;
+
+	return {
+		fontFamily:
+			typeof value.fontFamily === "string" && value.fontFamily.trim().length > 0
+				? value.fontFamily
+				: DEFAULT_GLOBAL_STYLE.fontFamily,
+		primaryColor:
+			typeof value.primaryColor === "string" && value.primaryColor.trim().length > 0
+				? value.primaryColor
+				: DEFAULT_GLOBAL_STYLE.primaryColor,
+		colorScheme: "monochromatic",
+		borderRadius,
+		themeMode: value.themeMode === "light" ? "light" : "dark",
+	};
+}
+
+export function normalizeCmsPersistedState(input: unknown): CMSPersistedState {
+	if (!input || typeof input !== "object" || Array.isArray(input)) {
+		return createDefaultCmsPersistedState();
+	}
+
+	const value = input as Partial<CMSPersistedState>;
+	const blocks = Array.isArray(value.blocks)
+		? value.blocks.map((entry) => normalizeBlock(entry)).filter((entry): entry is CMSBlock => entry !== null)
+		: [];
+
+	return {
+		version: CMS_PERSISTED_STATE_VERSION,
+		resolution: normalizeResolution(value.resolution),
+		zoom: normalizeZoom(value.zoom ?? DEFAULT_ZOOM),
+		blocks,
+		activeTemplateId: typeof value.activeTemplateId === "string" ? value.activeTemplateId : null,
+		canvasBackground: normalizeCanvasBackground(value.canvasBackground),
+	};
+}
+
+export function createDefaultCmsPersistedState(): CMSPersistedState {
+	return {
+		version: CMS_PERSISTED_STATE_VERSION,
+		resolution: { ...DEFAULT_RESOLUTION },
+		zoom: DEFAULT_ZOOM,
+		blocks: [],
+		activeTemplateId: null,
+		canvasBackground: { ...DEFAULT_CANVAS_BACKGROUND },
+	};
+}
+
+function createDefaultSnapshot(): CMSDisplaySnapshot {
+	return {
+		...createDefaultCmsPersistedState(),
+		selectedBlockId: null,
+		globalStyle: { ...DEFAULT_GLOBAL_STYLE },
+	};
 }
 
 function createDefaultState(): CMSDisplayState {
 	return {
-		resolution: { ...DEFAULT_RESOLUTION },
-		zoom: DEFAULT_ZOOM,
-		blocks: [],
-		selectedBlockId: null,
-		activeTemplateId: null,
-		canvasBackground: { ...DEFAULT_CANVAS_BACKGROUND },
-		globalStyle: { ...DEFAULT_GLOBAL_STYLE },
+		...createDefaultSnapshot(),
 		isHydrated: false,
+		hydratedTemplateId: null,
 	};
 }
 
-function getDefaultWidth(type: CMSBlockType): number {
-	return clamp(DEFAULT_WIDTH_BY_TYPE[type] ?? 32, MIN_BLOCK_WIDTH, 100);
+export function getCmsDisplayDraftStorageKey(templateId: string): string {
+	return `${CMS_DISPLAY_DRAFT_STORAGE_KEY_PREFIX}${templateId}`;
 }
 
-function getDefaultHeight(type: CMSBlockType): number {
-	return clamp(DEFAULT_HEIGHT_BY_TYPE[type] ?? 18, MIN_BLOCK_HEIGHT, 100);
-}
+function parseLocalDraft(raw: string): CMSDisplaySnapshot | null {
+	try {
+		const parsed = JSON.parse(raw) as Partial<CMSLocalDraftV1> | Partial<CMSDisplaySnapshot>;
+		const source =
+			parsed && typeof parsed === "object" && "snapshot" in parsed
+				? (parsed.snapshot as Partial<CMSDisplaySnapshot>)
+				: (parsed as Partial<CMSDisplaySnapshot>);
 
-function resolveTemplate(templateId: string): CMSTemplate | undefined {
-	return CMS_TEMPLATE_LIBRARY.find((template) => template.id === templateId);
-}
+		if (!source || typeof source !== "object") return null;
 
-function createBlockFromTemplateSeed(seed: CMSTemplateBlockSeed): CMSBlock | null {
-	if (!isCMSBlockType(seed.type)) return null;
+		const persisted = normalizeCmsPersistedState(source);
+		const selectedBlockId =
+			typeof source.selectedBlockId === "string" &&
+			persisted.blocks.some((block) => block.id === source.selectedBlockId)
+				? source.selectedBlockId
+				: null;
 
-	const registryEntry = BLOCK_REGISTRY[seed.type];
-	if (!registryEntry) return null;
-
-	const width = clamp(
-		typeof seed.w === "number" ? Math.round(seed.w * 10) / 10 : getDefaultWidth(seed.type),
-		MIN_BLOCK_WIDTH,
-		100,
-	);
-	const height = clamp(
-		typeof seed.h === "number" ? Math.round(seed.h * 10) / 10 : getDefaultHeight(seed.type),
-		MIN_BLOCK_HEIGHT,
-		100,
-	);
-	const x = clamp(seed.x, 0, 100 - width);
-	const y = clamp(seed.y, 0, 100 - height);
-
-	return {
-		id: nanoid(10),
-		type: seed.type,
-		props: {
-			...registryEntry.defaultProps,
-			...(seed.props ?? {}),
-		},
-		style: {
-			...registryEntry.defaultStyle,
-			...(seed.style ?? {}),
-		},
-		x,
-		y,
-		w: width,
-		h: height,
-	};
-}
-
-function createSnapshotFromTemplate(template: CMSTemplate): Pick<
-	CMSDisplaySnapshot,
-	"resolution" | "blocks" | "activeTemplateId" | "canvasBackground" | "globalStyle"
-> {
-	const resolution = normalizeResolution(template.resolution);
-	const blocks = template.blocks
-		.map((seed) => createBlockFromTemplateSeed(seed))
-		.filter((block): block is CMSBlock => block !== null);
-	const canvasBackground = template.canvasBackground
-		? normalizeCanvasBackground(template.canvasBackground)
-		: { ...DEFAULT_CANVAS_BACKGROUND };
-	const globalStyle = template.globalStyle
-		? { ...DEFAULT_GLOBAL_STYLE, ...template.globalStyle }
-		: { ...DEFAULT_GLOBAL_STYLE };
-
-	return {
-		resolution,
-		blocks,
-		activeTemplateId: template.id,
-		canvasBackground,
-		globalStyle,
-	};
+		return {
+			...persisted,
+			selectedBlockId,
+			globalStyle: normalizeGlobalStyle(source.globalStyle),
+		};
+	} catch {
+		return null;
+	}
 }
 
 export const useDisplayStore = create<CMSDisplayState & CMSDisplayActions>()(
 	immer((set, get) => {
-		const persist = () => {
+		const persistDraft = (templateIdOverride?: string) => {
 			const storage = getStorage();
 			if (!storage) return;
 
 			const state = get();
-			const snapshot: CMSDisplaySnapshot = {
-				resolution: state.resolution,
-				zoom: state.zoom,
-				blocks: state.blocks,
-				selectedBlockId: state.selectedBlockId,
-				activeTemplateId: state.activeTemplateId,
-				canvasBackground: state.canvasBackground,
-				globalStyle: state.globalStyle,
+			const templateId = templateIdOverride ?? state.hydratedTemplateId;
+			if (!templateId) return;
+
+			const snapshot = state.getSnapshot();
+			const payload: CMSLocalDraftV1 = {
+				version: CMS_PERSISTED_STATE_VERSION,
+				savedAt: new Date().toISOString(),
+				snapshot,
 			};
 
 			try {
-				storage.setItem(CMS_DISPLAY_STORAGE_KEY, JSON.stringify(snapshot));
+				storage.setItem(getCmsDisplayDraftStorageKey(templateId), JSON.stringify(payload));
 			} catch {
 				// localStorage may be unavailable or quota-limited.
 			}
@@ -594,7 +421,7 @@ export const useDisplayStore = create<CMSDisplayState & CMSDisplayActions>()(
 					state.selectedBlockId = next.id;
 				});
 
-				persist();
+				persistDraft();
 			},
 
 			duplicateBlock: (id: string) => {
@@ -607,16 +434,8 @@ export const useDisplayStore = create<CMSDisplayState & CMSDisplayActions>()(
 						type: source.type,
 						props: { ...source.props },
 						style: { ...source.style },
-						x: clamp(
-							source.x + BLOCK_DUPLICATE_OFFSET,
-							BLOCK_POSITION_MIN,
-							BLOCK_POSITION_MAX,
-						),
-						y: clamp(
-							source.y + BLOCK_DUPLICATE_OFFSET,
-							BLOCK_POSITION_MIN,
-							BLOCK_POSITION_MAX,
-						),
+						x: clamp(source.x + BLOCK_DUPLICATE_OFFSET, BLOCK_POSITION_MIN, BLOCK_POSITION_MAX),
+						y: clamp(source.y + BLOCK_DUPLICATE_OFFSET, BLOCK_POSITION_MIN, BLOCK_POSITION_MAX),
 						w: source.w,
 						h: source.h,
 					};
@@ -625,7 +444,7 @@ export const useDisplayStore = create<CMSDisplayState & CMSDisplayActions>()(
 					state.selectedBlockId = duplicate.id;
 				});
 
-				persist();
+				persistDraft();
 			},
 
 			removeBlock: (id: string) => {
@@ -636,7 +455,7 @@ export const useDisplayStore = create<CMSDisplayState & CMSDisplayActions>()(
 					}
 				});
 
-				persist();
+				persistDraft();
 			},
 
 			updateBlock: (id: string, patch: CMSBlockPatch) => {
@@ -666,7 +485,7 @@ export const useDisplayStore = create<CMSDisplayState & CMSDisplayActions>()(
 					block.y = clamp(block.y, BLOCK_POSITION_MIN, BLOCK_POSITION_MAX);
 				});
 
-				persist();
+				persistDraft();
 			},
 
 			selectBlock: (id: string | null) => {
@@ -674,7 +493,7 @@ export const useDisplayStore = create<CMSDisplayState & CMSDisplayActions>()(
 					state.selectedBlockId = id;
 				});
 
-				persist();
+				persistDraft();
 			},
 
 			setResolution: (resolution: CMSResolution) => {
@@ -684,7 +503,7 @@ export const useDisplayStore = create<CMSDisplayState & CMSDisplayActions>()(
 					state.resolution = normalized;
 				});
 
-				persist();
+				persistDraft();
 			},
 
 			setZoom: (zoom: number) => {
@@ -694,7 +513,7 @@ export const useDisplayStore = create<CMSDisplayState & CMSDisplayActions>()(
 					state.zoom = normalized;
 				});
 
-				persist();
+				persistDraft();
 			},
 
 			setCanvasBackground: (patch: Partial<CMSCanvasBackground>) => {
@@ -705,26 +524,15 @@ export const useDisplayStore = create<CMSDisplayState & CMSDisplayActions>()(
 					});
 				});
 
-				persist();
+				persistDraft();
 			},
 
-			applyTemplate: (templateId: string) => {
-				const template = resolveTemplate(templateId);
-				if (!template) return;
-
-				const templateSnapshot = createSnapshotFromTemplate(template);
-
+			setGlobalStyle: (patch: Partial<GlobalStyle>) => {
 				set((state) => {
-					state.resolution = templateSnapshot.resolution;
-					state.zoom = DEFAULT_ZOOM;
-					state.blocks = templateSnapshot.blocks;
-					state.selectedBlockId = null;
-					state.activeTemplateId = templateSnapshot.activeTemplateId;
-					state.canvasBackground = templateSnapshot.canvasBackground;
-					state.globalStyle = templateSnapshot.globalStyle;
+					state.globalStyle = normalizeGlobalStyle({ ...state.globalStyle, ...patch });
 				});
 
-				persist();
+				persistDraft();
 			},
 
 			resetCanvas: () => {
@@ -734,94 +542,97 @@ export const useDisplayStore = create<CMSDisplayState & CMSDisplayActions>()(
 					state.activeTemplateId = null;
 				});
 
-				persist();
+				persistDraft();
 			},
 
-			saveToLocalStorage: () => {
-				persist();
+			hydrateFromServer: ({ templateId, cmsState, globalStyle }) => {
+				const persisted = normalizeCmsPersistedState(cmsState);
+				const nextGlobalStyle = normalizeGlobalStyle(globalStyle);
+
+				set((state) => {
+					state.version = CMS_PERSISTED_STATE_VERSION;
+					state.resolution = persisted.resolution;
+					state.zoom = persisted.zoom;
+					state.blocks = persisted.blocks;
+					state.activeTemplateId = persisted.activeTemplateId;
+					state.canvasBackground = persisted.canvasBackground;
+					state.globalStyle = nextGlobalStyle;
+					state.selectedBlockId = null;
+					state.hydratedTemplateId = templateId;
+					state.isHydrated = true;
+				});
+
+				persistDraft(templateId);
 			},
 
-			loadFromLocalStorage: () => {
+			hydrateFromLocalDraft: ({ templateId, fallbackGlobalStyle }) => {
 				const storage = getStorage();
-				if (!storage) {
-					const startupTemplate = resolveTemplate(DEFAULT_STARTUP_TEMPLATE_ID);
-					set((state) => {
-						if (startupTemplate) {
-							const templateSnapshot = createSnapshotFromTemplate(startupTemplate);
-							state.resolution = templateSnapshot.resolution;
-							state.zoom = DEFAULT_ZOOM;
-							state.blocks = templateSnapshot.blocks;
-							state.selectedBlockId = null;
-							state.activeTemplateId = templateSnapshot.activeTemplateId;
-							state.canvasBackground = templateSnapshot.canvasBackground;
-							state.globalStyle = templateSnapshot.globalStyle;
-						}
-						state.isHydrated = true;
-					});
-					return;
-				}
+				if (!storage) return false;
 
+				const raw = storage.getItem(getCmsDisplayDraftStorageKey(templateId));
+				if (!raw) return false;
+
+				const parsedSnapshot = parseLocalDraft(raw);
+				if (!parsedSnapshot) return false;
+
+				const mergedGlobalStyle = parsedSnapshot.globalStyle
+					? parsedSnapshot.globalStyle
+					: normalizeGlobalStyle(fallbackGlobalStyle);
+
+				set((state) => {
+					state.version = CMS_PERSISTED_STATE_VERSION;
+					state.resolution = parsedSnapshot.resolution;
+					state.zoom = parsedSnapshot.zoom;
+					state.blocks = parsedSnapshot.blocks;
+					state.activeTemplateId = parsedSnapshot.activeTemplateId;
+					state.canvasBackground = parsedSnapshot.canvasBackground;
+					state.selectedBlockId = parsedSnapshot.selectedBlockId;
+					state.globalStyle = mergedGlobalStyle;
+					state.hydratedTemplateId = templateId;
+					state.isHydrated = true;
+				});
+
+				return true;
+			},
+
+			exportForServer: () => {
+				const state = get();
+				return {
+					version: CMS_PERSISTED_STATE_VERSION,
+					resolution: normalizeResolution(state.resolution),
+					zoom: normalizeZoom(state.zoom),
+					blocks: state.blocks.map((block) => ({
+						...block,
+						props: { ...block.props },
+						style: { ...block.style },
+					})),
+					activeTemplateId: state.activeTemplateId,
+					canvasBackground: normalizeCanvasBackground(state.canvasBackground),
+				};
+			},
+
+			getSnapshot: () => {
+				const state = get();
+				return {
+					...state.exportForServer(),
+					selectedBlockId: state.selectedBlockId,
+					globalStyle: { ...state.globalStyle },
+				};
+			},
+
+			saveDraftToLocalStorage: (templateId?: string) => {
+				persistDraft(templateId);
+			},
+
+			clearDraftFromLocalStorage: (templateId?: string) => {
+				const storage = getStorage();
+				if (!storage) return;
+				const targetTemplateId = templateId ?? get().hydratedTemplateId;
+				if (!targetTemplateId) return;
 				try {
-					const raw =
-						storage.getItem(CMS_DISPLAY_STORAGE_KEY) ??
-						storage.getItem(LEGACY_DISPLAY_STORAGE_KEY);
-					if (!raw) {
-						const startupTemplate = resolveTemplate(DEFAULT_STARTUP_TEMPLATE_ID);
-						set((state) => {
-							if (startupTemplate) {
-								const templateSnapshot = createSnapshotFromTemplate(startupTemplate);
-								state.resolution = templateSnapshot.resolution;
-								state.zoom = DEFAULT_ZOOM;
-								state.blocks = templateSnapshot.blocks;
-								state.selectedBlockId = null;
-								state.activeTemplateId = templateSnapshot.activeTemplateId;
-								state.canvasBackground = templateSnapshot.canvasBackground;
-								state.globalStyle = templateSnapshot.globalStyle;
-							}
-							state.isHydrated = true;
-						});
-						return;
-					}
-
-					const parsed = JSON.parse(raw) as Partial<CMSDisplaySnapshot>;
-					const normalizedResolution = normalizeResolution(parsed.resolution);
-					const normalizedZoom = normalizeZoom(parsed.zoom ?? DEFAULT_ZOOM);
-					const normalizedBlocks = Array.isArray(parsed.blocks)
-						? parsed.blocks
-								.map((entry) => normalizeBlock(entry))
-								.filter((entry): entry is CMSBlock => entry !== null)
-						: [];
-					const selectedBlockId =
-						typeof parsed.selectedBlockId === "string" &&
-						normalizedBlocks.some((block) => block.id === parsed.selectedBlockId)
-							? parsed.selectedBlockId
-							: null;
-					const activeTemplateId =
-						typeof parsed.activeTemplateId === "string" &&
-						resolveTemplate(parsed.activeTemplateId)
-							? parsed.activeTemplateId
-							: null;
-					const canvasBackground = normalizeCanvasBackground(parsed.canvasBackground);
-
-					set((state) => {
-						state.resolution = normalizedResolution;
-						state.zoom = normalizedZoom;
-						state.blocks = normalizedBlocks;
-						state.selectedBlockId = selectedBlockId;
-						state.activeTemplateId = activeTemplateId;
-						state.canvasBackground = canvasBackground;
-						state.globalStyle =
-							parsed.globalStyle &&
-							typeof parsed.globalStyle === "object" &&
-							!Array.isArray(parsed.globalStyle)
-								? { ...DEFAULT_GLOBAL_STYLE, ...(parsed.globalStyle as Partial<GlobalStyle>) }
-								: { ...DEFAULT_GLOBAL_STYLE };
-						state.isHydrated = true;
-					});
+					storage.removeItem(getCmsDisplayDraftStorageKey(targetTemplateId));
 				} catch {
-					set((state) => {
-						state.isHydrated = true;
-					});
+					// localStorage may be unavailable or quota-limited.
 				}
 			},
 		};

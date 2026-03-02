@@ -1,5 +1,5 @@
-import CmsEditorPage from "~/cms/CmsEditorPage";
+import { Navigate } from "react-router";
 
 export default function CmsRoute() {
-	return <CmsEditorPage />;
+	return <Navigate to="/admin/cms" replace />;
 }

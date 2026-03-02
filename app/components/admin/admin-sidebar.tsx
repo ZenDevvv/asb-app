@@ -24,7 +24,7 @@ const mainNavItems = [
 	{ href: "/admin/templates", icon: Layers, label: "Templates", end: false },
 	{ href: "/admin/users", icon: Users, label: "Users", end: false },
 	{
-		href: "/cms",
+		href: "/admin/cms",
 		icon: Monitor,
 		label: "Content Management",
 		end: false,

@@ -3,12 +3,14 @@ import { SectionRenderer } from "~/sections/SectionRenderer";
 import { useGetTemplateProjectById } from "~/hooks/use-template-project";
 import { DEFAULT_GLOBAL_STYLE } from "~/stores/editorStore";
 import { cn } from "~/lib/utils";
+import { resolveTemplateEditorMode } from "~/lib/template-project-utils";
+import type { Section } from "~/types/editor";
 
 export default function PublicTemplateViewRoute() {
 	const { templateId } = useParams<{ templateId: string }>();
 
 	const { data: templateData, isLoading, isError } = useGetTemplateProjectById(templateId ?? "", {
-		fields: "id,pages,globalStyle",
+		fields: "id,pages,globalStyle,editorMode,cmsState",
 		isPublic: true,
 	});
 
@@ -20,7 +22,11 @@ export default function PublicTemplateViewRoute() {
 		);
 	}
 
-	if (isError || !templateData) {
+	if (
+		isError ||
+		!templateData ||
+		resolveTemplateEditorMode(templateData) !== "website"
+	) {
 		return (
 			<div className="flex h-screen items-center justify-center bg-background text-sm text-muted-foreground">
 				Template not found.
@@ -28,9 +34,9 @@ export default function PublicTemplateViewRoute() {
 		);
 	}
 
-	const sections = templateData.pages?.[0]?.sections ?? [];
+	const sections = (templateData.pages?.[0]?.sections ?? []) as Section[];
 	const globalStyle = templateData.globalStyle ?? { ...DEFAULT_GLOBAL_STYLE };
-	const visibleSections = sections.filter((section) => section.isVisible);
+	const visibleSections = sections.filter((section: Section) => section.isVisible);
 	const themeClass = globalStyle.themeMode === "light" ? "light" : "dark";
 
 	return (
@@ -41,7 +47,7 @@ export default function PublicTemplateViewRoute() {
 						Nothing to see here.
 					</div>
 				) : (
-					visibleSections.map((section, sectionIndex) => (
+					visibleSections.map((section: Section, sectionIndex: number) => (
 						<SectionRenderer
 							key={section.id}
 							section={section}
