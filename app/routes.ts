@@ -13,9 +13,12 @@ export default [
 		"layouts/user-layout.tsx",
 		prefix("user", [
 			route("dashboard", "routes/user/dashboard.tsx"),
+			route("projects", "routes/user/projects.tsx"),
+			route("templates", "routes/user/templates.tsx"),
 			route("templates/:templateId", "routes/user/template-details.tsx"),
 			route("cms/templates", "routes/user/cms-templates.tsx"),
 			route("cms/templates/:templateId", "routes/user/cms-template-details.tsx"),
+			route("settings", "routes/user/settings.tsx"),
 		]),
 	),
 	layout(

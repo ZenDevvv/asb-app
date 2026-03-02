@@ -174,17 +174,17 @@ export default function UserDashboard() {
 				<div className="flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-border/60 bg-card/50 px-6 py-5 backdrop-blur-sm">
 					<div>
 						<p className="text-xs font-semibold uppercase tracking-widest text-primary">
-							CMS Projects
+							Template Modes
 						</p>
 						<p className="mt-1 text-sm text-muted-foreground">
-							Browse and fork free-canvas display templates.
+							Browse and fork website and CMS templates in one library.
 						</p>
 					</div>
 					<button
 						type="button"
-						onClick={() => navigate("/user/cms/templates")}
+						onClick={() => navigate("/user/templates")}
 						className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition-all hover:brightness-110">
-						Open CMS Templates
+						Open Template Library
 					</button>
 				</div>
 			</section>

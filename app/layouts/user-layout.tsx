@@ -1,4 +1,4 @@
-import { Outlet, useNavigate } from "react-router";
+import { Outlet, useLocation, useNavigate } from "react-router";
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "~/hooks/use-auth";
@@ -17,9 +17,11 @@ function getInitials(name?: string, email?: string): string {
 function UserMenu({
 	user,
 	onLogout,
+	onOpenSettings,
 }: {
 	user: { userName?: string; email: string; avatar?: string } | null;
 	onLogout: () => void;
+	onOpenSettings: () => void;
 }) {
 	const [open, setOpen] = useState(false);
 	const ref = useRef<HTMLDivElement>(null);
@@ -82,20 +84,31 @@ function UserMenu({
 
 						{/* Menu items */}
 						<div className="p-1.5">
-							{[
-								{ icon: "person", label: "Profile" },
-								{ icon: "settings", label: "Settings" },
-								{ icon: "help", label: "Help & Docs" },
-							].map(({ icon, label }) => (
-								<button
-									key={label}
-									type="button"
-									className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-foreground/80 transition-colors hover:bg-primary/10 hover:text-foreground"
-								>
-									<Icon name={icon} size={15} />
-									{label}
-								</button>
-							))}
+							<button
+								type="button"
+								className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-foreground/80 transition-colors hover:bg-primary/10 hover:text-foreground"
+							>
+								<Icon name="person" size={15} />
+								Profile
+							</button>
+							<button
+								type="button"
+								onClick={() => {
+									setOpen(false);
+									onOpenSettings();
+								}}
+								className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-foreground/80 transition-colors hover:bg-primary/10 hover:text-foreground"
+							>
+								<Icon name="settings" size={15} />
+								Settings
+							</button>
+							<button
+								type="button"
+								className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-foreground/80 transition-colors hover:bg-primary/10 hover:text-foreground"
+							>
+								<Icon name="help" size={15} />
+								Help & Docs
+							</button>
 						</div>
 
 						<div className="border-t border-border/60 p-1.5">
@@ -122,6 +135,7 @@ function UserMenu({
 export default function UserLayout() {
 	const { user, isLoading, logout } = useAuth();
 	const navigate = useNavigate();
+	const location = useLocation();
 
 	useEffect(() => {
 		if (!isLoading && !user) {
@@ -133,6 +147,39 @@ export default function UserLayout() {
 		await logout();
 		navigate("/");
 	};
+
+	const navItems = [
+		{
+			label: "Dashboard",
+			icon: "dashboard",
+			to: "/user/dashboard",
+			active:
+				location.pathname === "/user" ||
+				location.pathname === "/user/dashboard",
+		},
+		{
+			label: "My Projects",
+			icon: "folder_open",
+			to: "/user/projects",
+			active:
+				location.pathname.startsWith("/user/projects") ||
+				location.pathname.startsWith("/project/"),
+		},
+		{
+			label: "Templates",
+			icon: "grid_view",
+			to: "/user/templates",
+			active:
+				location.pathname.startsWith("/user/templates") ||
+				location.pathname.startsWith("/user/cms/templates"),
+		},
+		{
+			label: "Settings",
+			icon: "settings",
+			to: "/user/settings",
+			active: location.pathname.startsWith("/user/settings"),
+		},
+	];
 
 	if (isLoading) {
 		return <SplashScreen />;
@@ -152,15 +199,11 @@ export default function UserLayout() {
 					navClassName="hidden items-center gap-1 md:flex"
 					actionsClassName="flex items-center gap-3"
 					animationDuration={0.4}
-					nav={[
-						{ label: "Dashboard", icon: "dashboard", active: true },
-						{ label: "My Projects", icon: "folder_open", active: false },
-						{ label: "Templates", icon: "grid_view", active: false },
-						{ label: "Settings", icon: "settings", active: false },
-					].map(({ label, icon, active }) => (
+					nav={navItems.map(({ label, icon, active, to }) => (
 						<button
 							key={label}
 							type="button"
+							onClick={() => navigate(to)}
 							className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-medium transition-all ${
 								active
 									? "bg-primary/15 text-primary"
@@ -175,7 +218,7 @@ export default function UserLayout() {
 						<>
 							<button
 								type="button"
-								// onClick={() => navigate("/editor")}
+								onClick={() => navigate("/editor")}
 								className="hidden items-center gap-1.5 rounded-full bg-primary/10 px-4 py-1.5 text-sm font-medium text-primary transition-all hover:bg-primary/20 sm:flex"
 							>
 								<Icon name="add" size={15} />
@@ -190,14 +233,20 @@ export default function UserLayout() {
 								<span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-primary ring-2 ring-background" />
 							</button>
 
-							<UserMenu user={user} onLogout={handleLogout} />
+							<UserMenu
+								user={user}
+								onLogout={handleLogout}
+								onOpenSettings={() => navigate("/user/settings")}
+							/>
 						</>
 					}
 				/>
 
 				{/* ── Page content ────────────────────────────────────── */}
-				<main className="minimal-scrollbar flex-1 overflow-y-auto">
-					<Outlet />
+				<main className="minimal-scrollbar flex min-h-0 flex-1 flex-col overflow-y-auto">
+					<div className="flex-1">
+						<Outlet />
+					</div>
 					<footer className="border-t border-border/40 bg-background/50 backdrop-blur-xl">
 						<div className="mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-3 px-6 py-5 md:px-10">
 							<div className="flex items-center gap-2">
