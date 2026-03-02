@@ -23,6 +23,7 @@ import type { PresetOrientation } from "./cmsEditorHelpers";
 interface CmsEditorHeaderProps {
 	templateName: string;
 	statusMessage: string;
+	backButtonTitle?: string;
 	presetOrientation: PresetOrientation;
 	onSetOrientation: (target: PresetOrientation) => void;
 	selectedPresetLabel: string;
@@ -44,6 +45,7 @@ interface CmsEditorHeaderProps {
 export function CmsEditorHeader({
 	templateName,
 	statusMessage,
+	backButtonTitle = "Back to CMS templates",
 	presetOrientation,
 	onSetOrientation,
 	selectedPresetLabel,
@@ -70,7 +72,7 @@ export function CmsEditorHeader({
 					size="icon"
 					onClick={onBackToTemplates}
 					className="size-8 text-muted-foreground hover:bg-sidebar-accent hover:text-foreground"
-					title="Back to CMS templates">
+					title={backButtonTitle}>
 					<ArrowLeft className="h-4 w-4" />
 				</Button>
 				<div className="flex size-8 items-center justify-center rounded-lg bg-primary/10 text-primary">

@@ -1,7 +1,7 @@
 # AI Prompt Context - CMS Mode Inside ASB
 
 > Use this guide for CMS work inside AppSiteBuilder.
-> CMS is no longer an isolated local-only tool. It is an admin-only template mode backed by `TemplateProject`.
+> CMS is no longer an isolated local-only tool. It is an admin-authored template mode backed by `TemplateProject`.
 
 ---
 
@@ -11,7 +11,7 @@ CMS and Website templates share one template system but must remain mode-separat
 
 1. Use `editorMode` on template documents to separate concerns.
 2. `editorMode: "website"` templates belong to website editor flows.
-3. `editorMode: "cms"` templates belong to admin CMS flows.
+3. `editorMode: "cms"` templates belong to CMS flows (admin template management + user fork-to-project flows).
 4. Do not let website routes edit/render CMS templates.
 5. Do not let public template view routes access CMS templates.
 
@@ -92,10 +92,10 @@ Store APIs:
 ## Backend Authorization Rules
 
 1. CMS template create/update/delete: admin only
-2. CMS template reads: admin only
+2. CMS template reads: authenticated users allowed (admin/user/viewer)
 3. CMS template public-access (`X-Public-Access`) reads: rejected
-4. CMS template fork endpoint: rejected
-5. Website template behavior remains unchanged
+4. CMS template fork endpoint: allowed for authenticated non-viewer users
+5. Website template behavior remains unchanged (website filters/routes still website-only)
 6. List endpoint supports mode filtering: `filter=editorMode:cms` or `filter=editorMode:website`
 
 ---
@@ -103,8 +103,9 @@ Store APIs:
 ## Frontend Mode Rules
 
 1. Admin CMS list only requests `editorMode:cms`
-2. Website admin/user/public flows request website mode (`editorMode:website` plus legacy null fallback)
-3. Wrong-mode route access must redirect with clear message:
+2. User CMS template browser requests `editorMode:cms` and forks into CMS projects
+3. Website admin/user/public flows request website mode (`editorMode:website` plus legacy null fallback)
+4. Wrong-mode route access must redirect with clear message:
    - CMS template in website editor -> redirect to CMS editor/admin area
    - Website template in CMS editor/view -> redirect to website editor
 
@@ -151,7 +152,7 @@ Keep CMS-only panel logic for:
 
 When writing CMS prompts, include:
 
-1. "CMS is admin-only template mode (`editorMode: cms`) inside ASB, not isolated local tool."
+1. "CMS templates are admin-authored (`editorMode: cms`) and forkable by authenticated users into CMS projects."
 2. "Persist to `templateProject.cmsState`; local cache is fallback only."
 3. "Preserve CMS free-canvas behavior and percent geometry."
 4. "Reuse shared editor block-settings panels before adding CMS-specific UI."
@@ -165,5 +166,5 @@ When writing CMS prompts, include:
 2. CMS editor is template-bound at `/admin/cms/editor/:templateId` and rendered outside `AdminLayout`
 3. CMS admin view route exists at `/admin/cms/view/:templateId`
 4. Template schema includes `editorMode` and `cmsState`
-5. Backend enforces admin-only CMS access and blocks CMS public/fork access
+5. Backend enforces admin-only CMS template mutations, blocks CMS public access, and allows authenticated user CMS forks
 6. Website template flows are filtered away from CMS templates by default

@@ -19,7 +19,7 @@
 
 ## CMS Merge Update (2026-03-02)
 
-CMS is now merged into ASB as an admin-only template mode, not an isolated local tool.
+CMS is now merged into ASB as an admin-authored template mode, not an isolated local tool.
 
 1. CMS routes:
    - `/admin/cms`
@@ -35,7 +35,7 @@ CMS is now merged into ASB as an admin-only template mode, not an isolated local
 4. Mode separation rules:
    - Website flows must filter to website mode
    - CMS flows must filter to CMS mode
-   - CMS templates are admin-only, non-public, and cannot be forked
+   - CMS templates are non-public; admin manages templates, authenticated users can fork CMS templates into CMS projects
 5. CMS persistence rules:
    - Server `templateProject.cmsState` is the single source of truth
    - Local storage is fallback cache only (`asb-cms-display:<templateId>`)

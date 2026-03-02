@@ -227,6 +227,7 @@ export default function UserTemplateDetailsRoute() {
 		templateData?.createdBy?.email ||
 		templateData?.createdById ||
 		"ASB admin";
+	const isViewer = user?.role === "viewer";
 
 	const suggestedTemplates = useMemo(() => {
 		const templates = suggestionsData?.templateProjects ?? [];
@@ -360,7 +361,7 @@ export default function UserTemplateDetailsRoute() {
 							<div className="flex flex-wrap items-center gap-2 lg:justify-end">
 								<button
 									type="button"
-									disabled={isForking || !user}
+									disabled={isForking || !user || isViewer}
 									onClick={() => {
 										if (!templateId) return;
 										forkTemplate(templateId, {
@@ -375,7 +376,11 @@ export default function UserTemplateDetailsRoute() {
 										size={16}
 										className={isForking ? "animate-spin" : ""}
 									/>
-									{isForking ? "Creating Project..." : "Use Template"}
+									{isViewer
+										? "Viewer cannot fork"
+										: isForking
+											? "Creating Project..."
+											: "Use Template"}
 								</button>
 							</div>
 						</div>

@@ -81,6 +81,10 @@ export function resolveTemplateEditorMode(template?: Pick<TemplateProject, "edit
 	return template?.editorMode === "cms" ? "cms" : "website";
 }
 
+export function resolveProjectEditorMode(project?: { editorMode?: "website" | "cms" | null } | null): "website" | "cms" {
+	return project?.editorMode === "cms" ? "cms" : "website";
+}
+
 export function getTemplateStatusMeta(template: TemplateProject): TemplateStatusMeta {
 	return TEMPLATE_STATUS_META[getTemplateStatusKey(template)];
 }

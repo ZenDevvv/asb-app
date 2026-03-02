@@ -5,7 +5,7 @@ import { DEFAULT_GLOBAL_STYLE, EDITOR_STORAGE_KEY, useEditorStore } from "~/stor
 import { useGetTemplateProjectById, useUpdateTemplateProject } from "~/hooks/use-template-project";
 import { useGetProjectBySlug, useUpdateProject } from "~/hooks/use-project";
 import { useAuth } from "~/hooks/use-auth";
-import { resolveTemplateEditorMode } from "~/lib/template-project-utils";
+import { resolveProjectEditorMode, resolveTemplateEditorMode } from "~/lib/template-project-utils";
 import { EditorToolbar } from "./EditorToolbar";
 import { SectionsListPanel } from "./SectionsListPanel";
 import { EditorCanvas } from "./EditorCanvas";
@@ -63,7 +63,7 @@ export default function EditorPage() {
 
 	const { data: projectData, isLoading: isProjectLoading } = useGetProjectBySlug(
 		slug ?? "",
-		{ fields: "id,name,slug,pages,globalStyle" },
+		{ fields: "id,name,slug,pages,globalStyle,editorMode,cmsState" },
 	);
 	const { mutate: updateProject, isPending: isProjectSaving } = useUpdateProject();
 
@@ -140,6 +140,13 @@ export default function EditorPage() {
 	// Load fetched project data into the editor store and cache context for saves.
 	useEffect(() => {
 		if (!slug || !projectData) return;
+		if (resolveProjectEditorMode(projectData) === "cms") {
+			if (typeof window !== "undefined") {
+				window.alert("This project uses CMS mode. Redirecting to the CMS project editor.");
+			}
+			navigate(`/project/cms/${slug}`, { replace: true });
+			return;
+		}
 		const store = useEditorStore.getState();
 		const firstPage = projectData.pages?.[0];
 		activeDocumentRef.current = {
@@ -157,7 +164,7 @@ export default function EditorPage() {
 			projectData.globalStyle ?? { ...DEFAULT_GLOBAL_STYLE },
 		);
 		store.saveToLocalStorage();
-	}, [slug, projectData]);
+	}, [slug, projectData, navigate]);
 
 	// Persist current editor state to the correct server endpoint.
 	const saveToServer = useCallback(() => {
