@@ -9,7 +9,11 @@ import type { Section } from "~/types/editor";
 export default function PublicTemplateViewRoute() {
 	const { templateId } = useParams<{ templateId: string }>();
 
-	const { data: templateData, isLoading, isError } = useGetTemplateProjectById(templateId ?? "", {
+	const {
+		data: templateData,
+		isLoading,
+		isError,
+	} = useGetTemplateProjectById(templateId ?? "", {
 		fields: "id,pages,globalStyle,editorMode,cmsState",
 		isPublic: true,
 	});
@@ -22,11 +26,7 @@ export default function PublicTemplateViewRoute() {
 		);
 	}
 
-	if (
-		isError ||
-		!templateData ||
-		resolveTemplateEditorMode(templateData) !== "website"
-	) {
+	if (isError || !templateData || resolveTemplateEditorMode(templateData) !== "website") {
 		return (
 			<div className="flex h-screen items-center justify-center bg-background text-sm text-muted-foreground">
 				Template not found.

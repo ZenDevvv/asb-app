@@ -13,11 +13,10 @@ export function ComingSoon({ title, description }: ComingSoonProps) {
 					<Construction className="size-10 text-muted-foreground" />
 				</div>
 				<div className="space-y-2">
-					<h1 className="text-2xl font-bold tracking-tight text-foreground">
-						{title}
-					</h1>
+					<h1 className="text-2xl font-bold tracking-tight text-foreground">{title}</h1>
 					<p className="max-w-md text-sm text-muted-foreground">
-						{description ?? "This page is under development and will be available soon."}
+						{description ??
+							"This page is under development and will be available soon."}
 					</p>
 				</div>
 			</div>

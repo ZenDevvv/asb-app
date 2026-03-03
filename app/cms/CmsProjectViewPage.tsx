@@ -95,8 +95,7 @@ export default function CmsProjectViewPage() {
 			...DEFAULT_GLOBAL_STYLE,
 			...value,
 			colorScheme: "monochromatic" as const,
-			themeMode:
-				(value as { themeMode?: unknown }).themeMode === "light" ? "light" : "dark",
+			themeMode: (value as { themeMode?: unknown }).themeMode === "light" ? "light" : "dark",
 		};
 	}, [projectData?.globalStyle]);
 
@@ -120,14 +119,8 @@ export default function CmsProjectViewPage() {
 		return Math.max(0.05, fitScale * zoomScale);
 	}, [cmsState.zoom, fitScale]);
 
-	const scaledCanvasWidth = Math.max(
-		1,
-		Math.round(cmsState.resolution.width * displayScale),
-	);
-	const scaledCanvasHeight = Math.max(
-		1,
-		Math.round(cmsState.resolution.height * displayScale),
-	);
+	const scaledCanvasWidth = Math.max(1, Math.round(cmsState.resolution.width * displayScale));
+	const scaledCanvasHeight = Math.max(1, Math.round(cmsState.resolution.height * displayScale));
 
 	const resolvedBackgroundColor =
 		typeof cmsState.canvasBackground.color === "string" &&
@@ -188,8 +181,12 @@ export default function CmsProjectViewPage() {
 						<ScreenShare className="h-4 w-4" />
 					</div>
 					<div>
-						<div className="text-sm font-semibold text-sidebar-foreground">{projectData.name}</div>
-						<div className="text-[10px] text-muted-foreground">Read-only CMS project view</div>
+						<div className="text-sm font-semibold text-sidebar-foreground">
+							{projectData.name}
+						</div>
+						<div className="text-[10px] text-muted-foreground">
+							Read-only CMS project view
+						</div>
 					</div>
 				</div>
 				{user?.role !== "viewer" ? (

@@ -33,12 +33,14 @@ export default function CmsTemplateViewPage() {
 	const hasModeRedirectedRef = useRef(false);
 	const [viewportSize, setViewportSize] = useState<CanvasViewportSize>({ width: 0, height: 0 });
 
-	const { data: templateData, isLoading, isError, error } = useGetTemplateProjectById(
-		templateId ?? "",
-		{
-			fields: "id,name,editorMode,cmsState,globalStyle",
-		},
-	);
+	const {
+		data: templateData,
+		isLoading,
+		isError,
+		error,
+	} = useGetTemplateProjectById(templateId ?? "", {
+		fields: "id,name,editorMode,cmsState,globalStyle",
+	});
 
 	useEffect(() => {
 		if (isAuthLoading) return;
@@ -81,7 +83,10 @@ export default function CmsTemplateViewPage() {
 		navigate(`/editor/${templateId}`, { replace: true });
 	}, [navigate, templateData, templateId]);
 
-	const cmsState = useMemo(() => normalizeCmsPersistedState(templateData?.cmsState), [templateData?.cmsState]);
+	const cmsState = useMemo(
+		() => normalizeCmsPersistedState(templateData?.cmsState),
+		[templateData?.cmsState],
+	);
 	const globalStyle = useMemo(() => {
 		const value = templateData?.globalStyle;
 		if (!value || typeof value !== "object" || Array.isArray(value)) {
@@ -99,8 +104,16 @@ export default function CmsTemplateViewPage() {
 		if (viewportSize.width <= 0 || viewportSize.height <= 0) return 1;
 		const paddedWidth = Math.max(0, viewportSize.width - 32);
 		const paddedHeight = Math.max(0, viewportSize.height - 32);
-		return Math.min(paddedWidth / cmsState.resolution.width, paddedHeight / cmsState.resolution.height);
-	}, [cmsState.resolution.height, cmsState.resolution.width, viewportSize.height, viewportSize.width]);
+		return Math.min(
+			paddedWidth / cmsState.resolution.width,
+			paddedHeight / cmsState.resolution.height,
+		);
+	}, [
+		cmsState.resolution.height,
+		cmsState.resolution.width,
+		viewportSize.height,
+		viewportSize.width,
+	]);
 
 	const displayScale = useMemo(() => {
 		const zoomScale = cmsState.zoom / 100;
@@ -143,7 +156,9 @@ export default function CmsTemplateViewPage() {
 						{error instanceof Error ? error.message : "Please try again."}
 					</div>
 					<div className="mt-4">
-						<Button type="button" onClick={() => navigate("/admin/cms")}>Back to CMS Templates</Button>
+						<Button type="button" onClick={() => navigate("/admin/cms")}>
+							Back to CMS Templates
+						</Button>
 					</div>
 				</div>
 			</div>
@@ -167,10 +182,10 @@ export default function CmsTemplateViewPage() {
 						<ScreenShare className="h-4 w-4" />
 					</div>
 					<div>
-						<div className="text-sm font-semibold text-sidebar-foreground">{templateData.name}</div>
-						<div className="text-[10px] text-muted-foreground">
-							Read-only CMS view
+						<div className="text-sm font-semibold text-sidebar-foreground">
+							{templateData.name}
 						</div>
+						<div className="text-[10px] text-muted-foreground">Read-only CMS view</div>
 					</div>
 				</div>
 				<Button
@@ -198,7 +213,10 @@ export default function CmsTemplateViewPage() {
 								height: `${cmsState.resolution.height}px`,
 								transform: `scale(${displayScale})`,
 							}}>
-							<div className="pointer-events-none absolute inset-0" style={{ backgroundColor: resolvedBackgroundColor }} />
+							<div
+								className="pointer-events-none absolute inset-0"
+								style={{ backgroundColor: resolvedBackgroundColor }}
+							/>
 							{hasImageBackground ? (
 								<img
 									src={cmsState.canvasBackground.imageUrl}
@@ -228,7 +246,10 @@ export default function CmsTemplateViewPage() {
 										height: `${block.h}%`,
 										transform: `rotate(${getBlockRotationDegrees(block)}deg)`,
 										transformOrigin: "center center",
-										zIndex: typeof block.style.zIndex === "number" ? block.style.zIndex : 20,
+										zIndex:
+											typeof block.style.zIndex === "number"
+												? block.style.zIndex
+												: 20,
 									}}>
 									<div className="h-full w-full overflow-hidden">
 										<CMSBlockRenderer

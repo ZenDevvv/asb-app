@@ -219,7 +219,12 @@ export function DashboardProjectsSection({
 								}}
 							/>
 							<div className="flex h-20 w-20 items-center justify-center rounded-3xl border border-primary/20 bg-primary/10 shadow-lg shadow-primary/10">
-								<Icon name="rocket_launch" size={36} className="text-primary" filled />
+								<Icon
+									name="rocket_launch"
+									size={36}
+									className="text-primary"
+									filled
+								/>
 							</div>
 						</div>
 

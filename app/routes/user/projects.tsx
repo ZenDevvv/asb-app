@@ -59,9 +59,7 @@ export default function UserProjectsRoute() {
 
 	const filteredProjects = useMemo(() => {
 		if (modeFilter === "all") return projects;
-		return projects.filter(
-			(project) => resolveProjectEditorMode(project) === modeFilter,
-		);
+		return projects.filter((project) => resolveProjectEditorMode(project) === modeFilter);
 	}, [modeFilter, projects]);
 
 	return (
@@ -78,11 +76,13 @@ export default function UserProjectsRoute() {
 						</p>
 					</div>
 					<div className="flex flex-wrap items-center gap-2">
-						{([
-							["all", "All", counts.all],
-							["website", "Website", counts.website],
-							["cms", "CMS", counts.cms],
-						] as const).map(([mode, label, count]) => (
+						{(
+							[
+								["all", "All", counts.all],
+								["website", "Website", counts.website],
+								["cms", "CMS", counts.cms],
+							] as const
+						).map(([mode, label, count]) => (
 							<button
 								key={mode}
 								type="button"
@@ -152,7 +152,11 @@ export default function UserProjectsRoute() {
 									type="button"
 									initial={{ opacity: 0, y: 10 }}
 									animate={{ opacity: 1, y: 0 }}
-									transition={{ duration: 0.24, delay: index * 0.03, ease: "easeOut" }}
+									transition={{
+										duration: 0.24,
+										delay: index * 0.03,
+										ease: "easeOut",
+									}}
 									onClick={() => navigate(`/project/${project.slug}`)}
 									className="group overflow-hidden rounded-2xl border border-border/70 bg-background/70 text-left transition-all hover:border-primary/40 hover:bg-background">
 									<div

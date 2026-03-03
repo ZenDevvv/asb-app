@@ -97,7 +97,9 @@ export function CreateCmsTemplateModal({ open, onOpenChange }: CreateCmsTemplate
 			onOpenChange(false);
 			navigate(`/admin/cms/editor/${created.id}`);
 		} catch (error) {
-			setSubmitError(error instanceof Error ? error.message : "Failed to create CMS template.");
+			setSubmitError(
+				error instanceof Error ? error.message : "Failed to create CMS template.",
+			);
 		}
 	};
 
@@ -213,4 +215,3 @@ export function CreateCmsTemplateModal({ open, onOpenChange }: CreateCmsTemplate
 		</Dialog>
 	);
 }
-

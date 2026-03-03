@@ -6,10 +6,7 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { useAuth } from "~/hooks/use-auth";
 import { useGetTemplateProjects } from "~/hooks/use-template-project";
-import {
-	CMS_TEMPLATE_FILTER,
-	TEMPLATE_PROJECT_FIELDS,
-} from "~/lib/template-project-utils";
+import { CMS_TEMPLATE_FILTER, TEMPLATE_PROJECT_FIELDS } from "~/lib/template-project-utils";
 import type { TemplateProject } from "~/zod/templateProject.zod";
 
 function formatRelativeTime(date: Date): string {
@@ -122,21 +119,29 @@ export default function CmsTemplatesPage() {
 							<tbody>
 								{isLoading || isAuthLoading ? (
 									<tr>
-										<td className="px-5 py-12 text-center text-sm text-muted-foreground" colSpan={5}>
+										<td
+											className="px-5 py-12 text-center text-sm text-muted-foreground"
+											colSpan={5}>
 											Loading CMS templates...
 										</td>
 									</tr>
 								) : isError ? (
 									<tr>
-										<td className="px-5 py-12 text-center text-sm text-destructive" colSpan={5}>
-											{error instanceof Error ? error.message : "Failed to load CMS templates."}
+										<td
+											className="px-5 py-12 text-center text-sm text-destructive"
+											colSpan={5}>
+											{error instanceof Error
+												? error.message
+												: "Failed to load CMS templates."}
 										</td>
 									</tr>
 								) : templates.length > 0 ? (
 									templates.map((template) => (
 										<tr
 											key={template.id}
-											onClick={() => navigate(`/admin/cms/editor/${template.id}`)}
+											onClick={() =>
+												navigate(`/admin/cms/editor/${template.id}`)
+											}
 											className="cursor-pointer border-t border-border/80 text-sm text-foreground transition hover:bg-background/45">
 											<td className="px-5 py-4">
 												<div className="flex items-start gap-3">
@@ -147,11 +152,15 @@ export default function CmsTemplatesPage() {
 														<p className="truncate font-semibold leading-tight text-foreground">
 															{template.name}
 														</p>
-														<p className="mt-1 truncate text-xs text-muted-foreground">{template.id}</p>
+														<p className="mt-1 truncate text-xs text-muted-foreground">
+															{template.id}
+														</p>
 													</div>
 												</div>
 											</td>
-											<td className="px-5 py-4 text-muted-foreground">{template.category || "Display"}</td>
+											<td className="px-5 py-4 text-muted-foreground">
+												{template.category || "Display"}
+											</td>
 											<td className="px-5 py-4">
 												<span className="inline-flex rounded-full border border-border px-2.5 py-0.5 text-xs font-medium text-foreground">
 													{getCmsBlockCount(template)} blocks
@@ -168,7 +177,9 @@ export default function CmsTemplatesPage() {
 														size="sm"
 														onClick={(event) => {
 															event.stopPropagation();
-															navigate(`/admin/cms/view/${template.id}`);
+															navigate(
+																`/admin/cms/view/${template.id}`,
+															);
 														}}>
 														<Eye className="h-3.5 w-3.5" />
 														View
@@ -179,7 +190,9 @@ export default function CmsTemplatesPage() {
 									))
 								) : (
 									<tr>
-										<td className="px-5 py-12 text-center text-sm text-muted-foreground" colSpan={5}>
+										<td
+											className="px-5 py-12 text-center text-sm text-muted-foreground"
+											colSpan={5}>
 											No CMS templates found.
 										</td>
 									</tr>
@@ -190,10 +203,7 @@ export default function CmsTemplatesPage() {
 				</div>
 			</div>
 
-			<CreateCmsTemplateModal
-				open={isCreateModalOpen}
-				onOpenChange={setIsCreateModalOpen}
-			/>
+			<CreateCmsTemplateModal open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen} />
 		</div>
 	);
 }

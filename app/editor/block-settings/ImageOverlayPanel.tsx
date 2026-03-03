@@ -38,7 +38,9 @@ export function ImageOverlayPanel({ blockStyle, onStyleChange }: ImageOverlayPan
 											: "border-border bg-muted/30 text-muted-foreground hover:text-foreground",
 									)}
 									title={t.label}>
-									<span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+									<span
+										className="material-symbols-outlined"
+										style={{ fontSize: 18 }}>
 										{t.icon}
 									</span>
 								</button>
