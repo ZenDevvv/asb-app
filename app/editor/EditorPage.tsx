@@ -331,7 +331,17 @@ export default function EditorPage() {
 					if (ctx.kind === "template") {
 						updateTemplate({ templateProjectId: ctx.documentId, data: { name } });
 					} else {
-						updateProject({ projectId: ctx.documentId, data: { name } });
+						updateProject(
+							{ projectId: ctx.documentId, data: { name } },
+							{
+								onSuccess: (data) => {
+									const nextSlug = data?.project?.slug;
+									if (nextSlug && slug && nextSlug !== slug) {
+										navigate(`/project/${nextSlug}`, { replace: true });
+									}
+								},
+							},
+						);
 					}
 				}}
 			/>
