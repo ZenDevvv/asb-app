@@ -25,7 +25,11 @@ function getBlockRotationDegrees(block: CMSBlock): number {
 	return clamp(tilt, -180, 180);
 }
 
-export default function CmsProjectViewPage() {
+interface CmsProjectViewPageProps {
+	isPublic?: boolean;
+}
+
+export default function CmsProjectViewPage({ isPublic = false }: CmsProjectViewPageProps) {
 	const navigate = useNavigate();
 	const { slug } = useParams<{ slug: string }>();
 	const { user, isLoading: isAuthLoading } = useAuth();
@@ -43,14 +47,16 @@ export default function CmsProjectViewPage() {
 		error,
 	} = useGetProjectBySlug(slug ?? "", {
 		fields: "id,name,slug,editorMode,cmsState,globalStyle,updatedAt",
+		isPublic,
 	});
 
 	useEffect(() => {
+		if (isPublic) return;
 		if (isAuthLoading) return;
 		if (!user) {
 			navigate("/login", { replace: true });
 		}
-	}, [isAuthLoading, navigate, user]);
+	}, [isAuthLoading, isPublic, navigate, user]);
 
 	useEffect(() => {
 		const element = viewportRef.current;
@@ -77,10 +83,12 @@ export default function CmsProjectViewPage() {
 
 		hasModeRedirectedRef.current = true;
 		if (typeof window !== "undefined") {
-			window.alert("This project uses website mode. Redirecting to website editor.");
+			window.alert(
+				`This project uses website mode. Redirecting to ${isPublic ? "website view" : "website editor"}.`,
+			);
 		}
-		navigate(`/project/${slug}`, { replace: true });
-	}, [navigate, projectData, slug]);
+		navigate(isPublic ? `/project/view/${slug}` : `/project/${slug}`, { replace: true });
+	}, [isPublic, navigate, projectData, slug]);
 
 	const cmsState = useMemo(
 		() => normalizeCmsPersistedState(projectData?.cmsState),
@@ -134,7 +142,7 @@ export default function CmsProjectViewPage() {
 		cmsState.canvasBackground.type === "video" &&
 		cmsState.canvasBackground.videoUrl.trim().length > 0;
 
-	if (isAuthLoading || isLoading) {
+	if ((!isPublic && isAuthLoading) || isLoading) {
 		return <SplashScreen mode="editor" />;
 	}
 
@@ -154,11 +162,13 @@ export default function CmsProjectViewPage() {
 					<div className="mt-2 text-muted-foreground">
 						{error instanceof Error ? error.message : "Please try again."}
 					</div>
-					<div className="mt-4">
-						<Button type="button" onClick={() => navigate("/user/dashboard")}>
-							Back to Dashboard
-						</Button>
-					</div>
+					{isPublic ? null : (
+						<div className="mt-4">
+							<Button type="button" onClick={() => navigate("/user/dashboard")}>
+								Back to Dashboard
+							</Button>
+						</div>
+					)}
 				</div>
 			</div>
 		);
@@ -166,40 +176,42 @@ export default function CmsProjectViewPage() {
 
 	return (
 		<div className="flex h-screen flex-col overflow-hidden bg-background">
-			<header className="flex min-h-14 shrink-0 flex-wrap items-center justify-between gap-2 border-b border-sidebar-border bg-sidebar px-4 py-2">
-				<div className="flex items-center gap-3">
-					<Button
-						type="button"
-						variant="ghost"
-						size="icon"
-						onClick={() => navigate(`/project/cms/${slug}`)}
-						className="size-8 text-muted-foreground hover:bg-sidebar-accent hover:text-foreground"
-						title="Back to CMS project editor">
-						<ArrowLeft className="h-4 w-4" />
-					</Button>
-					<div className="flex size-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
-						<ScreenShare className="h-4 w-4" />
-					</div>
-					<div>
-						<div className="text-sm font-semibold text-sidebar-foreground">
-							{projectData.name}
+			{isPublic ? null : (
+				<header className="flex min-h-14 shrink-0 flex-wrap items-center justify-between gap-2 border-b border-sidebar-border bg-sidebar px-4 py-2">
+					<div className="flex items-center gap-3">
+						<Button
+							type="button"
+							variant="ghost"
+							size="icon"
+							onClick={() => navigate(`/project/cms/${slug}`)}
+							className="size-8 text-muted-foreground hover:bg-sidebar-accent hover:text-foreground"
+							title="Back to CMS project editor">
+							<ArrowLeft className="h-4 w-4" />
+						</Button>
+						<div className="flex size-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+							<ScreenShare className="h-4 w-4" />
 						</div>
-						<div className="text-[10px] text-muted-foreground">
-							Read-only CMS project view
+						<div>
+							<div className="text-sm font-semibold text-sidebar-foreground">
+								{projectData.name}
+							</div>
+							<div className="text-[10px] text-muted-foreground">
+								Read-only CMS project view
+							</div>
 						</div>
 					</div>
-				</div>
-				{user?.role !== "viewer" ? (
-					<Button
-						type="button"
-						variant="outline"
-						size="sm"
-						onClick={() => navigate(`/project/cms/${slug}`)}>
-						<Edit3 className="h-3.5 w-3.5" />
-						Open Editor
-					</Button>
-				) : null}
-			</header>
+					{user?.role !== "viewer" ? (
+						<Button
+							type="button"
+							variant="outline"
+							size="sm"
+							onClick={() => navigate(`/project/cms/${slug}`)}>
+							<Edit3 className="h-3.5 w-3.5" />
+							Open Editor
+						</Button>
+					) : null}
+				</header>
+			)}
 
 			<div ref={viewportRef} className="minimal-scrollbar flex-1 overflow-auto p-8">
 				<div className="mx-auto flex min-h-full items-center justify-center">

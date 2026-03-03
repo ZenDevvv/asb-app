@@ -49,7 +49,7 @@ export function EditorToolbar({ templateName, onRenameTemplate }: EditorToolbarP
 	const lastSaved = useEditorStore((s) => s.lastSaved);
 	const isSaving = useEditorStore((s) => s.isSaving);
 	const saveToLocalStorage = useEditorStore((s) => s.saveToLocalStorage);
-	const { templateId } = useParams<{ templateId?: string }>();
+	const { templateId, slug } = useParams<{ templateId?: string; slug?: string }>();
 	const navigate = useNavigate();
 	const [shortcutsOpen, setShortcutsOpen] = useState(false);
 	const [isEditingName, setIsEditingName] = useState(false);
@@ -227,7 +227,9 @@ export function EditorToolbar({ templateName, onRenameTemplate }: EditorToolbarP
 						saveToLocalStorage();
 						const previewUrl = templateId
 							? `/editor/preview?templateId=${templateId}`
-							: "/editor/preview";
+							: slug
+								? `/project/preview/${slug}`
+								: "/editor/preview";
 						window.open(previewUrl, "_blank");
 					}}
 					className="flex items-center gap-1.5 rounded-xl border border-sidebar-border px-3 py-1.5 text-sm text-sidebar-foreground transition-colors hover:bg-sidebar-accent">

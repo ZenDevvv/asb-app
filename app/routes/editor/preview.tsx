@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Link, useSearchParams } from "react-router";
+import { Link, useParams, useSearchParams } from "react-router";
 import { SectionRenderer } from "~/sections/SectionRenderer";
 import { useEditorStore } from "~/stores/editorStore";
 import { useGetTemplateProjectById } from "~/hooks/use-template-project";
@@ -12,6 +12,7 @@ const STORAGE_KEY = "asb-editor-state";
 
 export default function EditorPreviewRoute() {
 	const [searchParams] = useSearchParams();
+	const { slug } = useParams<{ slug?: string }>();
 	const templateId = searchParams.get("templateId");
 
 	// Template-backed preview
@@ -49,7 +50,7 @@ export default function EditorPreviewRoute() {
 	const visibleSections = sections.filter((section: Section) => section.isVisible);
 	const themeClass = globalStyle.themeMode === "light" ? "light" : "dark";
 
-	const backHref = templateId ? `/editor/${templateId}` : "/editor";
+	const backHref = slug ? `/project/${slug}` : templateId ? `/editor/${templateId}` : "/editor";
 
 	if (templateId && isLoading) {
 		return (

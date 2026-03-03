@@ -36,11 +36,9 @@ export const useGetProjectBySlug = (slug: string, apiParams?: ApiQueryParams) =>
 	return useQuery({
 		queryKey: ["project-by-slug", slug, apiParams],
 		queryFn: async () => {
-			const result = await projectService
-				.select(apiParams?.fields || "")
-				.filter(`slug:${slug}`)
-				.paginate(1, 1)
-				.getAllProjects();
+			const service = projectService.select(apiParams?.fields || "");
+			if (apiParams?.isPublic) service.publicAccess();
+			const result = await service.filter(`slug:${slug}`).paginate(1, 1).getAllProjects();
 			return result?.projects?.[0] ?? null;
 		},
 		enabled: !!slug,
@@ -60,7 +58,13 @@ export const useCreateProject = () => {
 
 export const useUpdateProject = () => {
 	return useMutation({
-		mutationFn: ({ projectId, data }: { projectId: string; data: UpdateProject | FormData }) => {
+		mutationFn: ({
+			projectId,
+			data,
+		}: {
+			projectId: string;
+			data: UpdateProject | FormData;
+		}) => {
 			return projectService.updateProject({ projectId, data });
 		},
 		onSuccess: () => {
