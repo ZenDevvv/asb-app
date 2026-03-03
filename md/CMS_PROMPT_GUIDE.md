@@ -1,7 +1,7 @@
 # AI Prompt Context - CMS Mode Inside ASB
 
 > Use this guide for CMS work inside AppSiteBuilder.
-> CMS is no longer an isolated local-only tool. It is an admin-authored template mode backed by `TemplateProject`.
+> CMS is no longer an isolated local-only tool. It is an admin-authored template mode backed by `TemplateProject`, with forked user instances persisted as `Project`.
 
 ---
 
@@ -25,6 +25,11 @@ Admin-only CMS routes:
 2. `/admin/cms/editor/:templateId`
 3. `/admin/cms/view/:templateId`
 
+User CMS project routes:
+
+1. `/project/cms/:slug` (editable CMS project editor)
+2. `/project/cms/view/:slug` (read-only CMS project view)
+
 Layout ownership:
 
 1. `/admin/cms` is rendered inside `AdminLayout`
@@ -35,6 +40,10 @@ Back-compat redirects:
 
 1. `/cms` -> `/admin/cms`
 2. `/admin/display` -> `/admin/cms`
+
+Project mode redirects:
+
+1. `/project/:slug` is the website editor route; if that slug belongs to a CMS-mode project, redirect silently to `/project/cms/:slug` (no alert).
 
 ---
 
@@ -74,11 +83,16 @@ Source of truth for CMS templates:
 
 1. Server `templateProject.cmsState`
 
+Source of truth for CMS projects:
+
+1. Server `project.cmsState`
+
 Local resilience only:
 
-1. Per-template draft cache key: `asb-cms-display:<templateId>`
-2. Local cache is fallback for network failures
-3. No one-time import from legacy `asb-cms-display` snapshot
+1. Per-template draft cache key: `asb-cms-display:<templateId>` (admin template editor)
+2. Per-project draft cache key: `project:<slug>` (user CMS project editor)
+3. Local cache is fallback for network failures
+4. No one-time import from legacy `asb-cms-display` snapshot
 
 Store APIs:
 
@@ -105,9 +119,11 @@ Store APIs:
 1. Admin CMS list only requests `editorMode:cms`
 2. User CMS template browser requests `editorMode:cms` and forks into CMS projects
 3. Website admin/user/public flows request website mode (`editorMode:website` plus legacy null fallback)
-4. Wrong-mode route access must redirect with clear message:
-   - CMS template in website editor -> redirect to CMS editor/admin area
-   - Website template in CMS editor/view -> redirect to website editor
+4. Wrong-mode route access must redirect to the correct route:
+   - CMS project opened via `/project/:slug` -> silently redirect to `/project/cms/:slug` (no alert)
+   - Website project opened via `/project/cms/:slug` -> redirect to `/project/:slug`
+   - CMS template in website template editor -> redirect to CMS admin editor
+   - Website template in CMS template editor/view -> redirect to website editor
 
 ---
 
@@ -126,6 +142,19 @@ Save behavior:
 1. Debounced autosave (3s) to template API
 2. Ctrl/Cmd+S immediate save
 3. Save payload includes `cmsState + globalStyle`
+
+---
+
+## CMS Project Editor Behavior
+
+`/project/cms/:slug` supports user editing of forked CMS projects with:
+
+1. The same free-canvas interaction model as template CMS editor
+2. Server persistence to `project.cmsState` + `globalStyle`
+3. Local fallback draft key `project:<slug>`
+4. Inline project rename in header
+5. Rename uses project update endpoint and auto-syncs slug server-side when `slug` is omitted
+6. If slug changes after rename, route replaces to `/project/cms/<newSlug>`
 
 ---
 
@@ -153,7 +182,7 @@ Keep CMS-only panel logic for:
 When writing CMS prompts, include:
 
 1. "CMS templates are admin-authored (`editorMode: cms`) and forkable by authenticated users into CMS projects."
-2. "Persist to `templateProject.cmsState`; local cache is fallback only."
+2. "Persist CMS templates to `templateProject.cmsState` and forked CMS projects to `project.cmsState`; local cache is fallback only."
 3. "Preserve CMS free-canvas behavior and percent geometry."
 4. "Reuse shared editor block-settings panels before adding CMS-specific UI."
 5. "Keep website and CMS template flows separated by `editorMode`."
@@ -167,4 +196,11 @@ When writing CMS prompts, include:
 3. CMS admin view route exists at `/admin/cms/view/:templateId`
 4. Template schema includes `editorMode` and `cmsState`
 5. Backend enforces admin-only CMS template mutations, blocks CMS public access, and allows authenticated user CMS forks
-6. Website template flows are filtered away from CMS templates by default
+6. User CMS project editor/view routes exist at `/project/cms/:slug` and `/project/cms/view/:slug`
+7. CMS projects can be renamed inline in `/project/cms/:slug`; slug auto-sync + route replacement is applied after rename
+8. User project list opens CMS projects directly at `/project/cms/:slug`
+9. Website template flows are filtered away from CMS templates by default
+
+---
+
+*Last Updated: March 4, 2026*

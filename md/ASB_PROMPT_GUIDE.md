@@ -43,6 +43,18 @@ CMS is now merged into ASB as an admin-authored template mode, not an isolated l
 
 ---
 
+## Project Rename + Slug Sync Update (2026-03-04)
+
+1. Website project editor (`/project/:slug`) now supports inline project-name rename from the toolbar (same blur/Enter/Escape behavior as template rename).
+2. CMS project editor (`/project/cms/:slug`) now supports inline project-name rename from the CMS header.
+3. When a project name is updated and `slug` is omitted in the update payload, backend auto-generates slug from name; if taken, it appends `-<Date.now()>` for uniqueness.
+4. Explicit `slug` updates are still supported (for future manual-slug editing UI).
+5. After project rename, editor routes replace to the new slug URL (`/project/:slug` or `/project/cms/:slug`) when slug changes.
+6. User project cards now open CMS projects directly to `/project/cms/:slug` instead of first opening `/project/:slug`.
+7. If `/project/:slug` resolves to a CMS project, redirect to `/project/cms/:slug` silently (no alert).
+
+---
+
 ## Core Context
 
 ```
@@ -267,7 +279,7 @@ The right sidebar changes based on what is selected:
 
 ### Toolbar
 
-- **Left**: hamburger menu (collapse left sidebar) + template name (click-to-edit inline input — only active on `/editor/:templateId`; clicking the name swaps it for a borderless `border-b`-only input pre-filled with the current name; blur or Enter commits the rename via `useUpdateTemplateProject({ name })`; Escape cancels without saving; no-op if name is unchanged or empty)
+- **Left**: hamburger menu (collapse left sidebar) + active document name (click-to-edit inline input is active on `/editor/:templateId` and `/project/:slug`; clicking the name swaps it for a borderless `border-b`-only input pre-filled with the current name; blur or Enter commits rename, Escape cancels, no-op if unchanged or empty). `/editor/:templateId` uses `useUpdateTemplateProject({ name })`; `/project/:slug` uses `useUpdateProject({ name })` and route-replaces to `/project/<newSlug>` if slug changes.
 - **Center**: device preview toggle (desktop/mobile icons) + undo/redo buttons
 - **Right**: Keyboard Shortcuts button (opens shortcut list modal), Preview button (opens live preview in new tab), Publish button, save status indicator ("Saving..." spinner while server save is in-flight, "Last saved: X min ago" once confirmed, "Not saved yet" otherwise)
 - **Debug Backdoor (params)**: when URL includes `?debug=true` (or `?debugMode=true`), toolbar shows **Import**/**Export** buttons for editor-state JSON roundtrip
@@ -282,14 +294,23 @@ STATE MANAGEMENT:
 - TanStack Query handles all API calls (fetch project, auto-save, publish)
 - Auto-save: debounced 3 seconds after any change
 - Three selection levels: section-level, group-level, and block-level
-- Editor routes: `/editor` (guest sandbox) and `/editor/:templateId` (authenticated template editing). Both render the same `EditorPage` component; `templateId` is read via `useParams<{ templateId?: string }>()`.
+- Editor routes:
+  - `/editor` (guest sandbox)
+  - `/editor/:templateId` (authenticated template editing)
+  - `/project/:slug` (authenticated website project editing)
+  - `/project/cms/:slug` (authenticated CMS project editing in `CmsProjectEditorPage`)
+- `/editor` + `/editor/:templateId` + `/project/:slug` share `EditorPage`; when `/project/:slug` resolves to a CMS-mode project, `EditorPage` silently redirects to `/project/cms/:slug`.
 - Editor initialization: checks `useParams` and `location.state` on mount, priority order:
-  1. `location.state.editorSeed === "blank"` → loads an empty canvas (no sections), saves to localStorage, clears navigation state
-  2. `location.state.editorSeed === "basic"` → seeds `DEFAULT_SECTION_SEQUENCE` from scratch (ignoring localStorage), saves, clears state
-  3. `useParams().templateId` (string, from `/editor/:templateId` URL) → fetches the template via `useGetTemplateProjectById(templateId)` (TanStack Query), loads the first page's sections + globalStyle into the store once data arrives, caches page metadata in `activeTemplateRef`; shows a loading indicator while fetching; deeplinkable and survives page refresh
-  4. No seed / no templateId (guest `/editor`) → loads from localStorage; if no valid persisted state found, falls back to seeding `DEFAULT_SECTION_SEQUENCE`
-- Template server auto-save (`/editor/:templateId` only): `activeTemplateRef` (a `useRef`) holds `{ templateId, pageMetadata }` after load. The 3 s debounced auto-save calls both `saveToLocalStorage()` (write-through cache) and `useUpdateTemplateProject` — sending `{ pages: [{ ...pageMetadata, sections }], globalStyle }` — to persist changes to MongoDB. On `onSuccess`, the mutation's returned `templateProject.updatedAt` is written to `editorStore.lastSaved` via `setLastSaved`, so the toolbar "Last saved" timestamp reflects server-confirmed save time (not localStorage time). `isPending` from `useUpdateTemplateProject` is synced to `editorStore.isSaving` via a `useEffect` in `EditorPage`, driving the toolbar "Saving..." spinner. `setIsSaving(value: boolean)` is the store action used for this.
-- Guest auto-save (`/editor` only): debounced save writes to localStorage only. No server call is made. `activeTemplateRef` is null.
+  1. `location.state.editorSeed === "blank"` -> loads an empty canvas (no sections), saves to localStorage, clears navigation state
+  2. `location.state.editorSeed === "basic"` -> seeds `DEFAULT_SECTION_SEQUENCE` from scratch (ignoring localStorage), saves, clears state
+  3. `useParams().templateId` (string, from `/editor/:templateId` URL) -> fetches the template via `useGetTemplateProjectById(templateId)` (TanStack Query), loads the template's first page's sections + globalStyle into the store once data arrives, caches page metadata in `activeDocumentRef`; shows a loading indicator while fetching; deeplinkable and survives page refresh
+  4. `useParams().slug` (string, from `/project/:slug` URL) -> fetches project via `useGetProjectBySlug(slug)`; if website mode, loads first page sections + globalStyle into store, caches page metadata in `activeDocumentRef`; if CMS mode, redirects to `/project/cms/:slug`
+  5. No seed / no `templateId` / no `slug` (guest `/editor`) -> loads from localStorage; if no valid persisted state found, falls back to seeding `DEFAULT_SECTION_SEQUENCE`
+- Website editor server auto-save (`/editor/:templateId` and `/project/:slug`): `activeDocumentRef` (a `useRef`) holds `{ kind: "template" | "project", documentId, pageMetadata }` after load. The 3 s debounced auto-save calls both `saveToLocalStorage()` (write-through cache) and the correct mutation:
+  - Template context: `useUpdateTemplateProject` with `{ pages: [{ ...pageMetadata, sections }], globalStyle }`
+  - Project context: `useUpdateProject` with `{ pages: [{ ...pageMetadata, sections }], globalStyle }`
+  On `onSuccess`, returned `updatedAt` is written to `editorStore.lastSaved` via `setLastSaved`, so toolbar save status reflects server-confirmed time. Pending mutation state is synced to `editorStore.isSaving` via `setIsSaving`.
+- Guest auto-save (`/editor` only): debounced save writes to localStorage only. No server call is made. `activeDocumentRef` is null.
 - `EDITOR_STORAGE_KEY` ("asb-editor-state") and `DEFAULT_GLOBAL_STYLE` are exported from `editorStore.ts`
 - Editor state loading/import uses a single current schema; no backward migration paths are maintained
 - Default section seeding is idempotent to prevent duplicate sections when effects re-run in development strict mode
@@ -1275,6 +1296,15 @@ Response shape (error):
   { error: "Description", details?: {...} }
 ```
 
+Project slug rules (current behavior):
+
+1. `slug` is unique per project and is used as the route key (`/project/:slug`, `/project/cms/:slug`) and publish subdomain key.
+2. Forked projects are created with slugified name + timestamp suffix.
+3. Project rename auto-syncs slug when update payload includes `name` but not `slug`.
+4. Rename conflict fallback appends `-<Date.now()>` to generated slug.
+5. Explicit `slug` updates are honored.
+6. No slug-history redirect layer exists; old slug routes are not preserved after slug change.
+
 ### Publishing Pipeline
 
 ```
@@ -1816,13 +1846,15 @@ This contract ensures AI output can be validated and loaded directly into the ed
 | **FieldRenderer** | The switch component that renders the correct control based on field type. |
 | **Background Control** | Composite control: type selector (solid/gradient/image) + picker + overlay effect + overlay color + effect intensity + padding slider. |
 | **Preset** | A starter section blueprint (layout + groups + blocks + style) used by Add Section. Presets seed data; sections are still fully editable. |
-| **Slug** | URL-friendly project name used as the subdomain (my-landing-page.builder.app). |
+| **Slug** | URL-friendly project identifier used by editor routes (`/project/:slug`, `/project/cms/:slug`) and publish subdomain mapping (`{slug}.builder.app`). |
 | **Publishing** | Rendering sections and blocks to static HTML and deploying to a subdomain. |
 | **Template** | A pre-configured set of sections with blocks and styles, used as a starting point for a new project. |
 | **Style Guide** | Separate file containing all color tokens, theme values, and visual design specs for the editor UI. |
 
 ---
 
+*Document Version: 3.90 - Added CMS project editor rename parity and route behavior updates. `/project/cms/:slug` header now supports inline project-name rename (blur/Enter commit, Escape cancel) via `useUpdateProject({ name })`; when slug changes, route is replaced to `/project/cms/<newSlug>`. User project cards now open CMS projects directly to `/project/cms/:slug`.*
+*Document Version: 3.89 - Updated website project rename + slug sync rules. `EditorToolbar` inline rename now applies to `/project/:slug` as well as `/editor/:templateId`. Project rename uses `useUpdateProject({ name })`; backend auto-syncs slug when `slug` is omitted, conflict fallback appends `-<Date.now()>`, explicit slug remains supported, and editor route replaces to `/project/<newSlug>`. Also documented silent redirect from `/project/:slug` to `/project/cms/:slug` for CMS-mode projects (no alert).*
 *Document Version: 3.88 - Added new `video` block with Image-parity settings and rendering model. `BlockType` now includes `"video"` and `blockRegistry.ts` adds a media-category video entry with the same Style + Caption control groups used by `image` (`width`, `borderRadius`, `borderWidth`, `borderColor`, `opacity`, `height`, `tilt`, `shadowSize`, `shadowColor`, caption typography/alignment/padding, and overlay effect/intensity). Added `VideoBlock.tsx` renderer (`<video>` + overlay + caption). Added `ControlType` `"video"` with `VideoControl.tsx` and `FieldRenderer.tsx` wiring. `BlockSettings.tsx` and `StylePanel.tsx` now treat `video` the same as `image` for split Style/Caption panels, font override support, custom text-size support, border-radius global fallback, and overlay panel visibility. `sectionRegistry.ts` allowed block lists now include `video` wherever `image` is allowed.*
 *Document Version: 3.87 - Moved block `variant`/`appearance` controls into a dedicated **Variant** accordion in Block Mode (`VariantPanel.tsx`). Variants and appearances are now selected through preview cards instead of Content select fields. Appearance cards are hidden when the selected variant has only one appearance. `ContentPanel.tsx` now renders only block `editableProps` fields.*
 *Document Version: 3.86 - Added RSVP variant expansion and postcard-style renderer. `rsvp` now has `variant`/`appearance` config with two variants (`default`, `postcard`) and one appearance each (`classic`, `postal-card`). Updated Block Mode Content rule: hide Appearance selector when the active variant has only one appearance. RSVP Block Style now includes **Tilt** (`-180..180`) and `RsvpBlock.tsx` applies a clamped rotate transform similar to image tilt.*
@@ -1888,6 +1920,6 @@ This contract ensures AI output can be validated and loaded directly into the ed
 *Document Version: 3.31 - Moved color settings from section level to block level. Removed `textColor`, `accentColor`, `colorMode` from `SectionStyle`. Added `textColor`, `accentColor`, `colorMode` to `BlockStyle`. Each block now has a dedicated Colors panel (Global Palette / Custom) in the right sidebar. Added `colorOptions: { hasText, hasAccent }` to `BlockRegistryEntry` to control which color pickers are shown per block type. Added `app/lib/blockColors.ts` with `resolveTextColor` and `resolveAccentColor` helpers used by all block components.*
 *Document Version: 3.57 - Added Global/Custom Color Source toggle to `BackgroundControl` for Solid and Gradient background types. `SectionStyle.colorMode` now controls whether the section uses the global palette (`"global"`) or the user's exact picked color (`"custom"`). Color pickers are only shown in `"custom"` mode. Fixed `SectionRenderer.getRenderSectionStyle` to no longer apply `lightenForLightMode` to custom background colors in light mode — custom colors are used exactly as chosen. Text/accent colors are still adapted for light-mode readability. `SectionModeSettings.handleBackgroundChange` now respects explicit `colorMode` changes without overriding them.*
 *Document Version: 3.56 - `EditorToolbar` now accepts `templateName` and `onRenameTemplate` props from `EditorPage`. On `/editor/:templateId`, clicking the template name activates an inline `border-b`-only input; blur or Enter commits the rename via `useUpdateTemplateProject({ name })`; Escape cancels; noop if unchanged or empty. Guest `/editor` shows a static fallback name.*
-*Last Updated: February 26, 2026*
+*Last Updated: March 4, 2026*
 *Keep this document updated as architecture decisions change.*
 *For colors and theming, always reference the separate Style Guide file.*
