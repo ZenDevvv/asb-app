@@ -5,10 +5,7 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { useAuth } from "~/hooks/use-auth";
 import { useGetTemplateProjects } from "~/hooks/use-template-project";
-import {
-	CMS_TEMPLATE_FILTER,
-	TEMPLATE_PROJECT_FIELDS,
-} from "~/lib/template-project-utils";
+import { CMS_TEMPLATE_FILTER, TEMPLATE_PROJECT_FIELDS } from "~/lib/template-project-utils";
 import type { TemplateProject } from "~/zod/templateProject.zod";
 
 function getCmsBlockCount(template: TemplateProject): number {
@@ -128,4 +125,3 @@ export default function UserCmsTemplatesPage() {
 		</div>
 	);
 }
-

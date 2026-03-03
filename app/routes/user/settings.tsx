@@ -100,8 +100,7 @@ export default function UserSettingsRoute() {
 				initial={{ opacity: 0, y: 12 }}
 				animate={{ opacity: 1, y: 0 }}
 				transition={{ duration: 0.28, ease: "easeOut" }}
-				className="relative overflow-hidden rounded-2xl border border-border/70 bg-card/60 p-6 backdrop-blur-xl"
-			>
+				className="relative overflow-hidden rounded-2xl border border-border/70 bg-card/60 p-6 backdrop-blur-xl">
 				<div className="pointer-events-none absolute -right-14 -top-20 h-56 w-56 rounded-full bg-primary/18 blur-3xl" />
 				<div className="pointer-events-none absolute -bottom-16 left-1/3 h-48 w-48 rounded-full bg-chart-5/16 blur-3xl" />
 
@@ -110,10 +109,12 @@ export default function UserSettingsRoute() {
 						<p className="text-xs font-semibold uppercase tracking-widest text-primary">
 							Account Settings
 						</p>
-						<h1 className="mt-1 text-3xl font-bold tracking-tight">Workspace Preferences</h1>
+						<h1 className="mt-1 text-3xl font-bold tracking-tight">
+							Workspace Preferences
+						</h1>
 						<p className="mt-2 max-w-xl text-sm text-muted-foreground">
-							This page is currently mock data only. Controls are read-only and have no
-							functionality yet.
+							This page is currently mock data only. Controls are read-only and have
+							no functionality yet.
 						</p>
 					</div>
 					<span className="inline-flex items-center gap-1 rounded-full border border-chart-4/35 bg-chart-4/15 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-chart-4">
@@ -137,8 +138,12 @@ export default function UserSettingsRoute() {
 									.toUpperCase()}
 							</div>
 							<div className="min-w-0">
-								<p className="truncate text-base font-semibold">{mockProfile.name}</p>
-								<p className="truncate text-sm text-muted-foreground">{mockProfile.email}</p>
+								<p className="truncate text-base font-semibold">
+									{mockProfile.name}
+								</p>
+								<p className="truncate text-sm text-muted-foreground">
+									{mockProfile.email}
+								</p>
 							</div>
 						</div>
 					</div>
@@ -150,8 +155,7 @@ export default function UserSettingsRoute() {
 						].map((item) => (
 							<div
 								key={item.label}
-								className="rounded-2xl border border-border/70 bg-background/60 p-3"
-							>
+								className="rounded-2xl border border-border/70 bg-background/60 p-3">
 								<p className="text-xs uppercase tracking-widest text-muted-foreground">
 									{item.label}
 								</p>
@@ -167,8 +171,7 @@ export default function UserSettingsRoute() {
 					initial={{ opacity: 0, y: 12 }}
 					animate={{ opacity: 1, y: 0 }}
 					transition={{ duration: 0.28, delay: 0.04, ease: "easeOut" }}
-					className="rounded-2xl border border-border/70 bg-card/45 p-5"
-				>
+					className="rounded-2xl border border-border/70 bg-card/45 p-5">
 					<div className="mb-4 flex items-center justify-between">
 						<div>
 							<p className="text-xs font-semibold uppercase tracking-widest text-primary">
@@ -182,18 +185,18 @@ export default function UserSettingsRoute() {
 						{mockPreferences.map((item) => (
 							<div
 								key={item.id}
-								className="rounded-2xl border border-border/70 bg-background/65 p-3"
-							>
+								className="rounded-2xl border border-border/70 bg-background/65 p-3">
 								<div className="flex items-start justify-between gap-2">
 									<div>
 										<p className="text-sm font-semibold">{item.label}</p>
-										<p className="text-xs text-muted-foreground">{item.value}</p>
+										<p className="text-xs text-muted-foreground">
+											{item.value}
+										</p>
 									</div>
 									<span
 										className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] uppercase tracking-wide ${toneClasses(
 											item.tone,
-										)}`}
-									>
+										)}`}>
 										<Icon name={item.icon} size={12} />
 										Mock
 									</span>
@@ -207,8 +210,7 @@ export default function UserSettingsRoute() {
 					initial={{ opacity: 0, y: 12 }}
 					animate={{ opacity: 1, y: 0 }}
 					transition={{ duration: 0.28, delay: 0.08, ease: "easeOut" }}
-					className="rounded-2xl border border-border/70 bg-card/45 p-5"
-				>
+					className="rounded-2xl border border-border/70 bg-card/45 p-5">
 					<div className="mb-4 flex items-center justify-between">
 						<div>
 							<p className="text-xs font-semibold uppercase tracking-widest text-primary">
@@ -224,20 +226,20 @@ export default function UserSettingsRoute() {
 							return (
 								<div
 									key={item.id}
-									className="rounded-2xl border border-border/70 bg-background/65 p-3"
-								>
+									className="rounded-2xl border border-border/70 bg-background/65 p-3">
 									<div className="flex items-start justify-between gap-2">
 										<div>
 											<p className="text-sm font-semibold">{item.label}</p>
-											<p className="text-xs text-muted-foreground">{item.channel}</p>
+											<p className="text-xs text-muted-foreground">
+												{item.channel}
+											</p>
 										</div>
 										<span
 											className={`rounded-full border px-2 py-0.5 text-[11px] uppercase tracking-wide ${
 												enabled
 													? "border-chart-2/35 bg-chart-2/15 text-chart-2"
 													: "border-muted-foreground/35 bg-muted/80 text-muted-foreground"
-											}`}
-										>
+											}`}>
 											{item.status}
 										</span>
 									</div>
@@ -251,8 +253,7 @@ export default function UserSettingsRoute() {
 					initial={{ opacity: 0, y: 12 }}
 					animate={{ opacity: 1, y: 0 }}
 					transition={{ duration: 0.28, delay: 0.12, ease: "easeOut" }}
-					className="rounded-2xl border border-border/70 bg-card/45 p-5"
-				>
+					className="rounded-2xl border border-border/70 bg-card/45 p-5">
 					<div className="mb-4 flex items-center justify-between">
 						<div>
 							<p className="text-xs font-semibold uppercase tracking-widest text-primary">
@@ -266,8 +267,7 @@ export default function UserSettingsRoute() {
 						{mockSecurity.map((item) => (
 							<div
 								key={item.id}
-								className="flex items-start gap-3 rounded-2xl border border-border/70 bg-background/65 p-3"
-							>
+								className="flex items-start gap-3 rounded-2xl border border-border/70 bg-background/65 p-3">
 								<div className="mt-0.5 rounded-xl border border-border/70 bg-card/60 p-1.5 text-primary">
 									<Icon name={item.icon} size={14} />
 								</div>
@@ -281,8 +281,7 @@ export default function UserSettingsRoute() {
 					<button
 						type="button"
 						disabled
-						className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-border bg-muted/40 px-4 py-2 text-sm font-medium text-muted-foreground"
-					>
+						className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-border bg-muted/40 px-4 py-2 text-sm font-medium text-muted-foreground">
 						<Icon name="lock" size={15} />
 						No actions available in mock mode
 					</button>

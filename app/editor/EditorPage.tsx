@@ -61,10 +61,9 @@ export default function EditorPage() {
 	);
 	const { mutate: updateTemplate, isPending: isTemplateSaving } = useUpdateTemplateProject();
 
-	const { data: projectData, isLoading: isProjectLoading } = useGetProjectBySlug(
-		slug ?? "",
-		{ fields: "id,name,slug,pages,globalStyle,editorMode,cmsState" },
-	);
+	const { data: projectData, isLoading: isProjectLoading } = useGetProjectBySlug(slug ?? "", {
+		fields: "id,name,slug,pages,globalStyle,editorMode,cmsState",
+	});
 	const { mutate: updateProject, isPending: isProjectSaving } = useUpdateProject();
 
 	useEffect(() => {
@@ -247,7 +246,11 @@ export default function EditorPage() {
 				}
 				if (store.selectedBlockId && store.selectedGroupId && store.selectedSectionId) {
 					e.preventDefault();
-					store.copyBlock(store.selectedSectionId, store.selectedGroupId, store.selectedBlockId);
+					store.copyBlock(
+						store.selectedSectionId,
+						store.selectedGroupId,
+						store.selectedBlockId,
+					);
 				}
 			}
 

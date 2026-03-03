@@ -4,10 +4,7 @@ import { useNavigate } from "react-router";
 import { TemplateCard } from "~/components/user/TemplateCard";
 import { Icon } from "~/components/ui/icon";
 import { useAuth } from "~/hooks/use-auth";
-import {
-	useForkTemplateProject,
-	useGetTemplateProjects,
-} from "~/hooks/use-template-project";
+import { useForkTemplateProject, useGetTemplateProjects } from "~/hooks/use-template-project";
 import {
 	CMS_TEMPLATE_FILTER,
 	TEMPLATE_PROJECT_FIELDS,
@@ -112,17 +109,21 @@ export default function UserTemplatesRoute() {
 						<p className="text-xs font-semibold uppercase tracking-widest text-primary">
 							Template Library
 						</p>
-						<h1 className="text-3xl font-bold tracking-tight">Website + CMS Templates</h1>
+						<h1 className="text-3xl font-bold tracking-tight">
+							Website + CMS Templates
+						</h1>
 						<p className="mt-1 text-sm text-muted-foreground">
 							Find a starting point, then fork it into your own project.
 						</p>
 					</div>
 					<div className="flex flex-wrap items-center gap-2">
-						{([
-							["all", "All", allTemplates.length],
-							["website", "Website", websiteTemplates.length],
-							["cms", "CMS", cmsTemplates.length],
-						] as const).map(([mode, label, count]) => (
+						{(
+							[
+								["all", "All", allTemplates.length],
+								["website", "Website", websiteTemplates.length],
+								["cms", "CMS", cmsTemplates.length],
+							] as const
+						).map(([mode, label, count]) => (
 							<button
 								key={mode}
 								type="button"
@@ -194,7 +195,9 @@ export default function UserTemplatesRoute() {
 							return (
 								<motion.div
 									key={template.id}
-									initial={prefersReducedMotion ? undefined : { opacity: 0, y: 10 }}
+									initial={
+										prefersReducedMotion ? undefined : { opacity: 0, y: 10 }
+									}
 									animate={{ opacity: 1, y: 0 }}
 									transition={{
 										duration: 0.24,
@@ -220,7 +223,8 @@ export default function UserTemplatesRoute() {
 												{mode}
 											</span>
 											<span className="rounded-full border border-border/70 bg-background/65 px-2.5 py-0.5 text-muted-foreground">
-												{(template.usageCount ?? 0).toLocaleString("en-US")} uses
+												{(template.usageCount ?? 0).toLocaleString("en-US")}{" "}
+												uses
 											</span>
 										</div>
 
@@ -244,11 +248,19 @@ export default function UserTemplatesRoute() {
 											}}
 											className="inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50">
 											<Icon
-												name={isForkingThis ? "progress_activity" : "rocket_launch"}
+												name={
+													isForkingThis
+														? "progress_activity"
+														: "rocket_launch"
+												}
 												size={14}
 												className={isForkingThis ? "animate-spin" : ""}
 											/>
-											{isViewer ? "Viewer only" : isForkingThis ? "Forking..." : "Use"}
+											{isViewer
+												? "Viewer only"
+												: isForkingThis
+													? "Forking..."
+													: "Use"}
 										</button>
 									</div>
 								</motion.div>
