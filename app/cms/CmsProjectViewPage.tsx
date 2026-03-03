@@ -59,8 +59,15 @@ export default function CmsProjectViewPage({ isPublic = false }: CmsProjectViewP
 	}, [isAuthLoading, isPublic, navigate, user]);
 
 	useEffect(() => {
+		if ((!isPublic && isAuthLoading) || isLoading) return;
 		const element = viewportRef.current;
 		if (!element || typeof ResizeObserver === "undefined") return;
+
+		const initialBox = element.getBoundingClientRect();
+		setViewportSize({
+			width: initialBox.width,
+			height: initialBox.height,
+		});
 
 		const observer = new ResizeObserver((entries) => {
 			const entry = entries[0];
@@ -74,7 +81,7 @@ export default function CmsProjectViewPage({ isPublic = false }: CmsProjectViewP
 
 		observer.observe(element);
 		return () => observer.disconnect();
-	}, []);
+	}, [isAuthLoading, isLoading, isPublic]);
 
 	useEffect(() => {
 		if (!projectData || !slug) return;
@@ -123,9 +130,9 @@ export default function CmsProjectViewPage({ isPublic = false }: CmsProjectViewP
 	]);
 
 	const displayScale = useMemo(() => {
-		const zoomScale = cmsState.zoom / 100;
-		return Math.max(0.05, fitScale * zoomScale);
-	}, [cmsState.zoom, fitScale]);
+		// Read-only views should always fit the viewport; editor zoom is an authoring concern.
+		return Math.max(0.05, fitScale);
+	}, [fitScale]);
 
 	const scaledCanvasWidth = Math.max(1, Math.round(cmsState.resolution.width * displayScale));
 	const scaledCanvasHeight = Math.max(1, Math.round(cmsState.resolution.height * displayScale));

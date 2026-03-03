@@ -21,14 +21,14 @@ interface AdminSidebarProps {
 
 const mainNavItems = [
 	{ href: "/admin", icon: LayoutGrid, label: "Overview", end: true },
-	{ href: "/admin/templates", icon: Layers, label: "Templates", end: false },
-	{ href: "/admin/users", icon: Users, label: "Users", end: false },
+	{ href: "/admin/templates", icon: Layers, label: "Website Templates", end: false },
 	{
 		href: "/admin/cms",
 		icon: Monitor,
 		label: "Content Management",
 		end: false,
 	},
+	{ href: "/admin/users", icon: Users, label: "Users", end: false },
 	{ href: "/admin/analytics", icon: BarChart3, label: "Analytics", end: false },
 ];
 
