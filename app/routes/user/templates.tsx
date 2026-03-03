@@ -189,7 +189,7 @@ export default function UserTemplatesRoute() {
 									: `/user/templates/${template.id}`;
 							const previewRoute =
 								mode === "cms"
-									? `/user/cms/templates/${template.id}`
+									? `/cms/view/${template.id}`
 									: `/view/${template.id}`;
 							const isForkingThis = isForking && forkingTemplateId === template.id;
 							return (

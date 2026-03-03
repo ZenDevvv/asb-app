@@ -350,7 +350,7 @@ export default function CmsEditorPage() {
 				onZoomChange={setZoom}
 				isSaving={isSaving}
 				onBackToTemplates={() => navigate("/admin/cms")}
-				onOpenPreview={() => navigate(`/admin/cms/view/${templateId}`)}
+				onOpenPreview={() => navigate(`/admin/cms/preview/${templateId}`)}
 				onSave={() => void saveNow()}
 				onReset={handleReset}
 			/>

@@ -88,7 +88,7 @@ export default function CmsProjectEditorPage() {
 			return;
 		}
 		if (user.role === "viewer" && slug) {
-			navigate(`/project/cms/view/${slug}`, { replace: true });
+			navigate(`/project/cms/preview/${slug}`, { replace: true });
 		}
 	}, [isAuthLoading, navigate, slug, user]);
 
@@ -385,7 +385,7 @@ export default function CmsProjectEditorPage() {
 				onZoomChange={setZoom}
 				isSaving={isSaving}
 				onBackToTemplates={() => navigate("/user/dashboard")}
-				onOpenPreview={() => navigate(`/project/cms/view/${slug}`)}
+				onOpenPreview={() => navigate(`/project/cms/preview/${slug}`)}
 				onSave={() => void saveNow()}
 				onReset={handleReset}
 				onRenameTemplate={handleRenameProject}

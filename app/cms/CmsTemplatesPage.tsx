@@ -178,7 +178,7 @@ export default function CmsTemplatesPage() {
 														onClick={(event) => {
 															event.stopPropagation();
 															navigate(
-																`/admin/cms/view/${template.id}`,
+																`/admin/cms/preview/${template.id}`,
 															);
 														}}>
 														<Eye className="h-3.5 w-3.5" />

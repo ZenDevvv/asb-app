@@ -10,6 +10,7 @@ class ProjectService extends APIService {
 		try {
 			const response: ApiResponse<GetAllProjects> = await apiClient.get(
 				`${PROJECT.GET_ALL}${this.getQueryString()}`,
+				{ headers: this.getRequestHeaders() },
 			);
 			return response.data;
 		} catch (error: any) {
@@ -23,6 +24,7 @@ class ProjectService extends APIService {
 		try {
 			const response: ApiResponse<Project> = await apiClient.get(
 				`${PROJECT.GET_BY_ID.replace(":id", projectId)}${this.getQueryString()}`,
+				{ headers: this.getRequestHeaders() },
 			);
 			return response.data;
 		} catch (error: any) {
@@ -58,7 +60,10 @@ class ProjectService extends APIService {
 		try {
 			let response: ApiResponse<{ project: Project }>;
 			if (data instanceof FormData) {
-				response = await apiClient.patchFormData(PROJECT.UPDATE.replace(":id", projectId), data);
+				response = await apiClient.patchFormData(
+					PROJECT.UPDATE.replace(":id", projectId),
+					data,
+				);
 			} else {
 				response = await apiClient.patch(PROJECT.UPDATE.replace(":id", projectId), data);
 			}
