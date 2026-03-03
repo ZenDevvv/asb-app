@@ -29,7 +29,7 @@ Layout ownership:
 
 1. `/admin/cms` is rendered inside `AdminLayout`
 2. `/admin/cms/editor/:templateId` is rendered outside `AdminLayout` (standalone editor shell)
-3. `/admin/cms/view/:templateId` remains an admin-only CMS route
+3. `/admin/cms/view/:templateId` is rendered outside `AdminLayout` (standalone preview shell, admin-only)
 
 Back-compat redirects:
 
