@@ -24,6 +24,7 @@ CMS is now merged into ASB as an admin-authored template mode, not an isolated l
 1. CMS routes:
    - `/admin/cms`
    - `/admin/cms/editor/:templateId`
+   - `/admin/cms/preview/:templateId`
    - `/admin/cms/view/:templateId`
    - Layout rule: `/admin/cms` stays in `AdminLayout`; `/admin/cms/editor/:templateId` is standalone (outside `AdminLayout`)
 2. Redirects:
@@ -35,7 +36,7 @@ CMS is now merged into ASB as an admin-authored template mode, not an isolated l
 4. Mode separation rules:
    - Website flows must filter to website mode
    - CMS flows must filter to CMS mode
-   - CMS templates are non-public; admin manages templates, authenticated users can fork CMS templates into CMS projects
+   - CMS template mutation remains admin-only; temporary read-only public view routes are allowed for CMS template/project `view` URLs
 5. CMS persistence rules:
    - Server `templateProject.cmsState` is the single source of truth
    - Local storage is fallback cache only (`asb-cms-display:<templateId>`)
@@ -386,10 +387,14 @@ ABSOLUTE BLOCK POSITIONING:
 - Flow blocks continue to use layout slots and normal document flow
 
 LIVE PREVIEW:
-- Preview button opens `/editor/preview` in a new tab; when editing a template, opens `/editor/preview?templateId=<id>` instead
+- Preview button opens `/editor/preview` in a new tab; when editing a website template, opens `/editor/preview?templateId=<id>`; when editing a website project, opens `/project/preview/:slug`
 - Preview route (template mode): if `templateId` query param is present, fetches template data from the backend via `useGetTemplateProjectById` and renders the server-side page (sections + globalStyle); shows a loading state while fetching; "Back to Editor" link returns to `/editor/:templateId`
 - Preview route (guest mode): if no `templateId`, reads from localStorage — loads saved sections/global style and listens for `StorageEvent` to refresh automatically as debounced auto-save runs
 - Renders the page with `isEditing=false`; hidden sections remain hidden in preview
+- Temporary public view URL pairs mirror preview URLs:
+  - Website project: `/project/preview/:slug` -> `/project/view/:slug`
+  - CMS project: `/project/cms/preview/:slug` -> `/project/cms/view/:slug`
+  - CMS admin template: `/admin/cms/preview/:templateId` -> `/admin/cms/view/:templateId`
 
 DEBUG BACKDOOR:
 - Controlled by URL params: `debug` or `debugMode`
@@ -1923,3 +1928,4 @@ This contract ensures AI output can be validated and loaded directly into the ed
 *Last Updated: March 4, 2026*
 *Keep this document updated as architecture decisions change.*
 *For colors and theming, always reference the separate Style Guide file.*
+
