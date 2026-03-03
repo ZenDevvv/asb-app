@@ -13,6 +13,7 @@ import {
 	TEMPLATE_PROJECT_FIELDS,
 	getTemplateCategories,
 	getTemplateCategoryLabel,
+	resolveProjectEditorMode,
 	WEBSITE_TEMPLATE_FILTER,
 } from "~/lib/template-project-utils";
 
@@ -45,7 +46,7 @@ export default function UserDashboard() {
 	} = useGetProjects({
 		page: 1,
 		limit: 6,
-		fields: "name,status,slug,createdAt,updatedAt,publishedAt",
+		fields: "id,name,status,slug,editorMode,isDeleted,createdAt,updatedAt,publishedAt",
 		sort: "updatedAt",
 		order: "desc",
 		pagination: false,
@@ -150,7 +151,13 @@ export default function UserDashboard() {
 				isProjectsError={isProjectsError}
 				projectLoadError={projectLoadError}
 				onCreateNewProject={() => navigate("/editor")}
-				onProjectClick={(slug) => navigate(`/project/${slug}`)}
+				onProjectClick={(project) =>
+					navigate(
+						resolveProjectEditorMode(project) === "cms"
+							? `/project/cms/${project.slug}`
+							: `/project/${project.slug}`,
+					)
+				}
 			/>
 
 			<DashboardTemplatesSection
