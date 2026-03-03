@@ -13,6 +13,28 @@ interface CMSBlockRendererProps {
 const DISPLAY_SECTION_STYLE: SectionStyle = {};
 type CMSContainerHorizontalAlignment = "left" | "center" | "right";
 type CMSContainerVerticalAlignment = "top" | "middle" | "bottom";
+type CmsTextLikeBlockType =
+	| "heading"
+	| "text"
+	| "badge"
+	| "list"
+	| "quote"
+	| "card"
+	| "date"
+	| "countdown"
+	| "timeline";
+
+const CMS_TEXT_LIKE_BLOCK_TYPES: CmsTextLikeBlockType[] = [
+	"heading",
+	"text",
+	"badge",
+	"list",
+	"quote",
+	"card",
+	"date",
+	"countdown",
+	"timeline",
+];
 
 function getContainerHorizontalAlignment(block: CMSBlock): CMSContainerHorizontalAlignment {
 	const value = block.props.containerHorizontalAlign;
@@ -25,18 +47,18 @@ function getContainerVerticalAlignment(block: CMSBlock): CMSContainerVerticalAli
 }
 
 function getAlignItems(
-	alignment: CMSContainerHorizontalAlignment,
-): "flex-start" | "center" | "flex-end" {
-	if (alignment === "left") return "flex-start";
-	if (alignment === "center") return "center";
-	return "flex-end";
-}
-
-function getJustifyContent(
 	alignment: CMSContainerVerticalAlignment,
 ): "flex-start" | "center" | "flex-end" {
 	if (alignment === "top") return "flex-start";
 	if (alignment === "middle") return "center";
+	return "flex-end";
+}
+
+function getJustifyContent(
+	alignment: CMSContainerHorizontalAlignment,
+): "flex-start" | "center" | "flex-end" {
+	if (alignment === "left") return "flex-start";
+	if (alignment === "center") return "center";
 	return "flex-end";
 }
 
@@ -47,12 +69,17 @@ export function CMSBlockRenderer({
 	isEditing = true,
 }: CMSBlockRendererProps) {
 	const isMediaBlock = block.type === "image" || block.type === "video";
+	const isTextLikeBlock = CMS_TEXT_LIKE_BLOCK_TYPES.includes(block.type as CmsTextLikeBlockType);
 	const overrideFontFamily =
 		typeof block.style.fontFamily === "string" && block.style.fontFamily.trim().length > 0
 			? block.style.fontFamily
 			: globalStyle.fontFamily;
 	const horizontalAlignment = getContainerHorizontalAlignment(block);
 	const verticalAlignment = getContainerVerticalAlignment(block);
+	const hasExplicitContainerHorizontalAlign =
+		block.props.containerHorizontalAlign === "left" ||
+		block.props.containerHorizontalAlign === "center" ||
+		block.props.containerHorizontalAlign === "right";
 	const editorBlock = useMemo<Block>(
 		() => ({
 			id: block.id,
@@ -78,9 +105,21 @@ export function CMSBlockRenderer({
 						marginBottom: 0,
 						tilt: 0,
 					}
-				: { ...block.style },
+				: {
+						...block.style,
+						...(isTextLikeBlock && hasExplicitContainerHorizontalAlign
+							? { textAlign: horizontalAlignment }
+							: {}),
+					},
 		}),
-		[block, canvasHeight, isMediaBlock],
+		[
+			block,
+			canvasHeight,
+			hasExplicitContainerHorizontalAlign,
+			horizontalAlignment,
+			isMediaBlock,
+			isTextLikeBlock,
+		],
 	);
 
 	if (isMediaBlock) {
@@ -105,10 +144,12 @@ export function CMSBlockRenderer({
 			className="flex h-full w-full overflow-hidden"
 			style={{
 				fontFamily: overrideFontFamily,
-				alignItems: getAlignItems(horizontalAlignment),
-				justifyContent: getJustifyContent(verticalAlignment),
+				alignItems: getAlignItems(verticalAlignment),
+				justifyContent: getJustifyContent(horizontalAlignment),
 			}}>
-			<div className="max-h-full max-w-full">
+			<div
+				className="max-h-full max-w-full"
+				style={isTextLikeBlock ? { width: "100%" } : undefined}>
 				<BlockRenderer
 					block={editorBlock}
 					sectionStyle={DISPLAY_SECTION_STYLE}
