@@ -32,6 +32,7 @@ export default [
 	),
 	route("/admin/cms/editor/:templateId", "routes/admin/cms-editor.tsx"),
 	route("/admin/cms/preview/:templateId", "routes/admin/cms-view.tsx"),
+	route("/admin/cms/view/:templateId", "routes/admin/cms-public-view.tsx"),
 	route("/cms", "routes/cms.tsx"),
 	route("/admin/display", "routes/admin/display.tsx"),
 	route("/project/:slug", "routes/project/editor.tsx"),
