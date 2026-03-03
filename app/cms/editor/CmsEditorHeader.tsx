@@ -8,6 +8,7 @@ import {
 	ZoomIn,
 	ZoomOut,
 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import {
@@ -40,6 +41,7 @@ interface CmsEditorHeaderProps {
 	onOpenPreview: () => void;
 	onSave: () => void;
 	onReset: () => void;
+	onRenameTemplate?: (name: string) => void;
 }
 
 export function CmsEditorHeader({
@@ -62,7 +64,46 @@ export function CmsEditorHeader({
 	onOpenPreview,
 	onSave,
 	onReset,
+	onRenameTemplate,
 }: CmsEditorHeaderProps) {
+	const [isEditingName, setIsEditingName] = useState(false);
+	const [nameInputValue, setNameInputValue] = useState(templateName);
+	const nameInputRef = useRef<HTMLInputElement>(null);
+
+	useEffect(() => {
+		if (isEditingName) {
+			nameInputRef.current?.select();
+		}
+	}, [isEditingName]);
+
+	useEffect(() => {
+		if (!isEditingName) {
+			setNameInputValue(templateName);
+		}
+	}, [templateName, isEditingName]);
+
+	function handleNameClick() {
+		if (!onRenameTemplate) return;
+		setNameInputValue(templateName);
+		setIsEditingName(true);
+	}
+
+	function handleNameBlur() {
+		setIsEditingName(false);
+		const trimmed = nameInputValue.trim();
+		if (trimmed && trimmed !== templateName) {
+			onRenameTemplate?.(trimmed);
+		}
+	}
+
+	function handleNameKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
+		if (event.key === "Enter") {
+			nameInputRef.current?.blur();
+		} else if (event.key === "Escape") {
+			setIsEditingName(false);
+		}
+	}
+
 	return (
 		<header className="flex min-h-14 shrink-0 flex-wrap items-center justify-between gap-3 border-b border-sidebar-border bg-sidebar px-4 py-2">
 			<div className="flex items-center gap-3">
@@ -79,9 +120,24 @@ export function CmsEditorHeader({
 					<ScreenShare className="h-4 w-4" />
 				</div>
 				<div>
-					<div className="text-sm font-semibold text-sidebar-foreground">
-						{templateName}
-					</div>
+					{isEditingName ? (
+						<input
+							ref={nameInputRef}
+							value={nameInputValue}
+							onChange={(event) => setNameInputValue(event.target.value)}
+							onBlur={handleNameBlur}
+							onKeyDown={handleNameKeyDown}
+							className="w-48 border-b border-sidebar-foreground bg-transparent text-sm font-semibold text-sidebar-foreground outline-none"
+						/>
+					) : (
+						<div
+							className={`text-sm font-semibold text-sidebar-foreground ${
+								onRenameTemplate ? "cursor-pointer hover:opacity-70" : ""
+							}`}
+							onClick={handleNameClick}>
+							{templateName}
+						</div>
+					)}
 					<div className="text-[10px] text-muted-foreground">{statusMessage}</div>
 				</div>
 			</div>

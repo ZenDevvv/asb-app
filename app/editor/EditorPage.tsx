@@ -140,9 +140,6 @@ export default function EditorPage() {
 	useEffect(() => {
 		if (!slug || !projectData) return;
 		if (resolveProjectEditorMode(projectData) === "cms") {
-			if (typeof window !== "undefined") {
-				window.alert("This project uses CMS mode. Redirecting to the CMS project editor.");
-			}
 			navigate(`/project/cms/${slug}`, { replace: true });
 			return;
 		}

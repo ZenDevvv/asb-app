@@ -314,6 +314,39 @@ export default function CmsProjectEditorPage() {
 		}
 	};
 
+	const handleRenameProject = useCallback(
+		async (name: string) => {
+			if (!projectData?.id || !slug) return;
+
+			setStatusMessage("Saving to server...");
+			setSaveError(null);
+			try {
+				const response = await updateProject({
+					projectId: projectData.id,
+					data: { name },
+				});
+				setOfflineDraftRecovered(false);
+
+				if (response?.project?.updatedAt) {
+					const timestamp = new Date(response.project.updatedAt).toLocaleTimeString();
+					setStatusMessage(`Saved ${timestamp}`);
+				} else {
+					setStatusMessage("Saved to server");
+				}
+
+				const nextSlug = response?.project?.slug;
+				if (nextSlug && nextSlug !== slug) {
+					navigate(`/project/cms/${nextSlug}`, { replace: true });
+				}
+			} catch (error) {
+				setSaveError(
+					error instanceof Error ? error.message : "Failed to rename CMS project.",
+				);
+			}
+		},
+		[navigate, projectData?.id, slug, updateProject],
+	);
+
 	if (isAuthLoading || isProjectLoading) {
 		return <SplashScreen mode="editor" />;
 	}
@@ -355,6 +388,7 @@ export default function CmsProjectEditorPage() {
 				onOpenPreview={() => navigate(`/project/cms/view/${slug}`)}
 				onSave={() => void saveNow()}
 				onReset={handleReset}
+				onRenameTemplate={handleRenameProject}
 			/>
 
 			<CmsEditorStatusBanner
