@@ -223,7 +223,10 @@ export default function LandingPage() {
 	const ctaInView = useInView(ctaRef, { once: true, margin: "-80px" });
 
 	const safeFadeUp = prefersReducedMotion
-		? ({ hidden: { opacity: 0 }, show: { opacity: 1, transition: { duration: 0.2 } } } as Variants)
+		? ({
+				hidden: { opacity: 0 },
+				show: { opacity: 1, transition: { duration: 0.2 } },
+			} as Variants)
 		: fadeUp;
 
 	return (
@@ -305,7 +308,11 @@ export default function LandingPage() {
 				{/* Decorative floating cards */}
 				<motion.div
 					className="pointer-events-none absolute left-0 top-16 hidden w-56 rounded-2xl border border-border/60 bg-card/50 p-4 shadow-xl backdrop-blur-xl lg:block xl:-left-6"
-					initial={{ opacity: 0, x: prefersReducedMotion ? 0 : -28, y: prefersReducedMotion ? 0 : 12 }}
+					initial={{
+						opacity: 0,
+						x: prefersReducedMotion ? 0 : -28,
+						y: prefersReducedMotion ? 0 : 12,
+					}}
 					animate={
 						prefersReducedMotion
 							? { opacity: 1, x: 0, y: 0 }
@@ -332,7 +339,11 @@ export default function LandingPage() {
 
 				<motion.div
 					className="pointer-events-none absolute right-0 top-28 hidden w-48 rounded-2xl border border-border/60 bg-card/50 p-4 shadow-xl backdrop-blur-xl lg:block xl:-right-4"
-					initial={{ opacity: 0, x: prefersReducedMotion ? 0 : 28, y: prefersReducedMotion ? 0 : 12 }}
+					initial={{
+						opacity: 0,
+						x: prefersReducedMotion ? 0 : 28,
+						y: prefersReducedMotion ? 0 : 12,
+					}}
 					animate={
 						prefersReducedMotion
 							? { opacity: 1, x: 0, y: 0 }
@@ -392,8 +403,8 @@ export default function LandingPage() {
 					animate="show"
 					transition={{ delay: 0.2 }}
 					className="mt-5 max-w-2xl text-balance text-lg text-muted-foreground sm:text-xl">
-					AppSiteBuilder turns a single sentence into a fully structured, beautifully styled website.
-					No code. No designer. Just you and your idea.
+					AppSiteBuilder turns a single sentence into a fully structured, beautifully
+					styled website. No code. No designer. Just you and your idea.
 				</motion.p>
 
 				{/* Prompt Input */}
@@ -406,7 +417,11 @@ export default function LandingPage() {
 					<div className="group relative rounded-[2rem] border border-border/60 bg-card/60 p-2.5 shadow-2xl shadow-primary/10 backdrop-blur-xl transition-all duration-300 hover:border-primary/40 hover:shadow-primary/20">
 						<div className="flex flex-col gap-3 rounded-[1.6rem] bg-background/60 p-3 sm:flex-row sm:items-center sm:gap-0 sm:p-2">
 							<div className="flex min-w-0 flex-1 items-center gap-3 px-3 py-1">
-								<Icon name="auto_awesome" className="shrink-0 text-primary" size={18} />
+								<Icon
+									name="auto_awesome"
+									className="shrink-0 text-primary"
+									size={18}
+								/>
 								<span className="min-h-[1.5em] flex-1 truncate text-left text-base text-muted-foreground">
 									{typedText}
 									<span className="ml-0.5 inline-block h-[1.1em] w-[2px] translate-y-[1px] animate-pulse rounded-full bg-primary" />
@@ -429,14 +444,16 @@ export default function LandingPage() {
 					animate="show"
 					transition={{ delay: 0.36 }}
 					className="mt-5 flex flex-wrap items-center justify-center gap-2">
-					{["SaaS Landing", "Portfolio", "Coffee Shop", "Agency", "Crypto Dashboard"].map((item) => (
-						<button
-							key={item}
-							type="button"
-							className="rounded-full border border-border bg-card/70 px-4 py-1.5 text-sm text-muted-foreground transition-all hover:border-primary/40 hover:bg-primary/10 hover:text-foreground active:scale-95">
-							{item}
-						</button>
-					))}
+					{["SaaS Landing", "Portfolio", "Coffee Shop", "Agency", "Crypto Dashboard"].map(
+						(item) => (
+							<button
+								key={item}
+								type="button"
+								className="rounded-full border border-border bg-card/70 px-4 py-1.5 text-sm text-muted-foreground transition-all hover:border-primary/40 hover:bg-primary/10 hover:text-foreground active:scale-95">
+								{item}
+							</button>
+						),
+					)}
 				</motion.div>
 
 				{/* Social proof strip */}
@@ -457,7 +474,8 @@ export default function LandingPage() {
 						))}
 					</div>
 					<p className="text-sm text-muted-foreground">
-						<span className="font-semibold text-foreground">10,000+ creators</span> already building
+						<span className="font-semibold text-foreground">10,000+ creators</span>{" "}
+						already building
 					</p>
 				</motion.div>
 			</section>
@@ -479,7 +497,9 @@ export default function LandingPage() {
 							<span className="text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl">
 								<AnimatedNumber target={value} suffix={suffix} />
 							</span>
-							<span className="text-sm font-medium text-muted-foreground">{label}</span>
+							<span className="text-sm font-medium text-muted-foreground">
+								{label}
+							</span>
 						</motion.div>
 					))}
 				</div>
@@ -552,7 +572,9 @@ export default function LandingPage() {
 							key={title}
 							variants={safeFadeUp}
 							custom={i}
-							whileHover={prefersReducedMotion ? {} : { y: -4, transition: { duration: 0.2 } }}
+							whileHover={
+								prefersReducedMotion ? {} : { y: -4, transition: { duration: 0.2 } }
+							}
 							className="group relative overflow-hidden rounded-2xl border border-border/60 bg-card/60 p-6 shadow-sm backdrop-blur-sm transition-shadow hover:shadow-xl hover:shadow-primary/10">
 							<div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 							<div className="relative">
@@ -560,7 +582,9 @@ export default function LandingPage() {
 									<Icon name={icon} className="text-primary" size={22} filled />
 								</div>
 								<h3 className="mb-2 text-base font-bold">{title}</h3>
-								<p className="text-sm leading-relaxed text-muted-foreground">{desc}</p>
+								<p className="text-sm leading-relaxed text-muted-foreground">
+									{desc}
+								</p>
 							</div>
 						</motion.div>
 					))}
@@ -584,8 +608,8 @@ export default function LandingPage() {
 						<span className="text-muted-foreground">Infinite combinations.</span>
 					</h2>
 					<p className="mx-auto mt-4 max-w-xl text-muted-foreground">
-						Every element you could need — from call-to-action buttons to testimonial quotes — is a
-						drag-and-drop block ready to use.
+						Every element you could need — from call-to-action buttons to testimonial
+						quotes — is a drag-and-drop block ready to use.
 					</p>
 				</motion.div>
 
@@ -597,7 +621,11 @@ export default function LandingPage() {
 							key={label}
 							variants={safeFadeUp}
 							custom={i}
-							whileHover={prefersReducedMotion ? {} : { scale: 1.08, transition: { duration: 0.15 } }}
+							whileHover={
+								prefersReducedMotion
+									? {}
+									: { scale: 1.08, transition: { duration: 0.15 } }
+							}
 							className="group flex flex-col items-center gap-2 rounded-2xl border border-border/50 bg-card/60 py-4 px-2 text-center shadow-sm backdrop-blur-sm transition-all hover:border-primary/40 hover:bg-primary/10 hover:shadow-primary/15">
 							<Icon
 								name={icon}
@@ -637,15 +665,25 @@ export default function LandingPage() {
 							key={name}
 							variants={safeFadeUp}
 							custom={i}
-							whileHover={prefersReducedMotion ? {} : { y: -4, transition: { duration: 0.2 } }}
+							whileHover={
+								prefersReducedMotion ? {} : { y: -4, transition: { duration: 0.2 } }
+							}
 							className="flex flex-col justify-between gap-5 rounded-2xl border border-border/60 bg-card/60 p-6 shadow-sm backdrop-blur-sm">
 							<div>
 								<div className="mb-3 flex gap-0.5">
 									{[...Array(5)].map((_, s) => (
-										<Icon key={s} name="star" className="text-chart-4" size={14} filled />
+										<Icon
+											key={s}
+											name="star"
+											className="text-chart-4"
+											size={14}
+											filled
+										/>
 									))}
 								</div>
-								<p className="text-sm leading-relaxed text-foreground/90">"{quote}"</p>
+								<p className="text-sm leading-relaxed text-foreground/90">
+									"{quote}"
+								</p>
 							</div>
 							<div className="flex items-center gap-3">
 								<div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/20 text-sm font-bold text-primary">
@@ -677,7 +715,12 @@ export default function LandingPage() {
 
 					<div className="relative flex flex-col items-center text-center">
 						<div className="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-primary shadow-lg shadow-primary/40">
-							<Icon name="rocket_launch" className="text-primary-foreground" size={28} filled />
+							<Icon
+								name="rocket_launch"
+								className="text-primary-foreground"
+								size={28}
+								filled
+							/>
 						</div>
 						<h2 className="mb-4 max-w-2xl text-balance text-3xl font-extrabold tracking-tight sm:text-4xl md:text-5xl">
 							Your next site is one
@@ -685,8 +728,8 @@ export default function LandingPage() {
 							<span className="text-primary">sentence away.</span>
 						</h2>
 						<p className="mb-8 max-w-lg text-muted-foreground">
-							Join thousands of creators who skipped the dev agency and shipped faster with
-							AppSiteBuilder.
+							Join thousands of creators who skipped the dev agency and shipped faster
+							with AppSiteBuilder.
 						</p>
 						<div className="flex flex-col items-center gap-3 sm:flex-row">
 							<button
@@ -728,14 +771,25 @@ export default function LandingPage() {
 								</span>
 							</div>
 							<p className="max-w-xs text-xs text-muted-foreground">
-								The no-code website builder for creators, founders, and teams who move fast.
+								The no-code website builder for creators, founders, and teams who
+								move fast.
 							</p>
 						</div>
 
 						{/* Links */}
 						<div className="flex flex-wrap gap-x-8 gap-y-3 text-sm text-muted-foreground">
-							{["Product", "Templates", "Pricing", "Docs", "Blog", "Privacy", "Terms"].map((l) => (
-								<span key={l} className="cursor-default transition-colors hover:text-foreground">
+							{[
+								"Product",
+								"Templates",
+								"Pricing",
+								"Docs",
+								"Blog",
+								"Privacy",
+								"Terms",
+							].map((l) => (
+								<span
+									key={l}
+									className="cursor-default transition-colors hover:text-foreground">
 									{l}
 								</span>
 							))}
@@ -746,7 +800,9 @@ export default function LandingPage() {
 						<p>© {new Date().getFullYear()} AppSiteBuilder. All rights reserved.</p>
 						<div className="flex items-center gap-4">
 							{["twitter", "github", "linkedin"].map((sn) => (
-								<span key={sn} className="cursor-default capitalize transition-colors hover:text-foreground">
+								<span
+									key={sn}
+									className="cursor-default capitalize transition-colors hover:text-foreground">
 									{sn}
 								</span>
 							))}

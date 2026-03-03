@@ -5,6 +5,8 @@ import { useEditorStore } from "~/stores/editorStore";
 import { useGetTemplateProjectById } from "~/hooks/use-template-project";
 import { DEFAULT_GLOBAL_STYLE } from "~/stores/editorStore";
 import { cn } from "~/lib/utils";
+import { resolveTemplateEditorMode } from "~/lib/template-project-utils";
+import type { Section } from "~/types/editor";
 
 const STORAGE_KEY = "asb-editor-state";
 
@@ -14,7 +16,7 @@ export default function EditorPreviewRoute() {
 
 	// Template-backed preview
 	const { data: templateData, isLoading } = useGetTemplateProjectById(templateId ?? "", {
-		fields: "id,pages,globalStyle",
+		fields: "id,pages,globalStyle,editorMode,cmsState",
 	});
 
 	// Fallback: localStorage-backed preview
@@ -36,15 +38,15 @@ export default function EditorPreviewRoute() {
 		return () => window.removeEventListener("storage", handleStorage);
 	}, [templateId, loadFromLocalStorage]);
 
-	const sections = templateId
-		? (templateData?.pages?.[0]?.sections ?? [])
+	const sections: Section[] = templateId
+		? ((templateData?.pages?.[0]?.sections ?? []) as Section[])
 		: storeSections;
 
 	const globalStyle = templateId
 		? (templateData?.globalStyle ?? { ...DEFAULT_GLOBAL_STYLE })
 		: storeGlobalStyle;
 
-	const visibleSections = sections.filter((section) => section.isVisible);
+	const visibleSections = sections.filter((section: Section) => section.isVisible);
 	const themeClass = globalStyle.themeMode === "light" ? "light" : "dark";
 
 	const backHref = templateId ? `/editor/${templateId}` : "/editor";
@@ -53,6 +55,14 @@ export default function EditorPreviewRoute() {
 		return (
 			<div className="flex h-screen items-center justify-center bg-background text-sm text-muted-foreground">
 				Loading preview...
+			</div>
+		);
+	}
+
+	if (templateId && templateData && resolveTemplateEditorMode(templateData) !== "website") {
+		return (
+			<div className="flex h-screen items-center justify-center bg-background text-sm text-muted-foreground">
+				This template uses CMS mode. Open it from Admin CMS.
 			</div>
 		);
 	}
@@ -79,7 +89,7 @@ export default function EditorPreviewRoute() {
 						No sections available to preview.
 					</div>
 				) : (
-					visibleSections.map((section, sectionIndex) => (
+					visibleSections.map((section: Section, sectionIndex: number) => (
 						<SectionRenderer
 							key={section.id}
 							section={section}

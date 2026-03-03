@@ -1,6 +1,6 @@
-import { Outlet, useLocation } from "react-router";
+import { Link, Outlet, useLocation } from "react-router";
 import { motion, AnimatePresence } from "framer-motion";
-import { Icon } from "~/components/auth/icon";
+import asbLogo from "~/assets/images/asb_logo.png";
 
 const formFade = {
 	initial: { opacity: 0, y: 12 },
@@ -15,11 +15,10 @@ export default function AuthLayout() {
 		<main className="relative flex flex-col min-h-screen bg-background">
 			{/* Top bar */}
 			<header className="flex items-center justify-between px-6 py-4 shrink-0">
-				<div className="flex items-center gap-2.5">
-					<div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/15 text-primary">
-						<Icon name="web" className="text-xl" />
-					</div>
-					<span className="text-foreground font-semibold text-base tracking-tight">AppSite Builder</span>
+				<div className="flex justify-center pb-1">
+					<Link to="/" className="inline-flex items-center">
+						<img src={asbLogo} alt="ASB logo" className="h-10 w-auto" />
+					</Link>
 				</div>
 				<a
 					href="#"

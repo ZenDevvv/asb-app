@@ -4,6 +4,8 @@ import { SplashScreen } from "~/components/admin/splash-screen";
 import { DEFAULT_GLOBAL_STYLE, EDITOR_STORAGE_KEY, useEditorStore } from "~/stores/editorStore";
 import { useGetTemplateProjectById, useUpdateTemplateProject } from "~/hooks/use-template-project";
 import { useGetProjectBySlug, useUpdateProject } from "~/hooks/use-project";
+import { useAuth } from "~/hooks/use-auth";
+import { resolveProjectEditorMode, resolveTemplateEditorMode } from "~/lib/template-project-utils";
 import { EditorToolbar } from "./EditorToolbar";
 import { SectionsListPanel } from "./SectionsListPanel";
 import { EditorCanvas } from "./EditorCanvas";
@@ -48,20 +50,20 @@ export default function EditorPage() {
 	const locationState = location.state as EditorLocationState;
 	const editorSeed = locationState?.editorSeed;
 	const { templateId, slug } = useParams<{ templateId?: string; slug?: string }>();
+	const { user } = useAuth();
 
 	// Persists the loaded document context after nav state is cleared.
 	const activeDocumentRef = useRef<ActiveDocumentContext | null>(null);
 
 	const { data: templateData, isLoading: isTemplateLoading } = useGetTemplateProjectById(
 		templateId ?? "",
-		{ fields: "id,name,pages,globalStyle" },
+		{ fields: "id,name,pages,globalStyle,editorMode,cmsState" },
 	);
 	const { mutate: updateTemplate, isPending: isTemplateSaving } = useUpdateTemplateProject();
 
-	const { data: projectData, isLoading: isProjectLoading } = useGetProjectBySlug(
-		slug ?? "",
-		{ fields: "id,name,slug,pages,globalStyle" },
-	);
+	const { data: projectData, isLoading: isProjectLoading } = useGetProjectBySlug(slug ?? "", {
+		fields: "id,name,slug,pages,globalStyle,editorMode,cmsState",
+	});
 	const { mutate: updateProject, isPending: isProjectSaving } = useUpdateProject();
 
 	useEffect(() => {
@@ -104,6 +106,17 @@ export default function EditorPage() {
 	// Load fetched template data into the editor store and cache context for saves.
 	useEffect(() => {
 		if (!templateId || !templateData) return;
+		if (resolveTemplateEditorMode(templateData) === "cms") {
+			if (typeof window !== "undefined") {
+				window.alert("This template uses CMS mode. Redirecting to the Admin CMS editor.");
+			}
+			if (user?.role === "admin") {
+				navigate(`/admin/cms/editor/${templateId}`, { replace: true });
+			} else {
+				navigate("/user/dashboard", { replace: true });
+			}
+			return;
+		}
 		const store = useEditorStore.getState();
 		const firstPage = templateData.pages?.[0];
 		activeDocumentRef.current = {
@@ -121,11 +134,18 @@ export default function EditorPage() {
 			templateData.globalStyle ?? { ...DEFAULT_GLOBAL_STYLE },
 		);
 		store.saveToLocalStorage();
-	}, [templateId, templateData]);
+	}, [templateId, templateData, user?.role, navigate]);
 
 	// Load fetched project data into the editor store and cache context for saves.
 	useEffect(() => {
 		if (!slug || !projectData) return;
+		if (resolveProjectEditorMode(projectData) === "cms") {
+			if (typeof window !== "undefined") {
+				window.alert("This project uses CMS mode. Redirecting to the CMS project editor.");
+			}
+			navigate(`/project/cms/${slug}`, { replace: true });
+			return;
+		}
 		const store = useEditorStore.getState();
 		const firstPage = projectData.pages?.[0];
 		activeDocumentRef.current = {
@@ -143,7 +163,7 @@ export default function EditorPage() {
 			projectData.globalStyle ?? { ...DEFAULT_GLOBAL_STYLE },
 		);
 		store.saveToLocalStorage();
-	}, [slug, projectData]);
+	}, [slug, projectData, navigate]);
 
 	// Persist current editor state to the correct server endpoint.
 	const saveToServer = useCallback(() => {
@@ -226,7 +246,11 @@ export default function EditorPage() {
 				}
 				if (store.selectedBlockId && store.selectedGroupId && store.selectedSectionId) {
 					e.preventDefault();
-					store.copyBlock(store.selectedSectionId, store.selectedGroupId, store.selectedBlockId);
+					store.copyBlock(
+						store.selectedSectionId,
+						store.selectedGroupId,
+						store.selectedBlockId,
+					);
 				}
 			}
 
