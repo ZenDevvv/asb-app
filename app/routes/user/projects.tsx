@@ -157,7 +157,13 @@ export default function UserProjectsRoute() {
 										delay: index * 0.03,
 										ease: "easeOut",
 									}}
-									onClick={() => navigate(`/project/${project.slug}`)}
+									onClick={() =>
+										navigate(
+											isCms
+												? `/project/cms/${project.slug}`
+												: `/project/${project.slug}`,
+										)
+									}
 									className="group overflow-hidden rounded-2xl border border-border/70 bg-background/70 text-left transition-all hover:border-primary/40 hover:bg-background">
 									<div
 										className={`h-1 w-full ${
