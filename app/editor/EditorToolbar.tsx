@@ -64,7 +64,7 @@ export function EditorToolbar({ templateName, onRenameTemplate }: EditorToolbarP
 	}, [isEditingName]);
 
 	function handleNameClick() {
-		if (!templateId || !onRenameTemplate) return;
+		if (!onRenameTemplate) return;
 		setNameInputValue(templateName ?? "");
 		setIsEditingName(true);
 	}
@@ -135,9 +135,7 @@ export function EditorToolbar({ templateName, onRenameTemplate }: EditorToolbarP
 						<div
 							className={cn(
 								"text-sm font-semibold text-sidebar-foreground",
-								templateId && onRenameTemplate
-									? "cursor-pointer hover:opacity-70"
-									: "",
+								onRenameTemplate ? "cursor-pointer hover:opacity-70" : "",
 							)}
 							onClick={handleNameClick}>
 							{templateName ?? "Landing Page V1"}
