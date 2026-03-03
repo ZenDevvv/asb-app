@@ -19,16 +19,16 @@ CMS and Website templates share one template system but must remain mode-separat
 
 ## Route Contract
 
-Admin-only CMS routes:
+Admin CMS routes:
 
 1. `/admin/cms`
 2. `/admin/cms/editor/:templateId`
 3. `/admin/cms/preview/:templateId`
-4. `/admin/cms/view/:templateId`
 
-Temporary public CMS template routes:
+Temporary public CMS template view routes:
 
-1. `/cms/view/:templateId` (temporary public CMS template view)
+1. `/admin/cms/view/:templateId` (temporary public view shell mirroring the admin preview URL pattern)
+2. `/cms/view/:templateId` (temporary public CMS template view route used by user template browsing)
 
 User CMS project routes:
 
@@ -200,7 +200,7 @@ When writing CMS prompts, include:
 
 1. CMS template management lives at `/admin/cms`
 2. CMS editor is template-bound at `/admin/cms/editor/:templateId` and rendered outside `AdminLayout`
-3. CMS admin preview/view routes exist at `/admin/cms/preview/:templateId` and `/admin/cms/view/:templateId`
+3. CMS admin preview route and temporary public template view route exist at `/admin/cms/preview/:templateId` and `/admin/cms/view/:templateId`
 4. Template schema includes `editorMode` and `cmsState`
 5. Backend enforces admin-only CMS template mutations, allows temporary CMS public access reads, and allows authenticated user CMS forks
 6. User CMS project editor/preview/view routes exist at `/project/cms/:slug`, `/project/cms/preview/:slug`, and `/project/cms/view/:slug`
