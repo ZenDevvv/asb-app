@@ -13,6 +13,7 @@ import {
 	TEMPLATE_PROJECT_FIELDS,
 	getTemplateCategories,
 	getTemplateCategoryLabel,
+	WEBSITE_TEMPLATE_FILTER,
 } from "~/lib/template-project-utils";
 
 export function meta() {
@@ -60,6 +61,7 @@ export default function UserDashboard() {
 		page: 1,
 		limit: 60,
 		fields: TEMPLATE_PROJECT_FIELDS,
+		filter: WEBSITE_TEMPLATE_FILTER,
 		sort: "usageCount",
 		order: "desc",
 		document: true,
@@ -167,6 +169,25 @@ export default function UserDashboard() {
 				onTemplateClick={(templateId) => navigate(`/user/templates/${templateId}`)}
 				onTemplatePreviewClick={(templateId) => navigate(`/view/${templateId}`)}
 			/>
+
+			<section className="mx-auto w-full max-w-7xl px-6 pb-16 md:px-10">
+				<div className="flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-border/60 bg-card/50 px-6 py-5 backdrop-blur-sm">
+					<div>
+						<p className="text-xs font-semibold uppercase tracking-widest text-primary">
+							Template Modes
+						</p>
+						<p className="mt-1 text-sm text-muted-foreground">
+							Browse and fork website and CMS templates in one library.
+						</p>
+					</div>
+					<button
+						type="button"
+						onClick={() => navigate("/user/templates")}
+						className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition-all hover:brightness-110">
+						Open Template Library
+					</button>
+				</div>
+			</section>
 		</div>
 	);
 }

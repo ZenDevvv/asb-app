@@ -1,0 +1,47 @@
+name: Deploy to Firebase Hosting on cms-app push
+
+on:
+  push:
+    branches:
+      - cms-app
+
+jobs:
+  build_and_deploy:
+    name: Build and Deploy CMS App
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Clean npm cache and install dependencies
+        run: |
+          npm cache clean --force
+          rm -rf node_modules package-lock.json
+          npm install
+
+      - name: Set environment variables
+        run: |
+          echo "VITE_BASE_URL=${{ secrets.VITE_BASE_URL_DEV }}" >> .env
+          echo "VITE_CLOUDINARY_PATH=${{ secrets.VITE_CLOUDINARY_PATH_DEV }}" >> .env
+
+      - name: Build
+        run: npm run build
+        env:
+          CI: false
+          VITE_BASE_URL: ${{ secrets.VITE_BASE_URL_DEV }}
+          VITE_CLOUDINARY_PATH: ${{ secrets.VITE_CLOUDINARY_PATH_DEV }}
+
+      - name: Deploy to Firebase
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: "${{ secrets.GITHUB_TOKEN }}"
+          firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT_APPSITE_BUILDER }}"
+          channelId: live
+          projectId: appsite-builder
+          target: cms-app

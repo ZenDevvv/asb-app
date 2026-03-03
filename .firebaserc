@@ -1,5 +1,12 @@
 {
   "projects": {
     "default": "appsite-builder"
+  },
+  "targets": {
+    "appsite-builder": {
+      "hosting": {
+        "cms-app": ["appsite-builder-cms"]
+      }
+    }
   }
 }

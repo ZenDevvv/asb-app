@@ -232,6 +232,8 @@ export function CreateTemplateModal({
 				createdById,
 				pages,
 				globalStyle: cloneDefaultGlobalStyle(),
+				editorMode: "website",
+				cmsState: undefined,
 				seo,
 				isActive: true,
 				usageCount: 0,

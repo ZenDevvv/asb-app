@@ -3,6 +3,9 @@ import { ObjectIdSchema } from "./object-id.zod";
 import { UserSchema } from "./user.zod";
 import { PaginationSchema } from "./common.zod";
 
+export const EditorModeSchema = z.enum(["website", "cms"]);
+export type EditorMode = z.infer<typeof EditorModeSchema>;
+
 export const TemplateProjectSchema = z.object({
 	id: ObjectIdSchema,
 	name: z.string().min(1),
@@ -12,6 +15,8 @@ export const TemplateProjectSchema = z.object({
 	createdById: ObjectIdSchema,
 	pages: z.any(),
 	globalStyle: z.any(),
+	editorMode: EditorModeSchema.default("website").optional(),
+	cmsState: z.any().optional(),
 	seo: z.any().optional(),
 	isActive: z.boolean(),
 	usageCount: z.number().int(),

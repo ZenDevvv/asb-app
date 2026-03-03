@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { ObjectIdSchema } from "./object-id.zod";
 import { UserSchema } from "./user.zod";
-import { TemplateProjectSchema } from "./templateProject.zod";
+import { EditorModeSchema, TemplateProjectSchema } from "./templateProject.zod";
 import { PaginationSchema } from "./common.zod";
 
 export const ProjectStatus = z.enum(["draft", "published"]);
@@ -16,6 +16,8 @@ export const ProjectSchema = z.object({
 	status: ProjectStatus.default("draft"),
 	pages: z.any(),
 	globalStyle: z.any(),
+	editorMode: EditorModeSchema.default("website").optional(),
+	cmsState: z.any().optional(),
 	seo: z.any().optional(),
 	aiContext: z.any().optional(),
 	publishedUrl: z.string().optional(),

@@ -11,6 +11,7 @@ import { Link } from "react-router";
 import { useEffect, useRef, useState } from "react";
 import { PAGE_TITLES } from "~/config/page-titles";
 import { Icon } from "~/components/ui/icon";
+import { SiteHeader } from "~/components/organisms/site-header";
 
 export function meta({}: Route.MetaArgs) {
 	return [{ title: PAGE_TITLES.landing }];
@@ -122,8 +123,8 @@ const FEATURES = [
 	},
 	{
 		icon: "content_copy",
-		title: "Curated Templates",
-		desc: "Fork a professionally designed template in one click. Your copy is fully independent — template updates never affect your project.",
+		title: "Website Templates",
+		desc: "Fork a professionally designed website template in one click. Your copy is fully independent — template updates never affect your project.",
 	},
 	{
 		icon: "cloud_upload",
@@ -269,6 +270,29 @@ const TEMPLATES = [
 	},
 ];
 
+const CMS_FEATURES = [
+	{
+		icon: "open_with",
+		title: "Free-Canvas Editor",
+		desc: "Place any block anywhere — no grid constraints, pure creative freedom.",
+	},
+	{
+		icon: "rotate_right",
+		title: "Rotation & Layering",
+		desc: "Rotate elements to any angle and layer them with full z-index control.",
+	},
+	{
+		icon: "aspect_ratio",
+		title: "Multi-Resolution Presets",
+		desc: "Design for 4K, FHD, portrait kiosks, and custom screen dimensions.",
+	},
+	{
+		icon: "wallpaper",
+		title: "Rich Backgrounds",
+		desc: "Set canvas backgrounds to solid colour, image, or live video feeds.",
+	},
+];
+
 const NAV_LINKS = ["Showcase", "Templates", "Pricing", "Docs"];
 
 // ─── Page Component ───────────────────────────────────────────────────────────
@@ -284,6 +308,7 @@ export default function LandingPage() {
 	const testimonialsRef = useRef<HTMLElement>(null);
 	const statsRef = useRef<HTMLElement>(null);
 	const ctaRef = useRef<HTMLElement>(null);
+	const cmsRef = useRef<HTMLElement>(null);
 
 	const featuresInView = useInView(featuresRef, { once: true, margin: "-80px" });
 	const stepsInView = useInView(stepsRef, { once: true, margin: "-80px" });
@@ -292,13 +317,17 @@ export default function LandingPage() {
 	const testimonialsInView = useInView(testimonialsRef, { once: true, margin: "-80px" });
 	const statsInView = useInView(statsRef, { once: true, margin: "-80px" });
 	const ctaInView = useInView(ctaRef, { once: true, margin: "-80px" });
+	const cmsInView = useInView(cmsRef, { once: true, margin: "-80px" });
 
 	const safeFadeUp = prefersReducedMotion
-		? ({ hidden: { opacity: 0 }, show: { opacity: 1, transition: { duration: 0.2 } } } as Variants)
+		? ({
+				hidden: { opacity: 0 },
+				show: { opacity: 1, transition: { duration: 0.2 } },
+			} as Variants)
 		: fadeUp;
 
 	return (
-		<div className="relative flex min-h-screen flex-col overflow-hidden bg-background text-foreground">
+		<div className="relative flex min-h-screen flex-col overflow-hidden minimal-scrollbar bg-background text-foreground">
 			{/* ── Ambient Gradient Background ──────────────────────────── */}
 			<div className="pointer-events-none fixed inset-0 -z-10">
 				<motion.div
@@ -327,56 +356,43 @@ export default function LandingPage() {
 			</div>
 
 			{/* ── Header ───────────────────────────────────────────────── */}
-			<motion.header
-				className="sticky top-0 z-50 border-b border-border/40 bg-background/70 backdrop-blur-xl"
-				initial={{ opacity: 0, y: prefersReducedMotion ? 0 : -20 }}
-				animate={{ opacity: 1, y: 0 }}
-				transition={{ duration: prefersReducedMotion ? 0.2 : 0.45, ease: "easeOut" }}>
-				<div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-6 md:px-10">
-					{/* Logo */}
-					<div className="flex items-center gap-2.5">
-						<div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-md shadow-primary/40">
-							<Icon name="auto_awesome" size={16} filled />
-						</div>
-						<span className="text-lg font-bold tracking-tight">
-							AppSite<span className="text-primary">Builder</span>
-						</span>
-					</div>
-
-					{/* Nav */}
-					<nav className="hidden items-center gap-8 text-sm text-muted-foreground md:flex">
-						{NAV_LINKS.map((link) => (
-							<span
-								key={link}
-								className="cursor-default transition-colors duration-150 hover:text-foreground">
-								{link}
-							</span>
-						))}
-					</nav>
-
-					{/* Actions */}
-					<div className="flex items-center gap-2">
+			<SiteHeader
+				logoHref="/"
+				className="sticky top-0"
+				nav={NAV_LINKS.map((link) => (
+					<span
+						key={link}
+						className="cursor-default transition-colors duration-150 hover:text-foreground">
+						{link}
+					</span>
+				))}
+				actions={
+					<>
 						<Link
 							to="/login"
 							className="hidden rounded-full px-4 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground md:inline-flex">
 							Log In
 						</Link>
-						<button
-							type="button"
+						<Link
+							to="/login"
 							className="inline-flex items-center gap-1.5 rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/30 transition-all hover:brightness-110 active:scale-95">
 							<Icon name="bolt" size={15} filled />
 							Get Started
-						</button>
-					</div>
-				</div>
-			</motion.header>
+						</Link>
+					</>
+				}
+			/>
 
 			{/* ── HERO ─────────────────────────────────────────────────── */}
 			<section className="relative mx-auto flex w-full max-w-7xl flex-col items-center px-6 pb-24 pt-20 text-center md:px-10">
 				{/* Decorative floating cards */}
 				<motion.div
 					className="pointer-events-none absolute left-0 top-16 hidden w-56 rounded-2xl border border-border/60 bg-card/50 p-4 shadow-xl backdrop-blur-xl lg:block xl:-left-6"
-					initial={{ opacity: 0, x: prefersReducedMotion ? 0 : -28, y: prefersReducedMotion ? 0 : 12 }}
+					initial={{
+						opacity: 0,
+						x: prefersReducedMotion ? 0 : -28,
+						y: prefersReducedMotion ? 0 : 12,
+					}}
 					animate={
 						prefersReducedMotion
 							? { opacity: 1, x: 0, y: 0 }
@@ -403,7 +419,11 @@ export default function LandingPage() {
 
 				<motion.div
 					className="pointer-events-none absolute right-0 top-28 hidden w-48 rounded-2xl border border-border/60 bg-card/50 p-4 shadow-xl backdrop-blur-xl lg:block xl:-right-4"
-					initial={{ opacity: 0, x: prefersReducedMotion ? 0 : 28, y: prefersReducedMotion ? 0 : 12 }}
+					initial={{
+						opacity: 0,
+						x: prefersReducedMotion ? 0 : 28,
+						y: prefersReducedMotion ? 0 : 12,
+					}}
 					animate={
 						prefersReducedMotion
 							? { opacity: 1, x: 0, y: 0 }
@@ -463,8 +483,8 @@ export default function LandingPage() {
 					animate="show"
 					transition={{ delay: 0.2 }}
 					className="mt-5 max-w-2xl text-balance text-lg text-muted-foreground sm:text-xl">
-					AppSiteBuilder turns a single sentence into a fully structured, beautifully styled website.
-					No code. No designer. Just you and your idea.
+					AppSiteBuilder turns a single sentence into a fully structured, beautifully
+					styled website. No code. No designer. Just you and your idea.
 				</motion.p>
 
 				{/* Prompt Input */}
@@ -477,18 +497,22 @@ export default function LandingPage() {
 					<div className="group relative rounded-[2rem] border border-border/60 bg-card/60 p-2.5 shadow-2xl shadow-primary/10 backdrop-blur-xl transition-all duration-300 hover:border-primary/40 hover:shadow-primary/20">
 						<div className="flex flex-col gap-3 rounded-[1.6rem] bg-background/60 p-3 sm:flex-row sm:items-center sm:gap-0 sm:p-2">
 							<div className="flex min-w-0 flex-1 items-center gap-3 px-3 py-1">
-								<Icon name="auto_awesome" className="shrink-0 text-primary" size={18} />
+								<Icon
+									name="auto_awesome"
+									className="shrink-0 text-primary"
+									size={18}
+								/>
 								<span className="min-h-[1.5em] flex-1 truncate text-left text-base text-muted-foreground">
 									{typedText}
 									<span className="ml-0.5 inline-block h-[1.1em] w-[2px] translate-y-[1px] animate-pulse rounded-full bg-primary" />
 								</span>
 							</div>
-							<button
-								type="button"
+							<Link
+								to="/login"
 								className="inline-flex shrink-0 items-center justify-center gap-2 rounded-2xl bg-primary px-7 py-3 text-base font-semibold text-primary-foreground shadow-lg shadow-primary/30 transition-all hover:brightness-110 active:scale-95">
 								<Icon name="bolt" size={18} filled />
 								Generate
-							</button>
+							</Link>
 						</div>
 					</div>
 				</motion.div>
@@ -500,14 +524,16 @@ export default function LandingPage() {
 					animate="show"
 					transition={{ delay: 0.36 }}
 					className="mt-5 flex flex-wrap items-center justify-center gap-2">
-					{["SaaS Landing", "Portfolio", "Coffee Shop", "Agency", "Crypto Dashboard"].map((item) => (
-						<button
-							key={item}
-							type="button"
-							className="rounded-full border border-border bg-card/70 px-4 py-1.5 text-sm text-muted-foreground transition-all hover:border-primary/40 hover:bg-primary/10 hover:text-foreground active:scale-95">
-							{item}
-						</button>
-					))}
+					{["SaaS Landing", "Portfolio", "Coffee Shop", "Agency", "Crypto Dashboard"].map(
+						(item) => (
+							<button
+								key={item}
+								type="button"
+								className="rounded-full border border-border bg-card/70 px-4 py-1.5 text-sm text-muted-foreground transition-all hover:border-primary/40 hover:bg-primary/10 hover:text-foreground active:scale-95">
+								{item}
+							</button>
+						),
+					)}
 				</motion.div>
 
 				{/* Social proof strip */}
@@ -528,7 +554,8 @@ export default function LandingPage() {
 						))}
 					</div>
 					<p className="text-sm text-muted-foreground">
-						<span className="font-semibold text-foreground">10,000+ creators</span> already building
+						<span className="font-semibold text-foreground">10,000+ creators</span>{" "}
+						already building
 					</p>
 				</motion.div>
 			</section>
@@ -550,7 +577,9 @@ export default function LandingPage() {
 							<span className="text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl">
 								<AnimatedNumber target={value} suffix={suffix} />
 							</span>
-							<span className="text-sm font-medium text-muted-foreground">{label}</span>
+							<span className="text-sm font-medium text-muted-foreground">
+								{label}
+							</span>
 						</motion.div>
 					))}
 				</div>
@@ -623,7 +652,9 @@ export default function LandingPage() {
 							key={title}
 							variants={safeFadeUp}
 							custom={i}
-							whileHover={prefersReducedMotion ? {} : { y: -4, transition: { duration: 0.2 } }}
+							whileHover={
+								prefersReducedMotion ? {} : { y: -4, transition: { duration: 0.2 } }
+							}
 							className="group relative overflow-hidden rounded-2xl border border-border/60 bg-card/60 p-6 shadow-sm backdrop-blur-sm transition-shadow hover:shadow-xl hover:shadow-primary/10">
 							<div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 							<div className="relative">
@@ -631,7 +662,9 @@ export default function LandingPage() {
 									<Icon name={icon} className="text-primary" size={22} filled />
 								</div>
 								<h3 className="mb-2 text-base font-bold">{title}</h3>
-								<p className="text-sm leading-relaxed text-muted-foreground">{desc}</p>
+								<p className="text-sm leading-relaxed text-muted-foreground">
+									{desc}
+								</p>
 							</div>
 						</motion.div>
 					))}
@@ -655,8 +688,8 @@ export default function LandingPage() {
 						<span className="text-muted-foreground">Infinite combinations.</span>
 					</h2>
 					<p className="mx-auto mt-4 max-w-xl text-muted-foreground">
-						Every element you could need — from call-to-action buttons to testimonial quotes — is a
-						drag-and-drop block ready to use.
+						Every element you could need — from call-to-action buttons to testimonial
+						quotes — is a drag-and-drop block ready to use.
 					</p>
 				</motion.div>
 
@@ -668,7 +701,11 @@ export default function LandingPage() {
 							key={label}
 							variants={safeFadeUp}
 							custom={i}
-							whileHover={prefersReducedMotion ? {} : { scale: 1.08, transition: { duration: 0.15 } }}
+							whileHover={
+								prefersReducedMotion
+									? {}
+									: { scale: 1.08, transition: { duration: 0.15 } }
+							}
 							className="group flex flex-col items-center gap-2 rounded-2xl border border-border/50 bg-card/60 py-4 px-2 text-center shadow-sm backdrop-blur-sm transition-all hover:border-primary/40 hover:bg-primary/10 hover:shadow-primary/15">
 							<Icon
 								name={icon}
@@ -684,7 +721,260 @@ export default function LandingPage() {
 				</motion.div>
 			</motion.section>
 
-			{/* ── TEMPLATES ────────────────────────────────────────────── */}
+			{/* ── CMS STUDIO ───────────────────────────────────────────── */}
+			<motion.section
+				ref={cmsRef}
+				variants={stagger}
+				initial="hidden"
+				animate={cmsInView ? "show" : "hidden"}
+				className="mx-auto w-full max-w-7xl px-6 py-20 md:px-10">
+				<div className="relative overflow-hidden rounded-[2.5rem] border border-border/60 bg-card/40 p-8 shadow-xl backdrop-blur-sm md:p-12 lg:p-16">
+					{/* Ambient glow orbs */}
+					<div className="pointer-events-none absolute -right-40 -top-40 h-96 w-96 rounded-full bg-violet-500/12 blur-3xl" />
+					<div className="pointer-events-none absolute -bottom-24 left-1/4 h-72 w-72 rounded-full bg-primary/8 blur-3xl" />
+
+					<div className="relative grid gap-12 lg:grid-cols-[1fr_1.2fr] lg:items-center">
+						{/* ── Left: Copy ── */}
+						<motion.div variants={safeFadeUp}>
+							<div className="mb-5 inline-flex items-center gap-2 rounded-full border border-violet-500/30 bg-violet-500/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-violet-400">
+								<Icon name="tv" size={12} filled />
+								CMS Studio
+							</div>
+							<h2 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
+								Pixel-perfect displays,
+								<br />
+								<span className="bg-gradient-to-r from-violet-400 via-purple-400 to-fuchsia-400 bg-clip-text text-transparent">
+									free-canvas freedom.
+								</span>
+							</h2>
+							<p className="mt-4 max-w-sm text-muted-foreground">
+								Place every block exactly where you want it — no grid, no
+								constraints.
+							</p>
+
+							<div className="mt-7 flex flex-wrap gap-2">
+								{CMS_FEATURES.map(({ icon, title }) => (
+									<div
+										key={title}
+										className="flex items-center gap-1.5 rounded-full border border-violet-500/20 bg-violet-500/8 px-3 py-1.5 text-xs font-medium text-violet-300">
+										<Icon name={icon} className="shrink-0" size={13} filled />
+										{title}
+									</div>
+								))}
+							</div>
+
+							<div className="mt-8">
+								<Link
+									to="/login"
+									className="inline-flex items-center gap-2 rounded-full bg-violet-600 px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-violet-500/30 transition-all hover:brightness-110 active:scale-95">
+									<Icon name="content_copy" size={15} filled />
+									Browse CMS Templates
+								</Link>
+							</div>
+						</motion.div>
+
+						{/* ── Right: Canvas Mockup ── */}
+						<motion.div variants={safeFadeUp} className="relative">
+							{/* Glow halo behind editor */}
+							<div className="pointer-events-none absolute inset-0 scale-95 rounded-2xl bg-violet-500/15 blur-2xl" />
+
+							{/* Editor shell */}
+							<div className="relative overflow-hidden rounded-2xl border border-violet-500/20 bg-[#09090b] shadow-2xl shadow-violet-500/10">
+								{/* Titlebar */}
+								<div className="flex items-center justify-between border-b border-white/[0.06] bg-zinc-900/80 px-4 py-2.5">
+									<div className="flex items-center gap-1.5">
+										<span className="h-2.5 w-2.5 rounded-full bg-red-500/70" />
+										<span className="h-2.5 w-2.5 rounded-full bg-amber-400/70" />
+										<span className="h-2.5 w-2.5 rounded-full bg-emerald-400/70" />
+									</div>
+									<div className="flex items-center gap-1.5 rounded-md bg-white/[0.06] px-3 py-1 font-mono text-[10px] text-zinc-400">
+										<Icon name="monitor" size={10} />
+										1920 × 1080
+									</div>
+									<div className="flex items-center gap-1.5">
+										<span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
+										<span className="text-[10px] text-zinc-500">
+											Auto-saved
+										</span>
+									</div>
+								</div>
+
+								{/* Canvas area */}
+								<div
+									className="relative aspect-[16/9] overflow-hidden"
+									style={{
+										backgroundImage:
+											"linear-gradient(rgba(255,255,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.03) 1px,transparent 1px)",
+										backgroundSize: "28px 28px",
+										backgroundColor: "#09090b",
+									}}>
+									{/* Canvas ambient gradient */}
+									<div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_28%_22%,rgba(139,92,246,0.20),transparent_55%),radial-gradient(ellipse_at_82%_75%,rgba(99,102,241,0.12),transparent_50%)]" />
+
+									{/* Ruler — left strip */}
+									<div className="absolute inset-y-0 left-0 w-5 border-r border-white/[0.05] bg-zinc-900/70" />
+									{/* Ruler — top strip */}
+									<div className="absolute inset-x-5 top-0 h-4 border-b border-white/[0.05] bg-zinc-900/70" />
+
+									{/* ── Canvas Blocks ── */}
+
+									{/* Hero heading block */}
+									<div
+										className="absolute left-[10%] top-[15%] w-[46%] rounded-lg border border-violet-400/25 bg-violet-500/15 px-3.5 py-3 backdrop-blur-sm"
+										style={{ transform: "rotate(-1.2deg)" }}>
+										<div className="h-2 w-4/5 rounded-full bg-violet-300/55" />
+										<div className="mt-1.5 h-1.5 w-3/5 rounded-full bg-violet-300/30" />
+										<div className="mt-3 h-5 w-16 rounded-full bg-violet-500/55" />
+										<span className="absolute -top-4 left-0 whitespace-nowrap font-mono text-[7px] text-violet-400/60">
+											x:10% y:15% ↻ -1.2°
+										</span>
+									</div>
+
+									{/* Image block (selected with handles) */}
+									<div
+										className="absolute right-[7%] top-[8%] h-[37%] w-[26%] overflow-hidden rounded-xl border border-cyan-400/25 bg-gradient-to-br from-cyan-500/20 to-blue-600/10 backdrop-blur-sm"
+										style={{ transform: "rotate(2.5deg)" }}>
+										<div className="absolute inset-0 flex items-center justify-center opacity-50">
+											<Icon
+												name="image"
+												className="text-cyan-300"
+												size={26}
+											/>
+										</div>
+										{/* Selection ring */}
+										<div className="absolute inset-0 rounded-xl ring-2 ring-violet-400/60" />
+										{/* Corner resize handles */}
+										{(
+											[
+												"-top-1 -left-1",
+												"-top-1 -right-1",
+												"-bottom-1 -left-1",
+												"-bottom-1 -right-1",
+											] as const
+										).map((pos) => (
+											<div
+												key={pos}
+												className={`absolute ${pos} h-2 w-2 rounded-sm border border-violet-400/80 bg-[#09090b]`}
+											/>
+										))}
+										<span className="absolute -top-4 left-0 whitespace-nowrap font-mono text-[7px] text-cyan-400/60">
+											x:67% y:8% ↻ 2.5°
+										</span>
+									</div>
+
+									{/* Badge block */}
+									<div
+										className="absolute left-[12%] top-[53%] rounded-full border border-emerald-400/30 bg-emerald-500/15 px-3 py-1 backdrop-blur-sm"
+										style={{ transform: "rotate(2.8deg)" }}>
+										<div className="h-1.5 w-14 rounded-full bg-emerald-300/55" />
+									</div>
+
+									{/* Text body block */}
+									<div
+										className="absolute bottom-[22%] left-[8%] w-[37%] space-y-1.5 rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 py-2.5 backdrop-blur-sm"
+										style={{ transform: "rotate(-0.8deg)" }}>
+										<div className="h-1.5 w-full rounded-full bg-white/22" />
+										<div className="h-1.5 w-5/6 rounded-full bg-white/15" />
+										<div className="h-1.5 w-2/3 rounded-full bg-white/10" />
+									</div>
+
+									{/* CTA Button block */}
+									<div
+										className="absolute bottom-[12%] right-[9%] rounded-full border border-violet-400/35 bg-violet-500/20 px-5 py-2 backdrop-blur-sm"
+										style={{ transform: "rotate(-1.5deg)" }}>
+										<div className="h-2 w-14 rounded-full bg-violet-300/60" />
+									</div>
+
+									{/* Divider block */}
+									<div
+										className="absolute right-[7%] bottom-[48%] w-[26%] border-t border-dashed border-zinc-500/35"
+										style={{ transform: "rotate(2.5deg)" }}
+									/>
+								</div>
+
+								{/* Bottom block-picker toolbar */}
+								<div className="flex items-center justify-between border-t border-white/[0.06] bg-zinc-900/80 px-4 py-2.5">
+									<div className="flex items-center gap-1.5">
+										{[
+											"title",
+											"image",
+											"smart_button",
+											"label",
+											"format_quote",
+											"height",
+										].map((ic) => (
+											<div
+												key={ic}
+												className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg bg-white/[0.05] text-zinc-500 transition-colors hover:bg-white/[0.10] hover:text-zinc-200">
+												<Icon name={ic} size={13} />
+											</div>
+										))}
+									</div>
+									<div className="flex items-center gap-2">
+										<div className="rounded-md border border-violet-500/25 bg-violet-500/12 px-3 py-1 text-[10px] font-semibold text-violet-400">
+											Preview
+										</div>
+										<div className="rounded-md bg-violet-600 px-3 py-1 text-[10px] font-semibold text-white">
+											Publish
+										</div>
+									</div>
+								</div>
+							</div>
+
+							{/* Floating badge — bottom left */}
+							<motion.div
+								className="absolute -bottom-5 -left-5 rounded-2xl border border-border/60 bg-card/90 p-3 shadow-xl backdrop-blur-xl"
+								animate={prefersReducedMotion ? {} : { y: [0, -7, 0] }}
+								transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}>
+								<div className="flex items-center gap-2.5">
+									<div className="flex h-9 w-9 items-center justify-center rounded-xl bg-violet-500/20">
+										<Icon
+											name="layers"
+											className="text-violet-400"
+											size={18}
+											filled
+										/>
+									</div>
+									<div>
+										<p className="text-xs font-bold">Free Canvas</p>
+										<p className="text-[10px] text-muted-foreground">
+											Drag · Rotate · Scale
+										</p>
+									</div>
+								</div>
+							</motion.div>
+
+							{/* Floating badge — top right */}
+							<motion.div
+								className="absolute -right-5 -top-5 rounded-2xl border border-border/60 bg-card/90 p-3 shadow-xl backdrop-blur-xl"
+								animate={prefersReducedMotion ? {} : { y: [0, 8, 0] }}
+								transition={{
+									duration: 4,
+									repeat: Infinity,
+									ease: "easeInOut",
+									delay: 0.6,
+								}}>
+								<div className="flex items-center gap-2">
+									<Icon
+										name="display_settings"
+										className="text-violet-400"
+										size={16}
+										filled
+									/>
+									<div>
+										<p className="text-xs font-bold">Multi-Resolution</p>
+										<p className="text-[10px] text-muted-foreground">
+											4K · FHD · Portrait
+										</p>
+									</div>
+								</div>
+							</motion.div>
+						</motion.div>
+					</div>
+				</div>
+			</motion.section>
+
+			{/* ── WEBSITE TEMPLATES ─────────────────────────────────────── */}
 			<motion.section
 				ref={templatesRef}
 				variants={stagger}
@@ -693,7 +983,7 @@ export default function LandingPage() {
 				className="mx-auto w-full max-w-7xl px-6 py-20 md:px-10">
 				<motion.div variants={safeFadeUp} className="mb-14 text-center">
 					<p className="mb-2 text-xs font-semibold uppercase tracking-widest text-primary">
-						Templates
+						Website Templates
 					</p>
 					<h2 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
 						Start with something
@@ -701,86 +991,114 @@ export default function LandingPage() {
 						<span className="text-muted-foreground">beautiful.</span>
 					</h2>
 					<p className="mx-auto mt-4 max-w-xl text-muted-foreground">
-						Pick a professionally designed template, fork it with one click, and make it yours.
-						Your copy is fully independent — template updates never touch your project.
+						Pick a professionally designed website template, fork it with one click, and
+						make it yours. Your copy is fully independent — template updates never touch
+						your project.
 					</p>
 				</motion.div>
 
 				<div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-					{TEMPLATES.map(({ name, category, desc, gradient, categoryClass, usageCount, pages, icon, popular }, i) => (
-						<motion.div
-							key={name}
-							variants={safeFadeUp}
-							custom={i}
-							whileHover={prefersReducedMotion ? {} : { y: -5, transition: { duration: 0.2 } }}
-							className="group relative flex flex-col overflow-hidden rounded-2xl border border-border/60 bg-card/60 shadow-sm backdrop-blur-sm transition-shadow hover:border-primary/30 hover:shadow-xl hover:shadow-primary/10">
-							{/* Preview area */}
-							<div className={`relative h-44 w-full overflow-hidden bg-gradient-to-br ${gradient}`}>
-								{/* Mini page skeleton mockup */}
-								<div className="absolute inset-4 flex flex-col gap-2">
-									<div className="flex items-center gap-1.5">
-										<div className="h-1.5 w-1.5 rounded-full bg-card/70" />
-										<div className="h-1.5 w-8 rounded-full bg-card/60" />
-										<div className="ml-auto h-1.5 w-12 rounded-full bg-card/50" />
-									</div>
-									<div className="mt-1 h-5 w-3/4 rounded-lg bg-card/75" />
-									<div className="h-2 w-1/2 rounded-full bg-card/50" />
-									<div className="mt-1.5 flex gap-2">
-										<div className="h-6 w-14 rounded-lg bg-primary/65" />
-										<div className="h-6 w-14 rounded-lg bg-card/50" />
-									</div>
-									<div className="mt-auto grid grid-cols-3 gap-1.5">
-										<div className="h-9 rounded-lg bg-card/55" />
-										<div className="h-9 rounded-lg bg-card/45" />
-										<div className="h-9 rounded-lg bg-card/35" />
-									</div>
-								</div>
-								{/* Hover overlay CTA */}
-								<div className="absolute inset-0 flex items-center justify-center bg-background/55 opacity-0 backdrop-blur-sm transition-opacity duration-300 group-hover:opacity-100">
-									<button
-										type="button"
-										className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/35 transition-all hover:brightness-110 active:scale-95">
-										<Icon name="content_copy" size={15} filled />
-										Use Template
-									</button>
-								</div>
-								{/* Popular badge */}
-								{popular && (
-									<div className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/20 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary backdrop-blur-sm">
-										<Icon name="local_fire_department" size={10} filled />
-										Popular
-									</div>
-								)}
-							</div>
-
-							{/* Card body */}
-							<div className="flex flex-1 flex-col gap-3 p-5">
-								<div className="flex items-start justify-between gap-2">
-									<div className="flex items-center gap-2">
-										<div className="flex h-8 w-8 items-center justify-center rounded-lg border border-primary/20 bg-primary/10">
-											<Icon name={icon} className="text-primary" size={16} filled />
+					{TEMPLATES.map(
+						(
+							{
+								name,
+								category,
+								desc,
+								gradient,
+								categoryClass,
+								usageCount,
+								pages,
+								icon,
+								popular,
+							},
+							i,
+						) => (
+							<motion.div
+								key={name}
+								variants={safeFadeUp}
+								custom={i}
+								whileHover={
+									prefersReducedMotion
+										? {}
+										: { y: -5, transition: { duration: 0.2 } }
+								}
+								className="group relative flex flex-col overflow-hidden rounded-2xl border border-border/60 bg-card/60 shadow-sm backdrop-blur-sm transition-shadow hover:border-primary/30 hover:shadow-xl hover:shadow-primary/10">
+								{/* Preview area */}
+								<div
+									className={`relative h-44 w-full overflow-hidden bg-gradient-to-br ${gradient}`}>
+									{/* Mini page skeleton mockup */}
+									<div className="absolute inset-4 flex flex-col gap-2">
+										<div className="flex items-center gap-1.5">
+											<div className="h-1.5 w-1.5 rounded-full bg-card/70" />
+											<div className="h-1.5 w-8 rounded-full bg-card/60" />
+											<div className="ml-auto h-1.5 w-12 rounded-full bg-card/50" />
 										</div>
-										<h3 className="font-bold text-foreground">{name}</h3>
+										<div className="mt-1 h-5 w-3/4 rounded-lg bg-card/75" />
+										<div className="h-2 w-1/2 rounded-full bg-card/50" />
+										<div className="mt-1.5 flex gap-2">
+											<div className="h-6 w-14 rounded-lg bg-primary/65" />
+											<div className="h-6 w-14 rounded-lg bg-card/50" />
+										</div>
+										<div className="mt-auto grid grid-cols-3 gap-1.5">
+											<div className="h-9 rounded-lg bg-card/55" />
+											<div className="h-9 rounded-lg bg-card/45" />
+											<div className="h-9 rounded-lg bg-card/35" />
+										</div>
 									</div>
-									<span
-										className={`inline-flex shrink-0 rounded-full border px-2.5 py-0.5 text-xs font-medium ${categoryClass}`}>
-										{category}
-									</span>
+									{/* Hover overlay CTA */}
+									<div className="absolute inset-0 flex items-center justify-center bg-background/55 opacity-0 backdrop-blur-sm transition-opacity duration-300 group-hover:opacity-100">
+										<button
+											type="button"
+											className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/35 transition-all hover:brightness-110 active:scale-95">
+											<Icon name="content_copy" size={15} filled />
+											Use Template
+										</button>
+									</div>
+									{/* Popular badge */}
+									{popular && (
+										<div className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/20 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary backdrop-blur-sm">
+											<Icon name="local_fire_department" size={10} filled />
+											Popular
+										</div>
+									)}
 								</div>
-								<p className="text-sm leading-relaxed text-muted-foreground">{desc}</p>
-								<div className="mt-auto flex items-center justify-between border-t border-border/50 pt-3 text-xs text-muted-foreground">
-									<span className="flex items-center gap-1">
-										<Icon name="description" size={12} />
-										{pages} page{pages !== 1 ? "s" : ""}
-									</span>
-									<span className="flex items-center gap-1">
-										<Icon name="content_copy" size={12} />
-										{usageCount} uses
-									</span>
+
+								{/* Card body */}
+								<div className="flex flex-1 flex-col gap-3 p-5">
+									<div className="flex items-start justify-between gap-2">
+										<div className="flex items-center gap-2">
+											<div className="flex h-8 w-8 items-center justify-center rounded-lg border border-primary/20 bg-primary/10">
+												<Icon
+													name={icon}
+													className="text-primary"
+													size={16}
+													filled
+												/>
+											</div>
+											<h3 className="font-bold text-foreground">{name}</h3>
+										</div>
+										<span
+											className={`inline-flex shrink-0 rounded-full border px-2.5 py-0.5 text-xs font-medium ${categoryClass}`}>
+											{category}
+										</span>
+									</div>
+									<p className="text-sm leading-relaxed text-muted-foreground">
+										{desc}
+									</p>
+									<div className="mt-auto flex items-center justify-between border-t border-border/50 pt-3 text-xs text-muted-foreground">
+										<span className="flex items-center gap-1">
+											<Icon name="description" size={12} />
+											{pages} page{pages !== 1 ? "s" : ""}
+										</span>
+										<span className="flex items-center gap-1">
+											<Icon name="content_copy" size={12} />
+											{usageCount} uses
+										</span>
+									</div>
 								</div>
-							</div>
-						</motion.div>
-					))}
+							</motion.div>
+						),
+					)}
 				</div>
 
 				{/* Browse all CTA */}
@@ -789,7 +1107,7 @@ export default function LandingPage() {
 						type="button"
 						className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-card/60 px-7 py-3 text-sm font-semibold backdrop-blur transition-all hover:border-primary/40 hover:bg-primary/10 hover:text-foreground active:scale-95">
 						<Icon name="grid_view" size={16} />
-						Browse all 85+ templates
+						Browse all 85+ website templates
 						<Icon name="arrow_forward" size={16} />
 					</button>
 				</motion.div>
@@ -819,15 +1137,25 @@ export default function LandingPage() {
 							key={name}
 							variants={safeFadeUp}
 							custom={i}
-							whileHover={prefersReducedMotion ? {} : { y: -4, transition: { duration: 0.2 } }}
+							whileHover={
+								prefersReducedMotion ? {} : { y: -4, transition: { duration: 0.2 } }
+							}
 							className="flex flex-col justify-between gap-5 rounded-2xl border border-border/60 bg-card/60 p-6 shadow-sm backdrop-blur-sm">
 							<div>
 								<div className="mb-3 flex gap-0.5">
 									{[...Array(5)].map((_, s) => (
-										<Icon key={s} name="star" className="text-chart-4" size={14} filled />
+										<Icon
+											key={s}
+											name="star"
+											className="text-chart-4"
+											size={14}
+											filled
+										/>
 									))}
 								</div>
-								<p className="text-sm leading-relaxed text-foreground/90">"{quote}"</p>
+								<p className="text-sm leading-relaxed text-foreground/90">
+									"{quote}"
+								</p>
 							</div>
 							<div className="flex items-center gap-3">
 								<div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/20 text-sm font-bold text-primary">
@@ -859,7 +1187,12 @@ export default function LandingPage() {
 
 					<div className="relative flex flex-col items-center text-center">
 						<div className="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-primary shadow-lg shadow-primary/40">
-							<Icon name="rocket_launch" className="text-primary-foreground" size={28} filled />
+							<Icon
+								name="rocket_launch"
+								className="text-primary-foreground"
+								size={28}
+								filled
+							/>
 						</div>
 						<h2 className="mb-4 max-w-2xl text-balance text-3xl font-extrabold tracking-tight sm:text-4xl md:text-5xl">
 							Your next site is one
@@ -867,8 +1200,8 @@ export default function LandingPage() {
 							<span className="text-primary">sentence away.</span>
 						</h2>
 						<p className="mb-8 max-w-lg text-muted-foreground">
-							Join thousands of creators who skipped the dev agency and shipped faster with
-							AppSiteBuilder.
+							Join thousands of creators who skipped the dev agency and shipped faster
+							with AppSiteBuilder.
 						</p>
 						<div className="flex flex-col items-center gap-3 sm:flex-row">
 							<button
@@ -910,14 +1243,25 @@ export default function LandingPage() {
 								</span>
 							</div>
 							<p className="max-w-xs text-xs text-muted-foreground">
-								The no-code website builder for creators, founders, and teams who move fast.
+								The no-code website builder for creators, founders, and teams who
+								move fast.
 							</p>
 						</div>
 
 						{/* Links */}
 						<div className="flex flex-wrap gap-x-8 gap-y-3 text-sm text-muted-foreground">
-							{["Product", "Templates", "Pricing", "Docs", "Blog", "Privacy", "Terms"].map((l) => (
-								<span key={l} className="cursor-default transition-colors hover:text-foreground">
+							{[
+								"Product",
+								"Templates",
+								"Pricing",
+								"Docs",
+								"Blog",
+								"Privacy",
+								"Terms",
+							].map((l) => (
+								<span
+									key={l}
+									className="cursor-default transition-colors hover:text-foreground">
 									{l}
 								</span>
 							))}
@@ -928,7 +1272,9 @@ export default function LandingPage() {
 						<p>© {new Date().getFullYear()} AppSiteBuilder. All rights reserved.</p>
 						<div className="flex items-center gap-4">
 							{["twitter", "github", "linkedin"].map((sn) => (
-								<span key={sn} className="cursor-default capitalize transition-colors hover:text-foreground">
+								<span
+									key={sn}
+									className="cursor-default capitalize transition-colors hover:text-foreground">
 									{sn}
 								</span>
 							))}
