@@ -233,10 +233,7 @@ export function DataTable<T extends Record<string, any>>({
 		<div className={cn("rounded-md border-none bg-card", className)}>
 			<Table>
 				<TableHeader>
-					<TableRow
-						className={cn(
-							variant === "organizations" && "hover:bg-transparent",
-						)}>
+					<TableRow className={cn(variant === "organizations" && "hover:bg-transparent")}>
 						{columns.map((column) => {
 							const state = columnStates[String(column.key)];
 							const hasFilters =

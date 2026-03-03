@@ -262,11 +262,7 @@ export default function UserTemplateDetailsRoute() {
 		);
 	}
 
-	if (
-		isError ||
-		!templateData ||
-		resolveTemplateEditorMode(templateData) !== "website"
-	) {
+	if (isError || !templateData || resolveTemplateEditorMode(templateData) !== "website") {
 		return (
 			<div className="mx-auto flex min-h-[60vh] w-full max-w-3xl items-center px-6 py-10 md:px-10">
 				<div className="w-full rounded-[2rem] border border-destructive/40 bg-destructive/10 p-7 text-left">

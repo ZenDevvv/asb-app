@@ -244,13 +244,7 @@ export default function CmsProjectEditorPage() {
 		saveDraftToLocalStorage(draftStorageKey);
 		if (currentSaveHash === lastSavedHashRef.current) return;
 		scheduleAutosave();
-	}, [
-		currentSaveHash,
-		draftStorageKey,
-		isHydrated,
-		saveDraftToLocalStorage,
-		scheduleAutosave,
-	]);
+	}, [currentSaveHash, draftStorageKey, isHydrated, saveDraftToLocalStorage, scheduleAutosave]);
 
 	useEffect(() => {
 		return () => {

@@ -127,9 +127,7 @@ export function DateBlock({ block, globalStyle }: BlockComponentProps) {
 				marginBottom: s.marginBottom ?? 0,
 				maxWidth: `${blockWidthPx}px`,
 			}}>
-			<div
-				className="flex flex-col items-center"
-				style={{ gap: scalePx(sectionGapPx) }}>
+			<div className="flex flex-col items-center" style={{ gap: scalePx(sectionGapPx) }}>
 				<p
 					className="text-center font-semibold leading-none tracking-[0.22em]"
 					style={{ fontSize: scaleLength("clamp(1.35rem, 4.6vw, 4.2rem)") }}>

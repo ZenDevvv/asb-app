@@ -101,7 +101,14 @@ function CMSPositionPanel({
 	onUpdate,
 }: {
 	block: CMSBlock;
-	onUpdate: (patch: { props?: Record<string, unknown>; style?: Partial<BlockStyle>; x?: number; y?: number; w?: number; h?: number }) => void;
+	onUpdate: (patch: {
+		props?: Record<string, unknown>;
+		style?: Partial<BlockStyle>;
+		x?: number;
+		y?: number;
+		w?: number;
+		h?: number;
+	}) => void;
 }) {
 	const blockRotation = getNumber(block.style.tilt, 0);
 	const horizontalContentAlignment = getContainerHorizontalAlignment(block);
@@ -136,7 +143,9 @@ function CMSPositionPanel({
 				{showContainerAlignmentControls ? (
 					<>
 						<div className="space-y-1.5">
-							<span className="text-xs text-muted-foreground">Container Horizontal Align</span>
+							<span className="text-xs text-muted-foreground">
+								Container Horizontal Align
+							</span>
 							<div className="grid grid-cols-3 gap-2">
 								{HORIZONTAL_ALIGNMENT_OPTIONS.map((option) => {
 									const isActive = horizontalContentAlignment === option.value;
@@ -149,10 +158,16 @@ function CMSPositionPanel({
 											aria-label={`Align content ${option.label.toLowerCase()}`}
 											title={option.label}
 											onClick={() =>
-												onUpdate({ props: { containerHorizontalAlign: option.value } })
+												onUpdate({
+													props: {
+														containerHorizontalAlign: option.value,
+													},
+												})
 											}
 											className="h-8 px-0">
-											<span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+											<span
+												className="material-symbols-outlined"
+												style={{ fontSize: 18 }}>
 												{option.icon}
 											</span>
 										</Button>
@@ -162,7 +177,9 @@ function CMSPositionPanel({
 						</div>
 
 						<div className="space-y-1.5">
-							<span className="text-xs text-muted-foreground">Container Vertical Align</span>
+							<span className="text-xs text-muted-foreground">
+								Container Vertical Align
+							</span>
 							<div className="grid grid-cols-3 gap-2">
 								{VERTICAL_ALIGNMENT_OPTIONS.map((option) => {
 									const isActive = verticalContentAlignment === option.value;
@@ -175,10 +192,14 @@ function CMSPositionPanel({
 											aria-label={`Align content ${option.label.toLowerCase()}`}
 											title={option.label}
 											onClick={() =>
-												onUpdate({ props: { containerVerticalAlign: option.value } })
+												onUpdate({
+													props: { containerVerticalAlign: option.value },
+												})
 											}
 											className="h-8 px-0">
-											<span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+											<span
+												className="material-symbols-outlined"
+												style={{ fontSize: 18 }}>
 												{option.icon}
 											</span>
 										</Button>
@@ -190,7 +211,9 @@ function CMSPositionPanel({
 				) : null}
 
 				<div className="space-y-1.5">
-					<span className="text-xs text-muted-foreground">Width ({block.w.toFixed(1)}%)</span>
+					<span className="text-xs text-muted-foreground">
+						Width ({block.w.toFixed(1)}%)
+					</span>
 					<Slider
 						min={8}
 						max={100}
@@ -201,7 +224,9 @@ function CMSPositionPanel({
 				</div>
 
 				<div className="space-y-1.5">
-					<span className="text-xs text-muted-foreground">Height ({block.h.toFixed(1)}%)</span>
+					<span className="text-xs text-muted-foreground">
+						Height ({block.h.toFixed(1)}%)
+					</span>
 					<Slider
 						min={6}
 						max={100}
@@ -212,13 +237,17 @@ function CMSPositionPanel({
 				</div>
 
 				<div className="space-y-1.5">
-					<span className="text-xs text-muted-foreground">Rotation ({Math.round(blockRotation)}deg)</span>
+					<span className="text-xs text-muted-foreground">
+						Rotation ({Math.round(blockRotation)}deg)
+					</span>
 					<Slider
 						min={-180}
 						max={180}
 						step={1}
 						value={[blockRotation]}
-						onValueChange={(value) => onUpdate({ style: { tilt: value[0] ?? blockRotation } })}
+						onValueChange={(value) =>
+							onUpdate({ style: { tilt: value[0] ?? blockRotation } })
+						}
 					/>
 				</div>
 			</div>
@@ -288,8 +317,12 @@ export function CMSBlockSettings({ block, className }: CMSBlockSettingsProps) {
 						<ChevronLeft className="h-3.5 w-3.5" />
 					</Button>
 					<div className="min-w-0">
-						<p className="truncate text-sm font-semibold text-sidebar-foreground">{entry.label} Settings</p>
-						<p className="mt-1 text-xs text-muted-foreground">Editing block #{block.id.slice(0, 6)}</p>
+						<p className="truncate text-sm font-semibold text-sidebar-foreground">
+							{entry.label} Settings
+						</p>
+						<p className="mt-1 text-xs text-muted-foreground">
+							Editing block #{block.id.slice(0, 6)}
+						</p>
 					</div>
 				</div>
 				<div className="flex items-center gap-1">
@@ -330,12 +363,18 @@ export function CMSBlockSettings({ block, className }: CMSBlockSettingsProps) {
 							onClick={() => openFontModal("fontFamily")}
 							className="group flex w-full items-center justify-between rounded-xl border border-border bg-input/50 px-3 py-2 text-left transition-colors hover:border-primary/40">
 							<div>
-								<p className="text-[10px] uppercase tracking-wider text-muted-foreground">Font Family</p>
-								<p className="text-sm text-foreground" style={{ fontFamily: effectiveFontValue }}>
+								<p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+									Font Family
+								</p>
+								<p
+									className="text-sm text-foreground"
+									style={{ fontFamily: effectiveFontValue }}>
 									{effectiveFontValue}
 								</p>
 							</div>
-							<span className="material-symbols-outlined text-muted-foreground transition-colors group-hover:text-foreground" style={{ fontSize: 18 }}>
+							<span
+								className="material-symbols-outlined text-muted-foreground transition-colors group-hover:text-foreground"
+								style={{ fontSize: 18 }}>
 								tune
 							</span>
 						</button>
@@ -405,7 +444,8 @@ export function CMSBlockSettings({ block, className }: CMSBlockSettingsProps) {
 					value={effectiveFontValue}
 					onApply={(fontFamily) =>
 						handleStyleChange({
-							[fontModalTarget]: fontFamily === globalStyle.fontFamily ? "" : fontFamily,
+							[fontModalTarget]:
+								fontFamily === globalStyle.fontFamily ? "" : fontFamily,
 						} as Partial<BlockStyle>)
 					}
 					title="Typography Settings"

@@ -4,10 +4,7 @@ import { useNavigate, useParams } from "react-router";
 import { CMSBlockRenderer } from "~/components/admin/display/CMSBlockRenderer";
 import { Button } from "~/components/ui/button";
 import { useAuth } from "~/hooks/use-auth";
-import {
-	useForkTemplateProject,
-	useGetTemplateProjectById,
-} from "~/hooks/use-template-project";
+import { useForkTemplateProject, useGetTemplateProjectById } from "~/hooks/use-template-project";
 import { resolveTemplateEditorMode } from "~/lib/template-project-utils";
 import { cn } from "~/lib/utils";
 import { normalizeCmsPersistedState, type CMSBlock } from "~/stores/displayStore";
@@ -46,8 +43,7 @@ export default function UserCmsTemplateDetailsPage() {
 		isError,
 		error,
 	} = useGetTemplateProjectById(templateId ?? "", {
-		fields:
-			"id,name,description,category,editorMode,cmsState,globalStyle,usageCount,updatedAt,isActive,isDeleted",
+		fields: "id,name,description,category,editorMode,cmsState,globalStyle,usageCount,updatedAt,isActive,isDeleted",
 	});
 
 	useEffect(() => {
@@ -82,7 +78,9 @@ export default function UserCmsTemplateDetailsPage() {
 
 		hasModeRedirectedRef.current = true;
 		if (typeof window !== "undefined") {
-			window.alert("This template uses website mode. Redirecting to website template details.");
+			window.alert(
+				"This template uses website mode. Redirecting to website template details.",
+			);
 		}
 		navigate(`/user/templates/${templateId}`, { replace: true });
 	}, [navigate, templateData, templateId]);
@@ -100,8 +98,7 @@ export default function UserCmsTemplateDetailsPage() {
 			...DEFAULT_GLOBAL_STYLE,
 			...value,
 			colorScheme: "monochromatic" as const,
-			themeMode:
-				(value as { themeMode?: unknown }).themeMode === "light" ? "light" : "dark",
+			themeMode: (value as { themeMode?: unknown }).themeMode === "light" ? "light" : "dark",
 		};
 	}, [templateData?.globalStyle]);
 
@@ -125,14 +122,8 @@ export default function UserCmsTemplateDetailsPage() {
 		return Math.max(0.05, fitScale * zoomScale);
 	}, [cmsState.zoom, fitScale]);
 
-	const scaledCanvasWidth = Math.max(
-		1,
-		Math.round(cmsState.resolution.width * displayScale),
-	);
-	const scaledCanvasHeight = Math.max(
-		1,
-		Math.round(cmsState.resolution.height * displayScale),
-	);
+	const scaledCanvasWidth = Math.max(1, Math.round(cmsState.resolution.width * displayScale));
+	const scaledCanvasHeight = Math.max(1, Math.round(cmsState.resolution.height * displayScale));
 
 	const resolvedBackgroundColor =
 		typeof cmsState.canvasBackground.color === "string" &&
@@ -240,7 +231,9 @@ export default function UserCmsTemplateDetailsPage() {
 								height: `${scaledCanvasHeight}px`,
 							}}>
 							<div
-								className={cn("absolute left-0 top-0 h-full w-full origin-top-left")}
+								className={cn(
+									"absolute left-0 top-0 h-full w-full origin-top-left",
+								)}
 								style={{
 									width: `${cmsState.resolution.width}px`,
 									height: `${cmsState.resolution.height}px`,
