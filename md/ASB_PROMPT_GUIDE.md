@@ -26,7 +26,7 @@ CMS is now merged into ASB as an admin-authored template mode, not an isolated l
    - `/admin/cms/editor/:templateId`
    - `/admin/cms/preview/:templateId`
    - `/admin/cms/view/:templateId`
-   - Layout rule: `/admin/cms` stays in `AdminLayout`; `/admin/cms/editor/:templateId` is standalone (outside `AdminLayout`)
+   - Layout rule: `/admin/cms` stays in `AdminLayout`; `/admin/cms/editor/:templateId`, `/admin/cms/preview/:templateId`, and `/admin/cms/view/:templateId` are standalone (outside `AdminLayout`)
 2. Redirects:
    - `/cms` -> `/admin/cms`
    - `/admin/display` -> `/admin/cms`
@@ -387,7 +387,8 @@ ABSOLUTE BLOCK POSITIONING:
 - Flow blocks continue to use layout slots and normal document flow
 
 LIVE PREVIEW:
-- Preview button opens `/editor/preview` in a new tab; when editing a website template, opens `/editor/preview?templateId=<id>`; when editing a website project, opens `/project/preview/:slug`
+- Website preview button opens `/editor/preview` in a new tab; when editing a website template, opens `/editor/preview?templateId=<id>`; when editing a website project, opens `/project/preview/:slug`
+- CMS preview button opens `/admin/cms/preview/:templateId` from the admin CMS template editor and `/project/cms/preview/:slug` from the CMS project editor
 - Preview route (template mode): if `templateId` query param is present, fetches template data from the backend via `useGetTemplateProjectById` and renders the server-side page (sections + globalStyle); shows a loading state while fetching; "Back to Editor" link returns to `/editor/:templateId`
 - Preview route (guest mode): if no `templateId`, reads from localStorage — loads saved sections/global style and listens for `StorageEvent` to refresh automatically as debounced auto-save runs
 - Renders the page with `isEditing=false`; hidden sections remain hidden in preview

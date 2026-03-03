@@ -1,6 +1,7 @@
 import type { RefObject } from "react";
 import { motion } from "framer-motion";
 import { Icon } from "~/components/ui/icon";
+import { resolveProjectEditorMode } from "~/lib/template-project-utils";
 import type { Project } from "~/zod/project.zod";
 import { fadeIn, fadeUp, stagger } from "./dashboard-constants";
 
@@ -16,7 +17,7 @@ interface DashboardProjectsSectionProps {
 	isProjectsError: boolean;
 	projectLoadError: unknown;
 	onCreateNewProject: () => void;
-	onProjectClick: (projectId: string) => void;
+	onProjectClick: (project: Project) => void;
 }
 
 function formatRelativeTime(date: Date): string {
@@ -110,61 +111,75 @@ export function DashboardProjectsSection({
 						initial="hidden"
 						animate="show"
 						className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-						{projects.map((project, index) => (
-							<motion.article
-								key={project.id}
-								variants={safeFadeUp}
-								custom={index}
-								whileHover={
-									prefersReducedMotion
-										? undefined
-										: { y: -4, transition: { duration: 0.18 } }
-								}
-								onClick={() => onProjectClick(project.slug)}
-								className="group relative cursor-pointer overflow-hidden rounded-2xl border border-border/60 bg-card/50 backdrop-blur-sm transition-colors hover:border-primary/40 hover:bg-card/70">
-								<div className="p-5">
-									<div className="mb-3 flex items-start justify-between gap-3">
-										<h3 className="truncate text-base font-semibold">
-											{project.name}
-										</h3>
-										<span
-											className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium ${
-												project.status === "published"
-													? "bg-emerald-500/15 text-emerald-400"
-													: "bg-amber-500/15 text-amber-400"
-											}`}>
-											{project.status === "published" ? "Live" : "Draft"}
-										</span>
-									</div>
+						{projects.map((project, index) => {
+							const mode = resolveProjectEditorMode(project);
+							const isCms = mode === "cms";
+							return (
+								<motion.article
+									key={project.id}
+									variants={safeFadeUp}
+									custom={index}
+									whileHover={
+										prefersReducedMotion
+											? undefined
+											: { y: -4, transition: { duration: 0.18 } }
+									}
+									onClick={() => onProjectClick(project)}
+									className="group relative cursor-pointer overflow-hidden rounded-2xl border border-border/60 bg-card/50 backdrop-blur-sm transition-colors hover:border-primary/40 hover:bg-card/70">
+									<div className="p-5">
+										<div className="mb-3 flex items-start justify-between gap-3">
+											<h3 className="truncate text-base font-semibold">
+												{project.name}
+											</h3>
+											<div className="flex shrink-0 items-center gap-1.5">
+												<span
+													className={`rounded-full border px-2.5 py-0.5 text-xs font-medium uppercase tracking-wide ${
+														isCms
+															? "border-chart-5/40 bg-chart-5/15 text-chart-5"
+															: "border-chart-2/40 bg-chart-2/15 text-chart-2"
+													}`}>
+													{mode}
+												</span>
+												<span
+													className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
+														project.status === "published"
+															? "bg-emerald-500/15 text-emerald-400"
+															: "bg-amber-500/15 text-amber-400"
+													}`}>
+													{project.status === "published" ? "Live" : "Draft"}
+												</span>
+											</div>
+										</div>
 
-									<div className="flex items-center gap-4 text-xs text-muted-foreground">
-										<span className="inline-flex items-center gap-1">
-											<Icon name="schedule" size={13} />
-											{formatRelativeTime(project.updatedAt)}
-										</span>
-										{project.publishedAt && (
+										<div className="flex items-center gap-4 text-xs text-muted-foreground">
 											<span className="inline-flex items-center gap-1">
-												<Icon name="public" size={13} />
-												Published {formatRelativeTime(project.publishedAt)}
+												<Icon name="schedule" size={13} />
+												{formatRelativeTime(project.updatedAt)}
 											</span>
-										)}
+											{project.publishedAt && (
+												<span className="inline-flex items-center gap-1">
+													<Icon name="public" size={13} />
+													Published {formatRelativeTime(project.publishedAt)}
+												</span>
+											)}
+										</div>
 									</div>
-								</div>
 
-								<div className="border-t border-border/40 px-5 py-3">
-									<div className="flex items-center justify-between">
-										<span className="text-xs text-muted-foreground/70">
-											/{project.slug}
-										</span>
-										<Icon
-											name="arrow_forward"
-											size={14}
-											className="text-muted-foreground/50 transition-transform group-hover:translate-x-0.5 group-hover:text-primary"
-										/>
+									<div className="border-t border-border/40 px-5 py-3">
+										<div className="flex items-center justify-between">
+											<span className="text-xs text-muted-foreground/70">
+												/{project.slug}
+											</span>
+											<Icon
+												name="arrow_forward"
+												size={14}
+												className="text-muted-foreground/50 transition-transform group-hover:translate-x-0.5 group-hover:text-primary"
+											/>
+										</div>
 									</div>
-								</div>
-							</motion.article>
-						))}
+								</motion.article>
+							);
+						})}
 					</motion.div>
 
 					{projectCount > projects.length && (
