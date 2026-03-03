@@ -13,7 +13,7 @@ CMS and Website templates share one template system but must remain mode-separat
 2. `editorMode: "website"` templates belong to website editor flows.
 3. `editorMode: "cms"` templates belong to CMS flows (admin template management + user fork-to-project flows).
 4. Do not let website routes edit/render CMS templates.
-5. Do not let public template view routes access CMS templates.
+5. Do not let website public template view routes render CMS templates; CMS uses dedicated CMS view routes.
 
 ---
 
@@ -23,18 +23,25 @@ Admin-only CMS routes:
 
 1. `/admin/cms`
 2. `/admin/cms/editor/:templateId`
-3. `/admin/cms/view/:templateId`
+3. `/admin/cms/preview/:templateId`
+4. `/admin/cms/view/:templateId`
+
+Temporary public CMS template routes:
+
+1. `/cms/view/:templateId` (temporary public CMS template view)
 
 User CMS project routes:
 
 1. `/project/cms/:slug` (editable CMS project editor)
-2. `/project/cms/view/:slug` (read-only CMS project view)
+2. `/project/cms/preview/:slug` (read-only CMS project preview)
+3. `/project/cms/view/:slug` (temporary public CMS project view)
 
 Layout ownership:
 
 1. `/admin/cms` is rendered inside `AdminLayout`
 2. `/admin/cms/editor/:templateId` is rendered outside `AdminLayout` (standalone editor shell)
-3. `/admin/cms/view/:templateId` is rendered outside `AdminLayout` (standalone preview shell, admin-only)
+3. `/admin/cms/preview/:templateId` is rendered outside `AdminLayout` (standalone preview shell, admin-only)
+4. `/admin/cms/view/:templateId` is rendered outside `AdminLayout` (standalone temporary public view shell)
 
 Back-compat redirects:
 
@@ -107,7 +114,7 @@ Store APIs:
 
 1. CMS template create/update/delete: admin only
 2. CMS template reads: authenticated users allowed (admin/user/viewer)
-3. CMS template public-access (`X-Public-Access`) reads: rejected
+3. CMS template public-access (`X-Public-Access`) reads: allowed for temporary read-only CMS public view routes
 4. CMS template fork endpoint: allowed for authenticated non-viewer users
 5. Website template behavior remains unchanged (website filters/routes still website-only)
 6. List endpoint supports mode filtering: `filter=editorMode:cms` or `filter=editorMode:website`
@@ -193,10 +200,10 @@ When writing CMS prompts, include:
 
 1. CMS template management lives at `/admin/cms`
 2. CMS editor is template-bound at `/admin/cms/editor/:templateId` and rendered outside `AdminLayout`
-3. CMS admin view route exists at `/admin/cms/view/:templateId`
+3. CMS admin preview/view routes exist at `/admin/cms/preview/:templateId` and `/admin/cms/view/:templateId`
 4. Template schema includes `editorMode` and `cmsState`
-5. Backend enforces admin-only CMS template mutations, blocks CMS public access, and allows authenticated user CMS forks
-6. User CMS project editor/view routes exist at `/project/cms/:slug` and `/project/cms/view/:slug`
+5. Backend enforces admin-only CMS template mutations, allows temporary CMS public access reads, and allows authenticated user CMS forks
+6. User CMS project editor/preview/view routes exist at `/project/cms/:slug`, `/project/cms/preview/:slug`, and `/project/cms/view/:slug`
 7. CMS projects can be renamed inline in `/project/cms/:slug`; slug auto-sync + route replacement is applied after rename
 8. User project list opens CMS projects directly at `/project/cms/:slug`
 9. Website template flows are filtered away from CMS templates by default
