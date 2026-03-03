@@ -5,6 +5,7 @@
   "targets": {
     "appsite-builder": {
       "hosting": {
+        "main-app": ["appsite-builder"],
         "cms-app": ["appsite-builder-cms"]
       }
     }
